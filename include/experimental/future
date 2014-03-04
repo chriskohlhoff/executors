@@ -1,0 +1,63 @@
+//
+// future
+// ~~~~~~
+// Extends the standard future header with the special value use_future.
+//
+// Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
+#ifndef EXECUTORS_EXPERIMENTAL_FUTURE_HEADER
+#define EXECUTORS_EXPERIMENTAL_FUTURE_HEADER
+
+#include <experimental/type_traits>
+#include <future>
+#include <new>
+
+namespace std {
+namespace experimental {
+
+// The class template use_future_t defines a set of completion token types for
+// use with asynchronous operations.
+
+template <class _Alloc = allocator<void>>
+class use_future_t
+{
+public:
+  typedef _Alloc allocator_type;
+
+  constexpr use_future_t() noexcept
+  {
+  }
+
+  explicit use_future_t(const _Alloc& __a) noexcept
+    : _M_allocator(__a)
+  {
+  }
+
+  template <class _OtherAllocator>
+  use_future_t<_OtherAllocator> operator[](
+    const _OtherAllocator& __a) const noexcept
+  {
+    return use_future_t<_OtherAllocator>(__a);
+  }
+
+  allocator_type get_allocator() const noexcept
+  {
+    return _M_allocator;
+  }
+
+private:
+  allocator_type _M_allocator;
+};
+
+constexpr use_future_t<> use_future;
+
+} // namespace experimental
+} // namespace std
+
+#include <experimental/bits/promise_handler.h>
+
+#endif

@@ -1,0 +1,12 @@
+*.o
+*.log
+*.trs
+void
+ec
+ep
+int
+ec_int
+ep_int
+int_int
+ec_int_int
+ep_int_int
