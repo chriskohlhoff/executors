@@ -13,16 +13,54 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_SYSTEM_EXECUTOR_H
 
 #include <cassert>
+#include <cstddef>
 #include <type_traits>
+#include <thread>
+#include <vector>
+#include <experimental/bits/scheduler.h>
 
 namespace std {
 namespace experimental {
 
+class __system_executor_impl
+{
+public:
+  __system_executor_impl()
+  {
+    _M_scheduler._Work_started();
+    std::size_t __n = thread::hardware_concurrency();
+    for (size_t __i = 0; __i < __n; ++__i)
+      _M_threads.emplace_back([this](){ _M_scheduler._Run(); });
+  }
+
+  ~__system_executor_impl()
+  {
+    _M_scheduler._Work_finished();
+    for (auto& __t: _M_threads)
+      __t.join();
+  }
+
+  static __system_executor_impl& _Instance()
+  {
+    static __system_executor_impl __e;
+    return __e;
+  }
+
+  template <class _F> void _Post(_F&& __f)
+  {
+    _M_scheduler._Post(forward<_F>(__f));
+  }
+
+private:
+  __scheduler _M_scheduler;
+  vector<thread> _M_threads;
+};
+
+
 template <class _Func>
 inline void system_executor::post(_Func&& __f)
 {
-  assert(0 && "system_executor::post() not yet implemented");
-  (void)__f;
+  __system_executor_impl::_Instance()._Post(forward<_Func>(__f));
 }
 
 template <class _Func>

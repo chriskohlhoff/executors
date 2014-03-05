@@ -2,8 +2,8 @@
 #include <experimental/future>
 #include <cassert>
 
-int function_count = 0;
-int handler_count = 0;
+std::atomic<int> function_count(0);
+std::atomic<int> handler_count(0);
 
 int function1()
 {
@@ -130,6 +130,7 @@ int main()
   std::future<int> fut7 = std::experimental::post(std::move(f3), std::experimental::use_future);
   fut7.get();
 
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   assert(function_count == 63);
   assert(handler_count == 49);
 }
