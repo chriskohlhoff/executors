@@ -24,6 +24,11 @@ struct function3
   void operator()() { ++function_count; }
 };
 
+void function_throw()
+{
+  throw std::runtime_error("oops");
+}
+
 void handler1()
 {
   ++handler_count;
@@ -132,4 +137,15 @@ int main()
 
   assert(function_count == 63);
   assert(handler_count == 49);
+
+  std::future<void> fut8 = std::experimental::dispatch(function_throw, std::experimental::use_future);
+  try
+  {
+    fut8.get();
+    assert(0);
+  }
+  catch (std::exception& e)
+  {
+    assert(e.what() == std::string("oops"));
+  }
 }

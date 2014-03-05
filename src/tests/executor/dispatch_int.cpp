@@ -1,6 +1,7 @@
 #include <experimental/executor>
 #include <experimental/future>
 #include <cassert>
+#include <stdexcept>
 
 int function_count = 0;
 int handler_count = 0;
@@ -23,6 +24,11 @@ struct function3
   function3(function3&&) {}
   int operator()() { return ++function_count; }
 };
+
+int function_throw()
+{
+  throw std::runtime_error("oops");
+}
 
 void handler1(int)
 {
@@ -132,4 +138,15 @@ int main()
 
   assert(function_count == 63);
   assert(handler_count == 49);
+
+  std::future<int> fut8 = std::experimental::dispatch(function_throw, std::experimental::use_future);
+  try
+  {
+    fut8.get();
+    assert(0);
+  }
+  catch (std::exception& e)
+  {
+    assert(e.what() == std::string("oops"));
+  }
 }

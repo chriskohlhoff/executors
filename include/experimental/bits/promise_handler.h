@@ -13,9 +13,11 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_PROMISE_HANDLER_H
 
 #include <exception>
+#include <memory>
 #include <system_error>
 #include <tuple>
 #include <utility>
+#include <experimental/executor>
 
 namespace std {
 namespace experimental {
@@ -58,67 +60,123 @@ struct __value_pack<>
 template <class... _Values>
 struct __promise_handler
 {
-  promise<typename __value_pack<_Values...>::_Type> _M_promise;
+  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  shared_ptr<_Promise> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
-    : _M_promise(allocator_arg, __u.get_allocator()) {}
+    : _M_promise(make_shared<_Promise>(allocator_arg, __u.get_allocator())) {}
 
   template <class... _Args>
   void operator()(_Args&&... __args)
   {
-    __value_pack<_Values...>::_Apply(_M_promise, forward<_Args>(__args)...);
+    __value_pack<_Values...>::_Apply(*_M_promise, forward<_Args>(__args)...);
   }
 };
 
 template <class... _Values>
 struct __promise_handler<error_code, _Values...>
 {
-  promise<typename __value_pack<_Values...>::_Type> _M_promise;
+  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  shared_ptr<_Promise> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
-    : _M_promise(allocator_arg, __u.get_allocator()) {}
+    : _M_promise(make_shared<_Promise>(allocator_arg, __u.get_allocator())) {}
 
   template <class... _Args>
   void operator()(const error_code& __e, _Args&&... __args)
   {
     if (__e)
-      _M_promise.set_exception(make_exception_ptr(system_error(__e)));
+      _M_promise->set_exception(make_exception_ptr(system_error(__e)));
     else
-      __value_pack<_Values...>::_Apply(_M_promise, forward<_Args>(__args)...);
+      __value_pack<_Values...>::_Apply(*_M_promise, forward<_Args>(__args)...);
   }
 };
 
 template <class... _Values>
 struct __promise_handler<exception_ptr, _Values...>
 {
-  promise<typename __value_pack<_Values...>::_Type> _M_promise;
+  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  shared_ptr<_Promise> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
-    : _M_promise(allocator_arg, __u.get_allocator()) {}
+    : _M_promise(make_shared<_Promise>(allocator_arg, __u.get_allocator())) {}
 
   template <class... _Args>
   void operator()(const exception_ptr& __e, _Args&&... __args)
   {
     if (__e)
-      _M_promise.set_exception(__e);
+      _M_promise->set_exception(__e);
     else
-      __value_pack<_Values...>::_Apply(_M_promise, forward<_Args>(__args)...);
+      __value_pack<_Values...>::_Apply(*_M_promise, forward<_Args>(__args)...);
   }
 };
+
+template <class _Func, class... _Values>
+struct __promise_invoker
+{
+  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  shared_ptr<_Promise> _M_promise;
+  _Func _M_func;
+
+  template <class _F>
+  __promise_invoker(const shared_ptr<_Promise>& __p, _F&& __f)
+    : _M_promise(__p), _M_func(forward<_F>(__f)) {}
+
+  void operator()()
+  {
+    try
+    {
+      _M_func();
+    }
+    catch (...)
+    {
+      _M_promise->set_exception(current_exception());
+    }
+  }
+};
+
+template <class... _Values>
+struct __promise_executor
+{
+  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  shared_ptr<_Promise> _M_promise;
+
+  struct work {};
+  work make_work() { return work{}; }
+
+  template <class _F> void post(_F&& __f)
+  {
+    typedef typename decay<_F>::type _Func;
+    system_executor().post(
+      __promise_invoker<_Func, _Values...>(_M_promise, forward<_F>(__f)));
+  }
+
+  template <class _F> void dispatch(_F&& __f)
+  {
+    typedef typename decay<_F>::type _Func;
+    __promise_invoker<_Func, _Values...>(_M_promise, forward<_F>(__f))();
+  }
+};
+
+template <class... _Values>
+inline auto get_executor(__promise_handler<_Values...>& __h)
+{
+  return __promise_executor<_Values...>{__h._M_promise};
+}
 
 template <class... _Values>
 class async_result<__promise_handler<_Values...>>
 {
 public:
   typedef __promise_handler<_Values...> _Handler;
-  typedef decltype(declval<_Handler>()._M_promise) _Promise;
+  typedef decltype(*declval<_Handler>()._M_promise) _Promise;
   typedef decltype(declval<_Promise>().get_future()) type;
 
   async_result(_Handler& __h)
-    : _M_future(__h._M_promise.get_future()) {}
+    : _M_future(__h._M_promise->get_future()) {}
   async_result(const async_result&) = delete;
   async_result& operator=(const async_result&) = delete;
 
