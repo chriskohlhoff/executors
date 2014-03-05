@@ -51,4 +51,5 @@ AC_OUTPUT([
   include/Makefile
   src/Makefile
   src/tests/Makefile
+  src/tests/executor/Makefile
   src/tests/traits/Makefile])

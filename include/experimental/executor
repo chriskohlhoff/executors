@@ -1,0 +1,131 @@
+//
+// executor
+// ~~~~~~~~
+// Polymorphic executor wrapper and generic executor utility functions.
+//
+// Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
+#ifndef EXECUTORS_EXPERIMENTAL_EXECUTOR_HEADER
+#define EXECUTORS_EXPERIMENTAL_EXECUTOR_HEADER
+
+#include <experimental/type_traits>
+#include <scoped_allocator>
+#include <typeinfo>
+#include <utility>
+
+namespace std {
+namespace experimental {
+
+class __executor_impl_base;
+template <class> class __executor_impl;
+class __work_impl_base;
+template <class> class __work_impl;
+
+// Polymorphic executor wrapper.
+
+class executor
+{
+public:
+  class work
+  {
+  public:
+    work(const work& __w);
+    work& operator=(const work& __w);
+    ~work();
+
+  private:
+    friend class executor;
+    __work_impl_base* _M_impl;
+    explicit work(__work_impl_base* __i) : _M_impl(__i) {}
+  };
+
+  // construct/copy/destroy:
+
+  template <class _Executor> executor(_Executor __e);
+  template <class _Executor, class _Alloc>
+    executor(allocator_arg_t, const _Alloc& __a, _Executor __e);
+  template <class _Executor> executor(reference_wrapper<_Executor> __e);
+  template <class _Executor, class _Alloc>
+    executor(allocator_arg_t, const _Alloc& __a, reference_wrapper<_Executor> __e);
+  executor(const executor& __e);
+
+  executor& operator=(const executor& __e);
+  template <class _Executor> executor& operator=(_Executor&& __e);
+  template <class _Executor> executor& operator=(reference_wrapper<_Executor> __e);
+
+  ~executor();
+
+  // executor operations:
+
+  template <class _Func> void post(_Func&& __f);
+  template <class _Func> void dispatch(_Func&& __f);
+  work make_work();
+
+  // executor target access:
+
+  const type_info& target_type() const noexcept;
+  template <class _Executor> _Executor* target() noexcept;
+  template <class _Executor> const _Executor* target() const noexcept;
+
+private:
+  __executor_impl_base* _M_impl;
+};
+
+// The system executor represents an execution context where functions are
+// permitted to run on arbitrary threads. The post() function schedules the
+// function to run on an unspecified system thread pool, and dispatch() invokes
+// the function immediately.
+
+class system_executor
+{
+public:
+  class work {};
+
+  // executor operations:
+
+  template <class _Func> void post(_Func&& __f);
+  template <class _Func> void dispatch(_Func&& __f);
+  work make_work();
+};
+
+// Obtain associated executor.
+
+template <class _Func> system_executor get_executor(_Func&&);
+
+// Schedule a function to run later.
+
+template <class _Func> void post(_Func&& __f);
+template <class _Func, class _CompletionToken>
+  auto post(_Func&& __f, _CompletionToken&& __token);
+template <class _Func, class _Executor, class _CompletionToken>
+  auto post(_Func&& __f, _Executor&& __e, _CompletionToken&& __token);
+
+// Schedule a function to run now if possible, later otherwise.
+
+template <class _Func> void dispatch(_Func&& __f);
+template <class _Func, class _CompletionToken>
+  auto dispatch(_Func&& __f, _CompletionToken&& __token);
+template <class _Func, class _Executor, class _CompletionToken>
+  auto dispatch(_Func&& __f, _Executor&& __e, _CompletionToken&& __token);
+
+} // namespace experimental
+
+template<class _Alloc>
+  struct uses_allocator<std::experimental::executor, _Alloc>
+    : true_type {};
+
+} // namespace std
+
+#include <experimental/bits/work_impl.h>
+#include <experimental/bits/executor_impl.h>
+#include <experimental/bits/executor.h>
+#include <experimental/bits/system_executor.h>
+#include <experimental/bits/get_executor.h>
+#include <experimental/bits/post.h>
+#include <experimental/bits/dispatch.h>
+
+#endif
