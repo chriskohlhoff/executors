@@ -31,3 +31,6 @@ test-driver
 *.bz2
 *.zip
 .deps
+
+# Debugging files
+*.dSYM
