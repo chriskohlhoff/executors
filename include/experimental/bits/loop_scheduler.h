@@ -17,66 +17,6 @@
 namespace std {
 namespace experimental {
 
-inline loop_scheduler::executor::work::work(__scheduler* __s)
-  : _M_scheduler(__s)
-{
-  _M_scheduler->_Work_started();
-}
-
-inline loop_scheduler::executor::work::work(
-  const loop_scheduler::executor::work& __w)
-    : _M_scheduler(__w._M_scheduler)
-{
-  _M_scheduler->_Work_started();
-}
-
-inline loop_scheduler::executor::work&
-  loop_scheduler::executor::work::operator=(const work& __w)
-{
-  __scheduler* __tmp = _M_scheduler;
-  _M_scheduler = __w._M_scheduler;
-  _M_scheduler->_Work_started();
-  __tmp->_Work_finished();
-  return *this;
-}
-
-inline loop_scheduler::executor::work::~work()
-{
-  _M_scheduler->_Work_finished();
-}
-
-inline loop_scheduler::executor::executor(
-  const loop_scheduler::executor& __e)
-    : _M_scheduler(__e._M_scheduler)
-{
-}
-
-inline loop_scheduler::executor&
-  loop_scheduler::executor::operator=(const executor& __e)
-{
-  _M_scheduler = __e._M_scheduler;
-  return *this;
-}
-
-inline loop_scheduler::executor::~executor()
-{
-}
-
-template <class _Func> void loop_scheduler::executor::post(_Func&& __f)
-{
-  _M_scheduler->_Post(forward<_Func>(__f));
-}
-
-template <class _Func> void loop_scheduler::executor::dispatch(_Func&& __f)
-{
-  _M_scheduler->_Dispatch(forward<_Func>(__f));
-}
-
-inline loop_scheduler::executor::work loop_scheduler::executor::make_work()
-{
-  return work(_M_scheduler);
-}
-
 inline loop_scheduler::loop_scheduler()
 {
 }
@@ -144,6 +84,66 @@ inline void loop_scheduler::reset()
 inline loop_scheduler::executor loop_scheduler::get_executor()
 {
   return executor(&_M_scheduler);
+}
+
+inline loop_scheduler::executor::executor(
+  const loop_scheduler::executor& __e)
+    : _M_scheduler(__e._M_scheduler)
+{
+}
+
+inline loop_scheduler::executor&
+  loop_scheduler::executor::operator=(const executor& __e)
+{
+  _M_scheduler = __e._M_scheduler;
+  return *this;
+}
+
+inline loop_scheduler::executor::~executor()
+{
+}
+
+template <class _Func> void loop_scheduler::executor::post(_Func&& __f)
+{
+  _M_scheduler->_Post(forward<_Func>(__f));
+}
+
+template <class _Func> void loop_scheduler::executor::dispatch(_Func&& __f)
+{
+  _M_scheduler->_Dispatch(forward<_Func>(__f));
+}
+
+inline loop_scheduler::executor::work loop_scheduler::executor::make_work()
+{
+  return work(_M_scheduler);
+}
+
+inline loop_scheduler::executor::work::work(__scheduler* __s)
+  : _M_scheduler(__s)
+{
+  _M_scheduler->_Work_started();
+}
+
+inline loop_scheduler::executor::work::work(
+  const loop_scheduler::executor::work& __w)
+    : _M_scheduler(__w._M_scheduler)
+{
+  _M_scheduler->_Work_started();
+}
+
+inline loop_scheduler::executor::work&
+  loop_scheduler::executor::work::operator=(const work& __w)
+{
+  __scheduler* __tmp = _M_scheduler;
+  _M_scheduler = __w._M_scheduler;
+  _M_scheduler->_Work_started();
+  __tmp->_Work_finished();
+  return *this;
+}
+
+inline loop_scheduler::executor::work::~work()
+{
+  _M_scheduler->_Work_finished();
 }
 
 } // namespace experimental

@@ -32,39 +32,7 @@ class bad_executor;
 class executor
 {
 public:
-  class work
-  {
-  public:
-    // construct / copy / destroy:
-
-    work() noexcept;
-    work(nullptr_t) noexcept;
-    work(const work& __w);
-    work(work&& __w);
-    template <class _Work> work(_Work __w);
-    template <class _Alloc> work(allocator_arg_t, const _Alloc&) noexcept;
-    template <class _Alloc> work(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
-    template <class _Alloc> work(allocator_arg_t, const _Alloc&, const work& __w);
-    template <class _Alloc> work(allocator_arg_t, const _Alloc&, work&& __w);
-    template <class _Work, class _Alloc>
-      work(allocator_arg_t, const _Alloc& __a, _Work __w);
-
-    work& operator=(const work& __w);
-    work& operator=(work&& __w);
-    work& operator=(nullptr_t);
-    template <class _Work> work& operator=(_Work&& __w);
-
-    ~work();
-
-    // work capacity:
-
-    explicit operator bool() const noexcept;
-
-  private:
-    friend class executor;
-    __work_impl_base* _M_impl;
-    explicit work(__work_impl_base* __i) : _M_impl(__i) {}
-  };
+  class work;
 
   // construct / copy / destroy:
 
@@ -111,15 +79,49 @@ private:
   __executor_impl_base* _M_impl;
 };
 
-bool operator==(const executor::work& __w, nullptr_t) noexcept;
-bool operator==(nullptr_t, const executor::work& __w) noexcept;
-bool operator!=(const executor::work& __w, nullptr_t) noexcept;
-bool operator!=(nullptr_t, const executor::work& __w) noexcept;
-
 bool operator==(const executor& __e, nullptr_t) noexcept;
 bool operator==(nullptr_t, const executor& __e) noexcept;
 bool operator!=(const executor& __e, nullptr_t) noexcept;
 bool operator!=(nullptr_t, const executor& __e) noexcept;
+
+class executor::work
+{
+public:
+  // construct / copy / destroy:
+
+  work() noexcept;
+  work(nullptr_t) noexcept;
+  work(const work& __w);
+  work(work&& __w);
+  template <class _Work> work(_Work __w);
+  template <class _Alloc> work(allocator_arg_t, const _Alloc&) noexcept;
+  template <class _Alloc> work(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
+  template <class _Alloc> work(allocator_arg_t, const _Alloc&, const work& __w);
+  template <class _Alloc> work(allocator_arg_t, const _Alloc&, work&& __w);
+  template <class _Work, class _Alloc>
+    work(allocator_arg_t, const _Alloc& __a, _Work __w);
+
+  work& operator=(const work& __w);
+  work& operator=(work&& __w);
+  work& operator=(nullptr_t);
+  template <class _Work> work& operator=(_Work&& __w);
+
+  ~work();
+
+  // work capacity:
+
+  explicit operator bool() const noexcept;
+
+private:
+  friend class executor;
+  __work_impl_base* _M_impl;
+  explicit work(__work_impl_base* __i) : _M_impl(__i) {}
+};
+
+bool operator==(const executor::work& __w, nullptr_t) noexcept;
+bool operator==(nullptr_t, const executor::work& __w) noexcept;
+bool operator!=(const executor::work& __w, nullptr_t) noexcept;
+bool operator!=(nullptr_t, const executor::work& __w) noexcept;
 
 // The system executor represents an execution context where functions are
 // permitted to run on arbitrary threads. The post() function schedules the

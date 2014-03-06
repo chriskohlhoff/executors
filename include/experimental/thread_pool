@@ -25,39 +25,7 @@ namespace experimental {
 class thread_pool
 {
 public:
-  class executor
-  {
-  public:
-    class work
-    {
-    public:
-      work(const work& __w);
-      work& operator=(const work& __w);
-      ~work();
-
-    private:
-      friend class executor;
-      __scheduler* _M_scheduler;
-      explicit work(__scheduler* __s);
-    };
-
-    // construct / copy / destroy:
-
-    executor(const executor& __e);
-    executor& operator=(const executor& __e);
-    ~executor();
-
-    // executor operations:
-
-    template <class _Func> void post(_Func&& __f);
-    template <class _Func> void dispatch(_Func&& __f);
-    work make_work();
-
-  private:
-    friend class thread_pool;
-    explicit executor(__scheduler* __s) : _M_scheduler(__s) {}
-    __scheduler* _M_scheduler;
-  };
+  class executor;
 
   // construct / copy / destroy:
 
@@ -74,6 +42,42 @@ public:
 private:
   __scheduler _M_scheduler;
   vector<thread> _M_threads;
+};
+
+class thread_pool::executor
+{
+public:
+  class work;
+
+  // construct / copy / destroy:
+
+  executor(const executor& __e);
+  executor& operator=(const executor& __e);
+  ~executor();
+
+  // executor operations:
+
+  template <class _Func> void post(_Func&& __f);
+  template <class _Func> void dispatch(_Func&& __f);
+  work make_work();
+
+private:
+  friend class thread_pool;
+  explicit executor(__scheduler* __s) : _M_scheduler(__s) {}
+  __scheduler* _M_scheduler;
+};
+
+class thread_pool::executor::work
+{
+public:
+  work(const work& __w);
+  work& operator=(const work& __w);
+  ~work();
+
+private:
+  friend class executor;
+  __scheduler* _M_scheduler;
+  explicit work(__scheduler* __s);
 };
 
 } // namespace experimental
