@@ -1,8 +1,9 @@
 nobase_include_HEADERS = \
 	experimental/executor \
+	experimental/future \
 	experimental/loop_scheduler \
 	experimental/type_traits \
-	experimental/future \
+	experimental/thread_pool \
 	experimental/bits/call_stack.h \
 	experimental/bits/dispatch.h \
 	experimental/bits/executor.h \
@@ -16,6 +17,7 @@ nobase_include_HEADERS = \
 	experimental/bits/scheduler.h \
 	experimental/bits/signature_type.h \
 	experimental/bits/system_executor.h \
+	experimental/bits/thread_pool.h \
 	experimental/bits/work_impl.h
 
 MAINTAINERCLEANFILES = \
