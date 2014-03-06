@@ -15,6 +15,18 @@
 namespace std {
 namespace experimental {
 
+template <class _Work>
+executor::work::work(_Work __w)
+  : _M_impl(__work_impl<_Work>::_Create(__w))
+{
+}
+
+template <class _Work, class _Alloc>
+executor::work::work(allocator_arg_t, const _Alloc& __a, _Work __w)
+  : _M_impl(__work_impl<_Work>::_Create(__w))
+{
+}
+      
 inline executor::work::work(const work& __w)
   : _M_impl(__w._M_impl->_Clone())
 {

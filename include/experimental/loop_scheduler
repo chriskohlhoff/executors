@@ -1,0 +1,95 @@
+//
+// loop_scheduler
+// ~~~~~~~~~~~~~~
+// Simple thread-safe scheduler.
+//
+// Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
+#ifndef EXECUTORS_EXPERIMENTAL_LOOP_SCHEDULER_HEADER
+#define EXECUTORS_EXPERIMENTAL_LOOP_SCHEDULER_HEADER
+
+#include <chrono>
+#include <experimental/executor>
+#include <experimental/bits/scheduler.h>
+
+namespace std {
+namespace experimental {
+
+// Loop scheduler.
+
+class loop_scheduler
+{
+public:
+  class executor
+  {
+  public:
+    class work
+    {
+    public:
+      work(const work& __w);
+      work& operator=(const work& __w);
+      ~work();
+
+    private:
+      friend class executor;
+      __scheduler* _M_scheduler;
+      explicit work(__scheduler* __s);
+    };
+
+    // construct / copy / destroy:
+
+    executor(const executor& __e);
+    executor& operator=(const executor& __e);
+    ~executor();
+
+    // executor operations:
+
+    template <class _Func> void post(_Func&& __f);
+    template <class _Func> void dispatch(_Func&& __f);
+    work make_work();
+
+  private:
+    friend class loop_scheduler;
+    explicit executor(__scheduler* __s) : _M_scheduler(__s) {}
+    __scheduler* _M_scheduler;
+  };
+
+  // construct / copy / destroy:
+
+  loop_scheduler();
+  explicit loop_scheduler(size_t __concurrency_hint);
+  loop_scheduler(const loop_scheduler&) = delete;
+  loop_scheduler& operator=(const loop_scheduler&) = delete;
+  ~loop_scheduler();
+
+  // scheduler operations:
+
+  size_t run();
+  size_t run_one();
+  template <class _Rep, class _Period>
+    size_t run_for(const chrono::duration<_Rep, _Period>& __rel_time);
+  template <class _Clock, class _Duration>
+    size_t run_until(const chrono::time_point<_Clock, _Duration>& __abs_time);
+  size_t poll();
+  size_t poll_one();
+
+  void stop();
+  bool stopped() const;
+  void reset();
+
+  executor get_executor();
+
+private:
+  __scheduler _M_scheduler;
+};
+
+} // namespace experimental
+} // namespace std
+
+#include <experimental/bits/loop_scheduler.h>
+
+#endif

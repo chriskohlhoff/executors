@@ -62,6 +62,11 @@ public:
     return &__w;
   }
 
+  static __work_impl_base* _Create(system_executor::work)
+  {
+    return _Create();
+  }
+
   virtual __work_impl_base* _Clone() const
   {
     return const_cast<__work_impl*>(this);

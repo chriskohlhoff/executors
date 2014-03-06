@@ -33,6 +33,9 @@ public:
   class work
   {
   public:
+    template <class _Work> work(_Work __w);
+    template <class _Work, class _Alloc>
+      work(allocator_arg_t, const _Alloc& __a, _Work __w);
     work(const work& __w);
     work& operator=(const work& __w);
     ~work();
@@ -113,6 +116,10 @@ template <class _Func, class _Executor, class _CompletionToken>
   auto dispatch(_Func&& __f, _Executor&& __e, _CompletionToken&& __token);
 
 } // namespace experimental
+
+template<class _Alloc>
+  struct uses_allocator<std::experimental::executor::work, _Alloc>
+    : true_type {};
 
 template<class _Alloc>
   struct uses_allocator<std::experimental::executor, _Alloc>
