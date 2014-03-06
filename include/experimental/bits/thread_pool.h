@@ -1,6 +1,6 @@
 //
 // thread_pool.h
-// ~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~
 // Simple thread pool.
 //
 // Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
