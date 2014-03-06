@@ -1,11 +1,12 @@
 #include <experimental/executor>
 #include <experimental/future>
 #include <experimental/thread_pool>
+#include <atomic>
 #include <cassert>
 #include <memory>
 
-int function_count = 0;
-int handler_count = 0;
+std::atomic<int> function_count(0);
+std::atomic<int> handler_count(0);
 
 int function1()
 {

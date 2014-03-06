@@ -1,5 +1,6 @@
 #include <experimental/executor>
 #include <experimental/future>
+#include <atomic>
 #include <cassert>
 
 std::atomic<int> function_count(0);
