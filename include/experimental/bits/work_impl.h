@@ -81,6 +81,30 @@ private:
   ~__work_impl() {}
 };
 
+class __bad_work_impl
+  : public __work_impl_base
+{
+public:
+  static __work_impl_base* _Create()
+  {
+    static __bad_work_impl __w;
+    return &__w;
+  }
+
+  virtual __work_impl_base* _Clone() const
+  {
+    return const_cast<__bad_work_impl*>(this);
+  }
+
+  virtual void _Destroy()
+  {
+  }
+
+private:
+  __bad_work_impl() {}
+  ~__bad_work_impl() {}
+};
+
 } // namespace experimental
 } // namespace std
 

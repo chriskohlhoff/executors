@@ -130,7 +130,13 @@ int main()
   std::future<int> fut7 = std::experimental::dispatch(std::move(f3), ex, std::experimental::use_future);
   fut7.get();
 
-  w = std::experimental::system_executor().make_work();
+  w = nullptr;
+  assert(!w);
+  assert(w == nullptr);
+  assert(nullptr == w);
+  assert(!(w != nullptr));
+  assert(!(nullptr != w));
+
   t.join();
 
   assert(function_count == 56);

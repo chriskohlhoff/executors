@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_EXECUTOR_IMPL_H
 #define EXECUTORS_EXPERIMENTAL_BITS_EXECUTOR_IMPL_H
 
+#include <exception>
 #include <functional>
 
 namespace std {
@@ -199,6 +200,73 @@ private:
   explicit __executor_impl(_Executor* __e) : _M_executor(__e) {}
   ~__executor_impl();
   _Executor* _M_executor;
+};
+
+class bad_executor
+  : public std::exception
+{
+public:
+  bad_executor() noexcept {}
+  ~bad_executor() noexcept {}
+
+  virtual const char* what() const noexcept
+  {
+    return "bad executor";
+  }
+};
+
+class __bad_executor_impl
+  : public __executor_impl_base
+{
+public:
+  static __executor_impl_base* _Create()
+  {
+    static __bad_executor_impl __e;
+    return &__e;
+  }
+
+  virtual __executor_impl_base* _Clone() const
+  {
+    return const_cast<__bad_executor_impl*>(this);
+  }
+
+  virtual void _Destroy()
+  {
+  }
+
+  virtual void _Post(function<void()>&&)
+  {
+    throw bad_executor();
+  }
+
+  virtual void _Dispatch(function<void()>&&)
+  {
+    throw bad_executor();
+  }
+
+  virtual __work_impl_base* _Make_work()
+  {
+    return __bad_work_impl::_Create();
+  }
+
+  virtual const type_info& _Target_type()
+  {
+    return typeid(void);
+  }
+
+  virtual void* _Target()
+  {
+    return nullptr;
+  }
+
+  virtual const void* _Target() const
+  {
+    return nullptr;
+  }
+
+private:
+  __bad_executor_impl() {}
+  ~__bad_executor_impl() {}
 };
 
 } // namespace experimental

@@ -25,6 +25,8 @@ template <class> class __executor_impl;
 class __work_impl_base;
 template <class> class __work_impl;
 
+class bad_executor;
+
 // Polymorphic executor wrapper.
 
 class executor
@@ -33,12 +35,30 @@ public:
   class work
   {
   public:
+    // construct / copy / destroy:
+
+    work() noexcept;
+    work(nullptr_t) noexcept;
+    work(const work& __w);
+    work(work&& __w);
     template <class _Work> work(_Work __w);
+    template <class _Alloc> work(allocator_arg_t, const _Alloc&) noexcept;
+    template <class _Alloc> work(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
+    template <class _Alloc> work(allocator_arg_t, const _Alloc&, const work& __w);
+    template <class _Alloc> work(allocator_arg_t, const _Alloc&, work&& __w);
     template <class _Work, class _Alloc>
       work(allocator_arg_t, const _Alloc& __a, _Work __w);
-    work(const work& __w);
+
     work& operator=(const work& __w);
+    work& operator=(work&& __w);
+    work& operator=(nullptr_t);
+    template <class _Work> work& operator=(_Work&& __w);
+
     ~work();
+
+    // work capacity:
+
+    explicit operator bool() const noexcept;
 
   private:
     friend class executor;
@@ -46,17 +66,26 @@ public:
     explicit work(__work_impl_base* __i) : _M_impl(__i) {}
   };
 
-  // construct/copy/destroy:
+  // construct / copy / destroy:
 
+  executor() noexcept;
+  executor(nullptr_t) noexcept;
+  executor(const executor& __e);
+  executor(executor&& __e);
   template <class _Executor> executor(_Executor __e);
+  template <class _Executor> executor(reference_wrapper<_Executor> __e);
+  template <class _Alloc> executor(allocator_arg_t, const _Alloc&) noexcept;
+  template <class _Alloc> executor(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
+  template <class _Alloc> executor(allocator_arg_t, const _Alloc&, const executor& __e);
+  template <class _Alloc> executor(allocator_arg_t, const _Alloc&, executor&& __e);
   template <class _Executor, class _Alloc>
     executor(allocator_arg_t, const _Alloc& __a, _Executor __e);
-  template <class _Executor> executor(reference_wrapper<_Executor> __e);
   template <class _Executor, class _Alloc>
     executor(allocator_arg_t, const _Alloc& __a, reference_wrapper<_Executor> __e);
-  executor(const executor& __e);
 
   executor& operator=(const executor& __e);
+  executor& operator=(executor&& __e);
+  executor& operator=(nullptr_t);
   template <class _Executor> executor& operator=(_Executor&& __e);
   template <class _Executor> executor& operator=(reference_wrapper<_Executor> __e);
 
@@ -68,6 +97,10 @@ public:
   template <class _Func> void dispatch(_Func&& __f);
   work make_work();
 
+  // executor capacity:
+
+  explicit operator bool() const noexcept;
+
   // executor target access:
 
   const type_info& target_type() const noexcept;
@@ -77,6 +110,16 @@ public:
 private:
   __executor_impl_base* _M_impl;
 };
+
+bool operator==(const executor::work& __w, nullptr_t) noexcept;
+bool operator==(nullptr_t, const executor::work& __w) noexcept;
+bool operator!=(const executor::work& __w, nullptr_t) noexcept;
+bool operator!=(nullptr_t, const executor::work& __w) noexcept;
+
+bool operator==(const executor& __e, nullptr_t) noexcept;
+bool operator==(nullptr_t, const executor& __e) noexcept;
+bool operator!=(const executor& __e, nullptr_t) noexcept;
+bool operator!=(nullptr_t, const executor& __e) noexcept;
 
 // The system executor represents an execution context where functions are
 // permitted to run on arbitrary threads. The post() function schedules the
