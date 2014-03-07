@@ -23,6 +23,8 @@ namespace experimental {
 // Loop scheduler.
 
 class thread_pool
+  : public execution_context,
+    private __scheduler
 {
 public:
   class executor;
@@ -37,7 +39,6 @@ public:
 
 private:
   friend executor get_executor(thread_pool& __p);
-  __scheduler _M_scheduler;
   vector<thread> _M_threads;
 };
 
@@ -57,6 +58,7 @@ public:
   template <class _Func> void post(_Func&& __f);
   template <class _Func> void dispatch(_Func&& __f);
   work make_work();
+  execution_context& context();
 
 private:
   friend class thread_pool;
@@ -65,8 +67,8 @@ private:
   friend executor get_executor(executor&& __e);
   friend executor get_executor(const work& __w);
   friend executor get_executor(work&& __w);
-  explicit executor(__scheduler* __s) : _M_scheduler(__s) {}
-  __scheduler* _M_scheduler;
+  explicit executor(thread_pool* __p) : _M_pool(__p) {}
+  thread_pool* _M_pool;
 };
 
 class thread_pool::executor::work
@@ -80,8 +82,8 @@ private:
   friend class executor;
   friend executor get_executor(const work& __w);
   friend executor get_executor(work&& __w);
-  __scheduler* _M_scheduler;
-  explicit work(__scheduler* __s);
+  thread_pool* _M_pool;
+  explicit work(thread_pool* __p);
 };
 
 thread_pool::executor get_executor(thread_pool& __s);

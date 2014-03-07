@@ -32,12 +32,12 @@ inline loop_scheduler::~loop_scheduler()
 
 inline size_t loop_scheduler::run()
 {
-  return _M_scheduler._Run();
+  return _Run();
 }
 
 inline size_t loop_scheduler::run_one()
 {
-  return _M_scheduler._Run_one();
+  return _Run_one();
 }
 
 template <class _Rep, class _Period>
@@ -58,27 +58,27 @@ size_t loop_scheduler::run_until(
 
 inline size_t loop_scheduler::poll()
 {
-  return _M_scheduler._Poll();
+  return _Poll();
 }
 
 inline size_t loop_scheduler::poll_one()
 {
-  return _M_scheduler._Poll_one();
+  return _Poll_one();
 }
 
 inline void loop_scheduler::stop()
 {
-  _M_scheduler._Stop();
+  _Stop();
 }
 
 inline bool loop_scheduler::stopped() const
 {
-  return _M_scheduler._Stopped();
+  return _Stopped();
 }
 
 inline void loop_scheduler::reset()
 {
-  _M_scheduler._Reset();
+  _Reset();
 }
 
 inline loop_scheduler::executor::executor(
@@ -113,7 +113,12 @@ inline loop_scheduler::executor::work loop_scheduler::executor::make_work()
   return work(_M_scheduler);
 }
 
-inline loop_scheduler::executor::work::work(__scheduler* __s)
+inline execution_context& loop_scheduler::executor::context()
+{
+  return *_M_scheduler;
+}
+
+inline loop_scheduler::executor::work::work(loop_scheduler* __s)
   : _M_scheduler(__s)
 {
   _M_scheduler->_Work_started();
@@ -129,7 +134,7 @@ inline loop_scheduler::executor::work::work(
 inline loop_scheduler::executor::work&
   loop_scheduler::executor::work::operator=(const work& __w)
 {
-  __scheduler* __tmp = _M_scheduler;
+  loop_scheduler* __tmp = _M_scheduler;
   _M_scheduler = __w._M_scheduler;
   _M_scheduler->_Work_started();
   __tmp->_Work_finished();
@@ -143,7 +148,7 @@ inline loop_scheduler::executor::work::~work()
 
 inline loop_scheduler::executor get_executor(loop_scheduler& __s)
 {
-  return loop_scheduler::executor(&__s._M_scheduler);
+  return loop_scheduler::executor(&__s);
 }
 
 inline loop_scheduler::executor get_executor(const loop_scheduler::executor& __e)

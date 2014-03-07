@@ -68,6 +68,7 @@ public:
   virtual void _Post(__function_ptr&& __f) = 0;
   virtual void _Dispatch(__function_ptr&& __f) = 0;
   virtual __work_impl_base* _Make_work() = 0;
+  virtual execution_context& _Context() = 0;
   virtual const type_info& _Target_type() = 0;
   virtual void* _Target() = 0;
   virtual const void* _Target() const = 0;
@@ -139,6 +140,11 @@ public:
     return __work_impl<typename _Executor::work>::_Create(_M_executor.make_work());
   }
 
+  virtual execution_context& _Context()
+  {
+    return _M_executor.context();
+  }
+
   virtual const type_info& _Target_type()
   {
     return typeid(_M_executor);
@@ -194,9 +200,9 @@ public:
 
   virtual __executor_impl_base* _Get_executor() const;
 
-/*private:
+private:
   __work_impl() {}
-  ~__work_impl() {}*/
+  ~__work_impl() {}
 };
 
 template <>
@@ -237,6 +243,11 @@ public:
   virtual __work_impl_base* _Make_work()
   {
     return __work_impl<system_executor::work>::_Create();
+  }
+
+  virtual execution_context& _Context()
+  {
+    return _M_executor.context();
   }
 
   virtual const type_info& _Target_type()
@@ -336,6 +347,11 @@ public:
   virtual __work_impl_base* _Make_work()
   {
     return __bad_work_impl::_Create();
+  }
+
+  virtual execution_context& _Context()
+  {
+    throw bad_executor();
   }
 
   virtual const type_info& _Target_type()
@@ -477,6 +493,11 @@ void executor::dispatch(_Func&& __f)
 inline executor::work executor::make_work()
 {
   return work(_M_impl->_Make_work());
+}
+
+inline execution_context& executor::context()
+{
+  return _M_impl->_Context();
 }
 
 inline executor::operator bool() const noexcept

@@ -25,6 +25,20 @@ template <class> class __executor_impl;
 class __work_impl_base;
 template <class> class __work_impl;
 
+// Execution context.
+
+class execution_context
+{
+public:
+  execution_context();
+  execution_context(const execution_context&) = delete;
+  execution_context& operator=(const execution_context&) = delete;
+  virtual ~execution_context();
+};
+
+void get_executor(execution_context&) = delete;
+void get_executor(const execution_context&) = delete;
+
 // The system executor represents an execution context where functions are
 // permitted to run on arbitrary threads. The post() function schedules the
 // function to run on an unspecified system thread pool, and dispatch() invokes
@@ -40,6 +54,7 @@ public:
   template <class _Func> void post(_Func&& __f);
   template <class _Func> void dispatch(_Func&& __f);
   work make_work();
+  execution_context& context();
 };
 
 // Obtain associated executor.
@@ -85,6 +100,7 @@ public:
   template <class _Func> void post(_Func&& __f);
   template <class _Func> void dispatch(_Func&& __f);
   work make_work();
+  execution_context& context();
 
   // executor capacity:
 
@@ -183,6 +199,7 @@ template<class _Alloc>
 
 } // namespace std
 
+#include <experimental/bits/execution_context.h>
 #include <experimental/bits/system_executor.h>
 #include <experimental/bits/executor.h>
 #include <experimental/bits/post.h>

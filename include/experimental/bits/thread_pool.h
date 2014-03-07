@@ -22,28 +22,28 @@ inline thread_pool::thread_pool()
 
 inline thread_pool::thread_pool(size_t __num_threads)
 {
-  _M_scheduler._Work_started();
+  _Work_started();
   for (size_t __i = 0; __i < __num_threads; ++__i)
-    _M_threads.emplace_back([this](){ _M_scheduler._Run(); });
+    _M_threads.emplace_back([this](){ _Run(); });
 }
 
 inline thread_pool::~thread_pool()
 {
-  _M_scheduler._Work_finished();
+  _Work_finished();
   for (auto& __t: _M_threads)
     __t.join();
 }
 
 inline thread_pool::executor::executor(
   const thread_pool::executor& __e)
-    : _M_scheduler(__e._M_scheduler)
+    : _M_pool(__e._M_pool)
 {
 }
 
 inline thread_pool::executor&
   thread_pool::executor::operator=(const executor& __e)
 {
-  _M_scheduler = __e._M_scheduler;
+  _M_pool = __e._M_pool;
   return *this;
 }
 
@@ -53,50 +53,55 @@ inline thread_pool::executor::~executor()
 
 template <class _Func> void thread_pool::executor::post(_Func&& __f)
 {
-  _M_scheduler->_Post(forward<_Func>(__f));
+  _M_pool->_Post(forward<_Func>(__f));
 }
 
 template <class _Func> void thread_pool::executor::dispatch(_Func&& __f)
 {
-  _M_scheduler->_Dispatch(forward<_Func>(__f));
+  _M_pool->_Dispatch(forward<_Func>(__f));
 }
 
 inline thread_pool::executor::work thread_pool::executor::make_work()
 {
-  return work(_M_scheduler);
+  return work(_M_pool);
 }
 
-inline thread_pool::executor::work::work(__scheduler* __s)
-  : _M_scheduler(__s)
+inline execution_context& thread_pool::executor::context()
 {
-  _M_scheduler->_Work_started();
+  return *_M_pool;
+}
+
+inline thread_pool::executor::work::work(thread_pool* __p)
+  : _M_pool(__p)
+{
+  _M_pool->_Work_started();
 }
 
 inline thread_pool::executor::work::work(
   const thread_pool::executor::work& __w)
-    : _M_scheduler(__w._M_scheduler)
+    : _M_pool(__w._M_pool)
 {
-  _M_scheduler->_Work_started();
+  _M_pool->_Work_started();
 }
 
 inline thread_pool::executor::work&
   thread_pool::executor::work::operator=(const work& __w)
 {
-  __scheduler* __tmp = _M_scheduler;
-  _M_scheduler = __w._M_scheduler;
-  _M_scheduler->_Work_started();
+  thread_pool* __tmp = _M_pool;
+  _M_pool = __w._M_pool;
+  _M_pool->_Work_started();
   __tmp->_Work_finished();
   return *this;
 }
 
 inline thread_pool::executor::work::~work()
 {
-  _M_scheduler->_Work_finished();
+  _M_pool->_Work_finished();
 }
 
-inline thread_pool::executor get_executor(thread_pool& __s)
+inline thread_pool::executor get_executor(thread_pool& __p)
 {
-  return thread_pool::executor(&__s._M_scheduler);
+  return thread_pool::executor(&__p);
 }
 
 inline thread_pool::executor get_executor(const thread_pool::executor& __e)
@@ -111,12 +116,12 @@ inline thread_pool::executor get_executor(thread_pool::executor&& __e)
 
 inline thread_pool::executor get_executor(const thread_pool::executor::work& __w)
 {
-  return thread_pool::executor(__w._M_scheduler);
+  return thread_pool::executor(__w._M_pool);
 }
 
 inline thread_pool::executor get_executor(thread_pool::executor::work&& __w)
 {
-  return thread_pool::executor(__w._M_scheduler);
+  return thread_pool::executor(__w._M_pool);
 }
 
 } // namespace experimental

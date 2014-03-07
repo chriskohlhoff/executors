@@ -59,6 +59,7 @@ int main()
   std::experimental::executor ex = get_executor(scheduler);
 
   ex = std::experimental::system_executor();
+  assert(&ex.context() == &std::experimental::system_executor().context());
 
   std::experimental::dispatch(function1, ex, handler1);
   std::experimental::dispatch(function1, ex, &handler1);

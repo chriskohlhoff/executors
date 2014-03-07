@@ -23,6 +23,7 @@ namespace std {
 namespace experimental {
 
 class __system_executor_impl
+  : public execution_context
 {
 public:
   __system_executor_impl()
@@ -56,7 +57,6 @@ private:
   vector<thread> _M_threads;
 };
 
-
 template <class _Func>
 inline void system_executor::post(_Func&& __f)
 {
@@ -73,6 +73,11 @@ void system_executor::dispatch(_Func&& __f)
 inline system_executor::work system_executor::make_work()
 {
   return work{};
+}
+
+inline execution_context& system_executor::context()
+{
+  return __system_executor_impl::_Instance();
 }
 
 template <class _T>
