@@ -1,4 +1,4 @@
-check_PROGRAMS = \
+noinst_PROGRAMS = \
 	void \
 	ec \
 	ep \

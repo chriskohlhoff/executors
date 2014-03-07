@@ -1,4 +1,4 @@
-check_PROGRAMS = \
+noinst_PROGRAMS = \
 	dispatch_int \
 	dispatch_void \
 	nested_dispatch \

@@ -102,6 +102,7 @@ public:
   template <class _Func> void post(_Func&& __f);
   template <class _Func> void dispatch(_Func&& __f);
   work make_work();
+  template <class _Func> auto wrap(_Func&& __f);
   execution_context& context();
 };
 
@@ -148,6 +149,7 @@ public:
   template <class _Func> void post(_Func&& __f);
   template <class _Func> void dispatch(_Func&& __f);
   work make_work();
+  template <class _Func> auto wrap(_Func&& __f);
   execution_context& context();
 
   // executor capacity:

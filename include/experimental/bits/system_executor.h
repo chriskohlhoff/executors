@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 #include <experimental/bits/scheduler.h>
+#include <experimental/bits/wrapper.h>
 
 namespace std {
 namespace experimental {
@@ -73,6 +74,12 @@ void system_executor::dispatch(_Func&& __f)
 inline system_executor::work system_executor::make_work()
 {
   return work{};
+}
+
+template <class _Func>
+inline auto system_executor::wrap(_Func&& __f)
+{
+  return __wrapper<typename decay<_Func>::type, system_executor>(forward<_Func>(__f), *this);
 }
 
 inline execution_context& system_executor::context()

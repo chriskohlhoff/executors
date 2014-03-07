@@ -12,6 +12,8 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_THREAD_POOL_H
 #define EXECUTORS_EXPERIMENTAL_BITS_THREAD_POOL_H
 
+#include <experimental/bits/wrapper.h>
+
 namespace std {
 namespace experimental {
 
@@ -64,6 +66,14 @@ template <class _Func> void thread_pool::executor::dispatch(_Func&& __f)
 inline thread_pool::executor::work thread_pool::executor::make_work()
 {
   return work(_M_pool);
+}
+
+template <class _Func>
+inline auto thread_pool::executor::wrap(_Func&& __f)
+{
+  return __wrapper<
+    typename decay<_Func>::type, thread_pool::executor>(
+      forward<_Func>(__f), *this);
 }
 
 inline execution_context& thread_pool::executor::context()
