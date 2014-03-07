@@ -25,7 +25,7 @@ struct __invoker
   _Consumer _M_consumer;
   void operator()()
   {
-    get_executor(_M_consumer).dispatch(
+    get_executor(_M_work).dispatch(
       __invoker<_Work, _Result, void, _Consumer>{
         _M_work, _M_producer(), std::move(_M_consumer)});
   }
@@ -40,7 +40,7 @@ struct __invoker<_Work, void, _Producer, _Consumer>
   void operator()()
   {
     _M_producer();
-    get_executor(_M_consumer).dispatch(
+    get_executor(_M_work).dispatch(
       __invoker<_Work, void, void, _Consumer>{
         _M_work, std::move(_M_consumer)});
   }

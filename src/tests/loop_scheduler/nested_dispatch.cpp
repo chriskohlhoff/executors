@@ -5,7 +5,7 @@
 int main()
 {
   std::experimental::loop_scheduler scheduler;
-  auto ex = scheduler.get_executor();
+  auto ex = get_executor(scheduler);
 
   int count = 0;
 

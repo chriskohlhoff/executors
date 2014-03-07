@@ -56,7 +56,7 @@ int main()
   handler3 h3;
 
   std::experimental::loop_scheduler scheduler;
-  auto ex = scheduler.get_executor();
+  auto ex = get_executor(scheduler);
   std::experimental::executor::work w = ex.make_work();
   std::thread t([&](){ scheduler.run(); });
 

@@ -81,9 +81,9 @@ inline void loop_scheduler::reset()
   _M_scheduler._Reset();
 }
 
-inline loop_scheduler::executor loop_scheduler::get_executor()
+inline loop_scheduler::executor get_executor(loop_scheduler& __s)
 {
-  return executor(&_M_scheduler);
+  return loop_scheduler::executor(&__s._M_scheduler);
 }
 
 inline loop_scheduler::executor::executor(
@@ -118,6 +118,16 @@ inline loop_scheduler::executor::work loop_scheduler::executor::make_work()
   return work(_M_scheduler);
 }
 
+inline loop_scheduler::executor get_executor(const loop_scheduler::executor& __e)
+{
+  return __e;
+}
+
+inline loop_scheduler::executor get_executor(loop_scheduler::executor&& __e)
+{
+  return std::move(__e);
+}
+
 inline loop_scheduler::executor::work::work(__scheduler* __s)
   : _M_scheduler(__s)
 {
@@ -144,6 +154,18 @@ inline loop_scheduler::executor::work&
 inline loop_scheduler::executor::work::~work()
 {
   _M_scheduler->_Work_finished();
+}
+
+inline loop_scheduler::executor
+  get_executor(const loop_scheduler::executor::work& __w)
+{
+  return loop_scheduler::executor(__w._M_scheduler);
+}
+
+inline loop_scheduler::executor
+  get_executor(loop_scheduler::executor::work&& __w)
+{
+  return loop_scheduler::executor(__w._M_scheduler);
 }
 
 } // namespace experimental

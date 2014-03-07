@@ -75,6 +75,32 @@ inline system_executor::work system_executor::make_work()
   return work{};
 }
 
+template <class _T>
+inline system_executor get_executor(_T&&)
+{
+  return system_executor();
+}
+
+inline system_executor get_executor(const system_executor&)
+{
+  return system_executor();
+}
+
+inline system_executor get_executor(system_executor&&)
+{
+  return system_executor();
+}
+
+inline system_executor get_executor(const system_executor::work&)
+{
+  return system_executor();
+}
+
+inline system_executor get_executor(system_executor::work&&)
+{
+  return system_executor();
+}
+
 } // namespace experimental
 } // namespace std
 

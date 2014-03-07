@@ -25,6 +25,31 @@ template <class> class __executor_impl;
 class __work_impl_base;
 template <class> class __work_impl;
 
+// The system executor represents an execution context where functions are
+// permitted to run on arbitrary threads. The post() function schedules the
+// function to run on an unspecified system thread pool, and dispatch() invokes
+// the function immediately.
+
+class system_executor
+{
+public:
+  class work {};
+
+  // executor operations:
+
+  template <class _Func> void post(_Func&& __f);
+  template <class _Func> void dispatch(_Func&& __f);
+  work make_work();
+};
+
+// Obtain associated executor.
+
+template <class _T> system_executor get_executor(_T&&);
+system_executor get_executor(const system_executor&);
+system_executor get_executor(system_executor&&);
+system_executor get_executor(const system_executor::work&);
+system_executor get_executor(system_executor::work&&);
+
 class bad_executor;
 
 // Polymorphic executor wrapper.
@@ -41,21 +66,17 @@ public:
   executor(const executor& __e);
   executor(executor&& __e);
   template <class _Executor> executor(_Executor __e);
-  template <class _Executor> executor(reference_wrapper<_Executor> __e);
   template <class _Alloc> executor(allocator_arg_t, const _Alloc&) noexcept;
   template <class _Alloc> executor(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
   template <class _Alloc> executor(allocator_arg_t, const _Alloc&, const executor& __e);
   template <class _Alloc> executor(allocator_arg_t, const _Alloc&, executor&& __e);
   template <class _Executor, class _Alloc>
     executor(allocator_arg_t, const _Alloc& __a, _Executor __e);
-  template <class _Executor, class _Alloc>
-    executor(allocator_arg_t, const _Alloc& __a, reference_wrapper<_Executor> __e);
 
   executor& operator=(const executor& __e);
   executor& operator=(executor&& __e);
   executor& operator=(nullptr_t);
   template <class _Executor> executor& operator=(_Executor&& __e);
-  template <class _Executor> executor& operator=(reference_wrapper<_Executor> __e);
 
   ~executor();
 
@@ -78,6 +99,9 @@ public:
 private:
   __executor_impl_base* _M_impl;
 };
+
+executor get_executor(const executor& __e);
+executor get_executor(executor&& __e);
 
 bool operator==(const executor& __e, nullptr_t) noexcept;
 bool operator==(nullptr_t, const executor& __e) noexcept;
@@ -123,27 +147,6 @@ bool operator==(nullptr_t, const executor::work& __w) noexcept;
 bool operator!=(const executor::work& __w, nullptr_t) noexcept;
 bool operator!=(nullptr_t, const executor::work& __w) noexcept;
 
-// The system executor represents an execution context where functions are
-// permitted to run on arbitrary threads. The post() function schedules the
-// function to run on an unspecified system thread pool, and dispatch() invokes
-// the function immediately.
-
-class system_executor
-{
-public:
-  class work {};
-
-  // executor operations:
-
-  template <class _Func> void post(_Func&& __f);
-  template <class _Func> void dispatch(_Func&& __f);
-  work make_work();
-};
-
-// Obtain associated executor.
-
-template <class _Func> system_executor get_executor(_Func&&);
-
 // Schedule a function to run later.
 
 template <class _Func> void post(_Func&& __f);
@@ -172,11 +175,8 @@ template<class _Alloc>
 
 } // namespace std
 
-#include <experimental/bits/work_impl.h>
-#include <experimental/bits/executor_impl.h>
-#include <experimental/bits/executor.h>
 #include <experimental/bits/system_executor.h>
-#include <experimental/bits/get_executor.h>
+#include <experimental/bits/executor.h>
 #include <experimental/bits/post.h>
 #include <experimental/bits/dispatch.h>
 

@@ -5,7 +5,7 @@
 int main()
 {
   std::unique_ptr<std::experimental::thread_pool> scheduler(new std::experimental::thread_pool(1));
-  auto ex = scheduler->get_executor();
+  auto ex = get_executor(*scheduler);
 
   int count = 0;
   ex.post(

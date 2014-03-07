@@ -7,8 +7,6 @@ nobase_include_HEADERS = \
 	experimental/bits/call_stack.h \
 	experimental/bits/dispatch.h \
 	experimental/bits/executor.h \
-	experimental/bits/executor_impl.h \
-	experimental/bits/get_executor.h \
 	experimental/bits/invoker.h \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/operation.h \
@@ -17,8 +15,7 @@ nobase_include_HEADERS = \
 	experimental/bits/scheduler.h \
 	experimental/bits/signature_type.h \
 	experimental/bits/system_executor.h \
-	experimental/bits/thread_pool.h \
-	experimental/bits/work_impl.h
+	experimental/bits/thread_pool.h
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in

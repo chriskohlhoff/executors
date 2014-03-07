@@ -34,9 +34,9 @@ inline thread_pool::~thread_pool()
     __t.join();
 }
 
-inline thread_pool::executor thread_pool::get_executor()
+inline thread_pool::executor get_executor(thread_pool& __s)
 {
-  return executor(&_M_scheduler);
+  return thread_pool::executor(&__s._M_scheduler);
 }
 
 inline thread_pool::executor::executor(
@@ -71,6 +71,16 @@ inline thread_pool::executor::work thread_pool::executor::make_work()
   return work(_M_scheduler);
 }
 
+inline thread_pool::executor get_executor(const thread_pool::executor& __e)
+{
+  return __e;
+}
+
+inline thread_pool::executor get_executor(thread_pool::executor&& __e)
+{
+  return std::move(__e);
+}
+
 inline thread_pool::executor::work::work(__scheduler* __s)
   : _M_scheduler(__s)
 {
@@ -97,6 +107,16 @@ inline thread_pool::executor::work&
 inline thread_pool::executor::work::~work()
 {
   _M_scheduler->_Work_finished();
+}
+
+inline thread_pool::executor get_executor(const thread_pool::executor::work& __w)
+{
+  return thread_pool::executor(__w._M_scheduler);
+}
+
+inline thread_pool::executor get_executor(thread_pool::executor::work&& __w)
+{
+  return thread_pool::executor(__w._M_scheduler);
 }
 
 } // namespace experimental
