@@ -465,6 +465,16 @@ inline const _Executor* executor::target() const noexcept
   return static_cast<_Executor*>(_M_impl->_Target());
 }
 
+inline executor get_executor(const executor& __e)
+{
+  return __e;
+}
+
+inline executor get_executor(executor&& __e)
+{
+  return std::move(__e);
+}
+
 inline bool operator==(const executor& __e, nullptr_t) noexcept
 {
   return !static_cast<bool>(__e);
@@ -584,6 +594,16 @@ inline executor::work& executor::work::operator=(_Work&& __w)
 inline executor::work::operator bool() const noexcept
 {
   return _M_impl != __bad_work_impl::_Create();
+}
+
+inline executor get_executor(const executor::work& __w)
+{
+  return executor(__w._M_impl->_Get_executor());
+}
+
+inline executor get_executor(executor::work&& __w)
+{
+  return executor(__w._M_impl->_Get_executor());
 }
 
 inline bool operator==(const executor::work& __w, nullptr_t) noexcept

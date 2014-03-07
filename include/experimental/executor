@@ -97,6 +97,9 @@ public:
   template <class _Executor> const _Executor* target() const noexcept;
 
 private:
+  friend executor get_executor(const executor::work& __w);
+  friend executor get_executor(executor::work&& __w);
+  explicit executor(__executor_impl_base* __i) : _M_impl(__i) {}
   __executor_impl_base* _M_impl;
 };
 
@@ -138,9 +141,14 @@ public:
 
 private:
   friend class executor;
+  friend executor get_executor(const executor::work& __w);
+  friend executor get_executor(executor::work&& __w);
   __work_impl_base* _M_impl;
   explicit work(__work_impl_base* __i) : _M_impl(__i) {}
 };
+
+executor get_executor(const executor::work& __w);
+executor get_executor(executor::work&& __w);
 
 bool operator==(const executor::work& __w, nullptr_t) noexcept;
 bool operator==(nullptr_t, const executor::work& __w) noexcept;
