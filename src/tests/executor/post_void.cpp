@@ -1,7 +1,8 @@
 #include <experimental/executor>
 #include <experimental/future>
-#include <atomic>
+#include <experimental/loop_scheduler>
 #include <cassert>
+#include <stdexcept>
 
 std::atomic<int> function_count(0);
 std::atomic<int> handler_count(0);
@@ -24,11 +25,6 @@ struct function3
   function3(function3&&) {}
   void operator()() { ++function_count; }
 };
-
-void function_throw()
-{
-  throw std::runtime_error("oops");
-}
 
 void handler1()
 {
@@ -59,95 +55,82 @@ int main()
   const handler2 ch2;
   handler3 h3;
 
-  std::experimental::post(function1);
-  std::experimental::post(function1, handler1);
-  std::experimental::post(function1, &handler1);
-  std::experimental::post(function1, handler2());
-  std::experimental::post(function1, h2);
-  std::experimental::post(function1, ch2);
-  std::experimental::post(function1, handler3());
-  std::experimental::post(function1, std::move(h3));
-  std::future<void> fut1 = std::experimental::post(function1, std::experimental::use_future);
+  std::experimental::loop_scheduler scheduler;
+  std::experimental::executor ex = get_executor(scheduler);
+
+  ex = std::experimental::system_executor();
+
+  std::experimental::post(function1, ex, handler1);
+  std::experimental::post(function1, ex, &handler1);
+  std::experimental::post(function1, ex, handler2());
+  std::experimental::post(function1, ex, h2);
+  std::experimental::post(function1, ex, ch2);
+  std::experimental::post(function1, ex, handler3());
+  std::experimental::post(function1, ex, std::move(h3));
+  std::future<void> fut1 = std::experimental::post(function1, ex, std::experimental::use_future);
   fut1.get();
 
-  std::experimental::post(&function1);
-  std::experimental::post(&function1, handler1);
-  std::experimental::post(&function1, &handler1);
-  std::experimental::post(&function1, handler2());
-  std::experimental::post(&function1, h2);
-  std::experimental::post(&function1, ch2);
-  std::experimental::post(&function1, handler3());
-  std::experimental::post(&function1, std::move(h3));
-  std::future<void> fut2 = std::experimental::post(&function1, std::experimental::use_future);
+  std::experimental::post(&function1, ex, handler1);
+  std::experimental::post(&function1, ex, &handler1);
+  std::experimental::post(&function1, ex, handler2());
+  std::experimental::post(&function1, ex, h2);
+  std::experimental::post(&function1, ex, ch2);
+  std::experimental::post(&function1, ex, handler3());
+  std::experimental::post(&function1, ex, std::move(h3));
+  std::future<void> fut2 = std::experimental::post(&function1, ex, std::experimental::use_future);
   fut2.get();
 
-  std::experimental::post(function2());
-  std::experimental::post(function2(), handler1);
-  std::experimental::post(function2(), &handler1);
-  std::experimental::post(function2(), handler2());
-  std::experimental::post(function2(), h2);
-  std::experimental::post(function2(), ch2);
-  std::experimental::post(function2(), handler3());
-  std::experimental::post(function2(), std::move(h3));
-  std::future<void> fut3 = std::experimental::post(function2(), std::experimental::use_future);
+  std::experimental::post(function2(), ex, handler1);
+  std::experimental::post(function2(), ex, &handler1);
+  std::experimental::post(function2(), ex, handler2());
+  std::experimental::post(function2(), ex, h2);
+  std::experimental::post(function2(), ex, ch2);
+  std::experimental::post(function2(), ex, handler3());
+  std::experimental::post(function2(), ex, std::move(h3));
+  std::future<void> fut3 = std::experimental::post(function2(), ex, std::experimental::use_future);
   fut3.get();
 
-  std::experimental::post(f2);
-  std::experimental::post(f2, handler1);
-  std::experimental::post(f2, &handler1);
-  std::experimental::post(f2, handler2());
-  std::experimental::post(f2, h2);
-  std::experimental::post(f2, ch2);
-  std::experimental::post(f2, handler3());
-  std::experimental::post(f2, std::move(h3));
-  std::future<void> fut4 = std::experimental::post(f2, std::experimental::use_future);
+  std::experimental::post(f2, ex, handler1);
+  std::experimental::post(f2, ex, &handler1);
+  std::experimental::post(f2, ex, handler2());
+  std::experimental::post(f2, ex, h2);
+  std::experimental::post(f2, ex, ch2);
+  std::experimental::post(f2, ex, handler3());
+  std::experimental::post(f2, ex, std::move(h3));
+  std::future<void> fut4 = std::experimental::post(f2, ex, std::experimental::use_future);
   fut4.get();
 
-  std::experimental::post(cf2);
-  std::experimental::post(cf2, handler1);
-  std::experimental::post(cf2, &handler1);
-  std::experimental::post(cf2, handler2());
-  std::experimental::post(cf2, h2);
-  std::experimental::post(cf2, ch2);
-  std::experimental::post(cf2, handler3());
-  std::experimental::post(cf2, std::move(h3));
-  std::future<void> fut5 = std::experimental::post(cf2, std::experimental::use_future);
+  std::experimental::post(cf2, ex, handler1);
+  std::experimental::post(cf2, ex, &handler1);
+  std::experimental::post(cf2, ex, handler2());
+  std::experimental::post(cf2, ex, h2);
+  std::experimental::post(cf2, ex, ch2);
+  std::experimental::post(cf2, ex, handler3());
+  std::experimental::post(cf2, ex, std::move(h3));
+  std::future<void> fut5 = std::experimental::post(cf2, ex, std::experimental::use_future);
   fut5.get();
 
-  std::experimental::post(function3());
-  std::experimental::post(function3(), handler1);
-  std::experimental::post(function3(), &handler1);
-  std::experimental::post(function3(), handler2());
-  std::experimental::post(function3(), h2);
-  std::experimental::post(function3(), ch2);
-  std::experimental::post(function3(), handler3());
-  std::experimental::post(function3(), std::move(h3));
-  std::future<void> fut6 = std::experimental::post(function3(), std::experimental::use_future);
+  std::experimental::post(function3(), ex, handler1);
+  std::experimental::post(function3(), ex, &handler1);
+  std::experimental::post(function3(), ex, handler2());
+  std::experimental::post(function3(), ex, h2);
+  std::experimental::post(function3(), ex, ch2);
+  std::experimental::post(function3(), ex, handler3());
+  std::experimental::post(function3(), ex, std::move(h3));
+  std::future<void> fut6 = std::experimental::post(function3(), ex, std::experimental::use_future);
   fut6.get();
 
-  std::experimental::post(std::move(f3));
-  std::experimental::post(std::move(f3), handler1);
-  std::experimental::post(std::move(f3), &handler1);
-  std::experimental::post(std::move(f3), handler2());
-  std::experimental::post(std::move(f3), h2);
-  std::experimental::post(std::move(f3), ch2);
-  std::experimental::post(std::move(f3), handler3());
-  std::experimental::post(std::move(f3), std::move(h3));
-  std::future<void> fut7 = std::experimental::post(std::move(f3), std::experimental::use_future);
+  std::experimental::post(std::move(f3), ex, handler1);
+  std::experimental::post(std::move(f3), ex, &handler1);
+  std::experimental::post(std::move(f3), ex, handler2());
+  std::experimental::post(std::move(f3), ex, h2);
+  std::experimental::post(std::move(f3), ex, ch2);
+  std::experimental::post(std::move(f3), ex, handler3());
+  std::experimental::post(std::move(f3), ex, std::move(h3));
+  std::future<void> fut7 = std::experimental::post(std::move(f3), ex, std::experimental::use_future);
   fut7.get();
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
-  assert(function_count == 63);
+  assert(function_count == 56);
   assert(handler_count == 49);
-
-  std::future<void> fut8 = std::experimental::post(function_throw, std::experimental::use_future);
-  try
-  {
-    fut8.get();
-    assert(0);
-  }
-  catch (std::exception& e)
-  {
-    assert(e.what() == std::string("oops"));
-  }
 }

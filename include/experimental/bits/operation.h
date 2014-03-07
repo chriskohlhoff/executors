@@ -12,8 +12,6 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_OPERATION_H
 #define EXECUTORS_EXPERIMENTAL_BITS_OPERATION_H
 
-#include <functional>
-
 namespace std {
 namespace experimental {
 

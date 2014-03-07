@@ -12,6 +12,8 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_EXECUTOR_H
 #define EXECUTORS_EXPERIMENTAL_BITS_EXECUTOR_H
 
+#include <memory>
+
 namespace std {
 namespace experimental {
 
@@ -28,13 +30,43 @@ protected:
   virtual ~__work_impl_base() {}
 };
 
+class __function_base
+{
+public:
+  virtual ~__function_base() {}
+  virtual void _Invoke() = 0;
+};
+
+template <class _Func>
+class __function
+  : public __function_base
+{
+public:
+  template <class _F> __function(_F&& __f) : _M_func(forward<_F>(__f)) {}
+  virtual void _Invoke() { _M_func(); }
+
+private:
+  _Func _M_func;
+};
+
+class __function_ptr
+{
+public:
+  template <class _F> __function_ptr(_F __f)
+    : _M_func(new __function<_F>(std::move(__f))) {}
+  void operator()() { _M_func->_Invoke(); }
+
+private:
+  unique_ptr<__function_base> _M_func;
+};
+
 class __executor_impl_base
 {
 public:
   virtual __executor_impl_base* _Clone() const = 0;
   virtual void _Destroy() = 0;
-  virtual void _Post(function<void()>&& __f) = 0;
-  virtual void _Dispatch(function<void()>&& __f) = 0;
+  virtual void _Post(__function_ptr&& __f) = 0;
+  virtual void _Dispatch(__function_ptr&& __f) = 0;
   virtual __work_impl_base* _Make_work() = 0;
   virtual const type_info& _Target_type() = 0;
   virtual void* _Target() = 0;
@@ -92,12 +124,12 @@ public:
     delete this;
   }
 
-  virtual void _Post(function<void()>&& __f)
+  virtual void _Post(__function_ptr&& __f)
   {
     _M_executor.post(std::move(__f));
   }
 
-  virtual void _Dispatch(function<void()>&& __f)
+  virtual void _Dispatch(__function_ptr&& __f)
   {
     _M_executor.dispatch(std::move(__f));
   }
@@ -162,9 +194,9 @@ public:
 
   virtual __executor_impl_base* _Get_executor() const;
 
-private:
+/*private:
   __work_impl() {}
-  ~__work_impl() {}
+  ~__work_impl() {}*/
 };
 
 template <>
@@ -178,6 +210,11 @@ public:
     return &__e;
   }
 
+  static __executor_impl_base* _Create(const system_executor&)
+  {
+    return _Create();
+  }
+
   virtual __executor_impl_base* _Clone() const
   {
     return const_cast<__executor_impl*>(this);
@@ -187,12 +224,12 @@ public:
   {
   }
 
-  virtual void _Post(function<void()>&& __f)
+  virtual void _Post(__function_ptr&& __f)
   {
     _M_executor.post(std::move(__f));
   }
 
-  virtual void _Dispatch(function<void()>&& __f)
+  virtual void _Dispatch(__function_ptr&& __f)
   {
     _M_executor.dispatch(std::move(__f));
   }
@@ -223,8 +260,7 @@ private:
   system_executor _M_executor;
 };
 
-template <>
-inline __executor_impl_base* __work_impl<system_executor>::_Get_executor() const
+inline __executor_impl_base* __work_impl<system_executor::work>::_Get_executor() const
 {
   return __executor_impl<system_executor>::_Create();
 }
@@ -287,12 +323,12 @@ public:
   {
   }
 
-  virtual void _Post(function<void()>&&)
+  virtual void _Post(__function_ptr&&)
   {
     throw bad_executor();
   }
 
-  virtual void _Dispatch(function<void()>&&)
+  virtual void _Dispatch(__function_ptr&&)
   {
     throw bad_executor();
   }
@@ -426,7 +462,7 @@ inline executor& executor::operator=(_Executor&& __e)
 template <class _Func>
 inline void executor::post(_Func&& __f)
 {
-  _M_impl->_Post(function<void()>(forward<_Func>(__f)));
+  _M_impl->_Post(__function_ptr(forward<_Func>(__f)));
 }
 
 template <class _Func>
@@ -435,7 +471,7 @@ void executor::dispatch(_Func&& __f)
   if (static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<system_executor>::_Create()))
     system_executor().dispatch(forward<_Func>(__f));
   else
-    _M_impl->_Dispatch(function<void()>(forward<_Func>(__f)));
+    _M_impl->_Dispatch(__function_ptr(forward<_Func>(__f)));
 }
 
 inline executor::work executor::make_work()
