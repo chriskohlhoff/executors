@@ -55,10 +55,6 @@ private:
   __scheduler _M_scheduler;
 };
 
-loop_scheduler::executor get_executor(loop_scheduler& __s);
-loop_scheduler::executor get_executor(const loop_scheduler&) = delete;
-loop_scheduler::executor get_executor(loop_scheduler&&) = delete;
-
 class loop_scheduler::executor
 {
 public:
@@ -87,9 +83,6 @@ private:
   __scheduler* _M_scheduler;
 };
 
-loop_scheduler::executor get_executor(const loop_scheduler::executor& __e);
-loop_scheduler::executor get_executor(loop_scheduler::executor&& __e);
-
 class loop_scheduler::executor::work
 {
 public:
@@ -105,6 +98,11 @@ private:
   explicit work(__scheduler* __s);
 };
 
+loop_scheduler::executor get_executor(loop_scheduler& __s);
+loop_scheduler::executor get_executor(const loop_scheduler&) = delete;
+loop_scheduler::executor get_executor(loop_scheduler&&) = delete;
+loop_scheduler::executor get_executor(const loop_scheduler::executor& __e);
+loop_scheduler::executor get_executor(loop_scheduler::executor&& __e);
 loop_scheduler::executor get_executor(const loop_scheduler::executor::work& __w);
 loop_scheduler::executor get_executor(loop_scheduler::executor::work&& __w);
 

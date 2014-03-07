@@ -41,10 +41,6 @@ private:
   vector<thread> _M_threads;
 };
 
-thread_pool::executor get_executor(thread_pool& __s);
-thread_pool::executor get_executor(const thread_pool&) = delete;
-thread_pool::executor get_executor(thread_pool&&) = delete;
-
 class thread_pool::executor
 {
 public:
@@ -73,9 +69,6 @@ private:
   __scheduler* _M_scheduler;
 };
 
-thread_pool::executor get_executor(const thread_pool::executor& __e);
-thread_pool::executor get_executor(thread_pool::executor&& __e);
-
 class thread_pool::executor::work
 {
 public:
@@ -91,6 +84,11 @@ private:
   explicit work(__scheduler* __s);
 };
 
+thread_pool::executor get_executor(thread_pool& __s);
+thread_pool::executor get_executor(const thread_pool&) = delete;
+thread_pool::executor get_executor(thread_pool&&) = delete;
+thread_pool::executor get_executor(const thread_pool::executor& __e);
+thread_pool::executor get_executor(thread_pool::executor&& __e);
 thread_pool::executor get_executor(const thread_pool::executor::work& __w);
 thread_pool::executor get_executor(thread_pool::executor::work&& __w);
 

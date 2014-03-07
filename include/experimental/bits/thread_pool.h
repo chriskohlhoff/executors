@@ -34,11 +34,6 @@ inline thread_pool::~thread_pool()
     __t.join();
 }
 
-inline thread_pool::executor get_executor(thread_pool& __s)
-{
-  return thread_pool::executor(&__s._M_scheduler);
-}
-
 inline thread_pool::executor::executor(
   const thread_pool::executor& __e)
     : _M_scheduler(__e._M_scheduler)
@@ -71,16 +66,6 @@ inline thread_pool::executor::work thread_pool::executor::make_work()
   return work(_M_scheduler);
 }
 
-inline thread_pool::executor get_executor(const thread_pool::executor& __e)
-{
-  return __e;
-}
-
-inline thread_pool::executor get_executor(thread_pool::executor&& __e)
-{
-  return std::move(__e);
-}
-
 inline thread_pool::executor::work::work(__scheduler* __s)
   : _M_scheduler(__s)
 {
@@ -107,6 +92,21 @@ inline thread_pool::executor::work&
 inline thread_pool::executor::work::~work()
 {
   _M_scheduler->_Work_finished();
+}
+
+inline thread_pool::executor get_executor(thread_pool& __s)
+{
+  return thread_pool::executor(&__s._M_scheduler);
+}
+
+inline thread_pool::executor get_executor(const thread_pool::executor& __e)
+{
+  return __e;
+}
+
+inline thread_pool::executor get_executor(thread_pool::executor&& __e)
+{
+  return std::move(__e);
 }
 
 inline thread_pool::executor get_executor(const thread_pool::executor::work& __w)
