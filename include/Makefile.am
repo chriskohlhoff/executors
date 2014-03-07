@@ -6,6 +6,7 @@ nobase_include_HEADERS = \
 	experimental/thread_pool \
 	experimental/bits/call_stack.h \
 	experimental/bits/dispatch.h \
+	experimental/bits/execution_context.h \
 	experimental/bits/executor.h \
 	experimental/bits/invoker.h \
 	experimental/bits/loop_scheduler.h \
