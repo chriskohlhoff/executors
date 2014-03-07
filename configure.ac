@@ -54,5 +54,6 @@ AC_OUTPUT([
   src/tests/executor/Makefile
   src/tests/loop_scheduler/Makefile
   src/tests/no_executor/Makefile
+  src/tests/system_executor/Makefile
   src/tests/thread_pool/Makefile
   src/tests/traits/Makefile])
