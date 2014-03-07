@@ -30,14 +30,62 @@ template <class> class __work_impl;
 class execution_context
 {
 public:
+  class id;
+  class service;
+
+  // construct / copy / destroy:
+
   execution_context();
   execution_context(const execution_context&) = delete;
   execution_context& operator=(const execution_context&) = delete;
   virtual ~execution_context();
+
+protected:
+
+  // execution context operations:
+
+  void shutdown();
 };
 
 void get_executor(execution_context&) = delete;
 void get_executor(const execution_context&) = delete;
+
+// Class used to uniquely identify a service within an execution context.
+
+class execution_context::id
+{
+public:
+  id();
+  id(const id&) = delete;
+  id& operator=(const id&) = delete;
+};
+
+// Base class for all services within an execution context.
+
+class execution_context::service
+{
+protected:
+  explicit service(execution_context& __c);
+  virtual ~service();
+
+  execution_context& context();
+
+private:
+  virtual void shutdown_service() = 0;
+
+  friend class execution_context;
+  execution_context& _M_context;
+  service* _M_next;
+};
+
+// Functions for accessing the services within an execution context.
+
+class service_already_exists;
+
+template <class _Service> _Service& use_service(execution_context& __c);
+template <class _Service, class... _Args> _Service&
+  make_service(execution_context& __c, _Args&&... __args);
+template <class _Service> bool has_service(execution_context& __c);
 
 // The system executor represents an execution context where functions are
 // permitted to run on arbitrary threads. The post() function schedules the
