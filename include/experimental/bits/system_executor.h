@@ -37,6 +37,7 @@ public:
 
   ~__system_executor_impl()
   {
+    shutdown();
     _M_scheduler._Work_finished();
     for (auto& __t: _M_threads)
       __t.join();

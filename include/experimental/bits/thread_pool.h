@@ -31,6 +31,7 @@ inline thread_pool::thread_pool(size_t __num_threads)
 
 inline thread_pool::~thread_pool()
 {
+  shutdown();
   _Work_finished();
   for (auto& __t: _M_threads)
     __t.join();

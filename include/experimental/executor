@@ -13,6 +13,8 @@
 #define EXECUTORS_EXPERIMENTAL_EXECUTOR_HEADER
 
 #include <experimental/type_traits>
+#include <memory>
+#include <mutex>
 #include <scoped_allocator>
 #include <typeinfo>
 #include <utility>
@@ -45,6 +47,14 @@ protected:
   // execution context operations:
 
   void shutdown();
+
+private:
+  template <class _Service> friend _Service& use_service(execution_context& __c);
+  template <class _Service, class... _Args> friend _Service&
+    make_service(execution_context& __c, _Args&&... __args);
+  template <class _Service> bool friend has_service(execution_context& __c) noexcept;
+  mutex _M_mutex;
+  service* _M_first_service;
 };
 
 void get_executor(execution_context&) = delete;
@@ -74,7 +84,13 @@ private:
   virtual void shutdown_service() = 0;
 
   friend class execution_context;
+  template <class _Service> friend _Service& use_service(execution_context& __c);
+  template <class _Service, class... _Args> friend _Service&
+    make_service(execution_context& __c, _Args&&... __args);
+  template <class _Service> bool friend has_service(execution_context& __c) noexcept;
+  friend struct default_delete<service>;
   execution_context& _M_context;
+  id* _M_id;
   service* _M_next;
 };
 
@@ -85,7 +101,7 @@ class service_already_exists;
 template <class _Service> _Service& use_service(execution_context& __c);
 template <class _Service, class... _Args> _Service&
   make_service(execution_context& __c, _Args&&... __args);
-template <class _Service> bool has_service(execution_context& __c);
+template <class _Service> bool has_service(execution_context& __c) noexcept;
 
 // The system executor represents an execution context where functions are
 // permitted to run on arbitrary threads. The post() function schedules the

@@ -29,6 +29,7 @@ inline loop_scheduler::loop_scheduler(size_t __concurrency_hint)
 
 inline loop_scheduler::~loop_scheduler()
 {
+  shutdown();
 }
 
 inline size_t loop_scheduler::run()
