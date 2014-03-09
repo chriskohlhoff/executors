@@ -2,3 +2,7 @@ dispatch_int
 dispatch_void
 post_int
 post_void
+wrap_dispatch_int
+wrap_dispatch_void
+wrap_post_int
+wrap_post_void
