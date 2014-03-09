@@ -89,7 +89,7 @@ inline execution_context& system_executor::context()
 }
 
 template <class _T>
-inline system_executor get_executor(_T&&)
+inline system_executor get_executor(const _T&)
 {
   return system_executor();
 }

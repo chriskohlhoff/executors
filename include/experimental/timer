@@ -83,6 +83,14 @@ typedef basic_timer<chrono::system_clock> system_timer;
 typedef basic_timer<chrono::steady_clock> steady_timer;
 typedef basic_timer<chrono::high_resolution_clock> high_resolution_timer;
 
+template <class _Clock, class _Duration, class _CompletionToken>
+  auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    _CompletionToken&& __token);
+
+template <class _Rep, class _Period, class _CompletionToken>
+  auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
+    _CompletionToken&& __token);
+
 } // namespace experimental
 } // namespace std
 

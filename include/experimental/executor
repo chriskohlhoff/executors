@@ -113,7 +113,7 @@ public:
 
 // Obtain associated executor.
 
-template <class _T> system_executor get_executor(_T&&);
+template <class _T> system_executor get_executor(const _T&);
 system_executor get_executor(const system_executor&);
 system_executor get_executor(system_executor&&);
 system_executor get_executor(const system_executor::work&);

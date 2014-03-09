@@ -46,12 +46,7 @@ public:
     return _M_wrapped(forward<_Args>(__args)...);
   }
 
-  friend _Executor& get_executor(__wrapper& __w)
-  {
-    return __w._M_executor;
-  }
-
-  friend _Executor& get_executor(const __wrapper& __w)
+  friend _Executor get_executor(const __wrapper& __w)
   {
     return __w._M_executor;
   }

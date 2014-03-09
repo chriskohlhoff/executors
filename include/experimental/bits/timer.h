@@ -13,6 +13,7 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_TIMER_H
 
 #include <chrono>
+#include <memory>
 #include <thread>
 #include <experimental/type_traits>
 #include <experimental/bits/reactor.h>
@@ -249,6 +250,69 @@ auto basic_timer<_Clock, _TimerTraits>::async_wait(_CompletionToken&& __token)
 
   _M_service->_M_reactor._Enqueue_timer(_M_service->_M_queue, _M_expiry, _M_data, __op.get());
   __op.release();
+
+  return __completion.result.get();
+}
+
+template <class _Clock, class _Handler>
+class __timer_dispatcher
+{
+public:
+  __timer_dispatcher(_Handler& __h, const typename _Clock::time_point& __t)
+    : _M_handler(std::move(__h)),
+      _M_timer(new basic_timer<_Clock>(get_executor(_M_handler).context(), __t))
+  {
+    assert(&_M_timer->context() != &system_executor().context());
+  }
+
+  __timer_dispatcher(_Handler& __h, const typename _Clock::duration& __d)
+    : _M_handler(std::move(__h)),
+      _M_timer(new basic_timer<_Clock>(get_executor(_M_handler).context(), __d))
+  {
+    assert(&_M_timer->context() != &system_executor().context());
+  }
+
+  void _Start()
+  {
+    _M_timer->async_wait(std::move(*this));
+  }
+
+  void operator()(const error_code&)
+  {
+    _M_handler();
+  }
+
+  friend auto get_executor(const __timer_dispatcher& __d)
+    -> decltype(get_executor(declval<_Handler>()))
+  {
+    return get_executor(__d._M_handler);
+  }
+
+private:
+  _Handler _M_handler;
+  unique_ptr<basic_timer<_Clock>> _M_timer;
+};
+
+template <class _Clock, class _Duration, class _CompletionToken>
+auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+  _CompletionToken&& __token)
+{
+  typedef handler_type_t<_CompletionToken, void()> _Handler;
+  async_completion<_CompletionToken, void()> __completion(__token);
+
+  __timer_dispatcher<_Clock, _Handler>(__completion.handler, __abs_time)._Start();
+
+  return __completion.result.get();
+}
+
+template <class _Rep, class _Period, class _CompletionToken>
+auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
+  _CompletionToken&& __token)
+{
+  typedef handler_type_t<_CompletionToken, void()> _Handler;
+  async_completion<_CompletionToken, void()> __completion(__token);
+
+  __timer_dispatcher<chrono::steady_clock, _Handler>(__completion.handler, __rel_time)._Start();
 
   return __completion.result.get();
 }

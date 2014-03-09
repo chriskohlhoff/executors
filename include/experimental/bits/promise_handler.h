@@ -159,6 +159,11 @@ struct __promise_executor
     typedef typename decay<_F>::type _Func;
     __promise_invoker<_Func, _Values...>(_M_promise, forward<_F>(__f))();
   }
+
+  execution_context& context()
+  {
+    return system_executor().context();
+  }
 };
 
 template <class... _Values>
