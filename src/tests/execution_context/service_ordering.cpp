@@ -10,8 +10,6 @@ class service1
   : public std::experimental::execution_context::service
 {
 public:
-  static std::experimental::execution_context::id id;
-
   service1(std::experimental::execution_context& ctx)
     : std::experimental::execution_context::service(ctx)
   {
@@ -33,14 +31,10 @@ private:
   }
 };
 
-std::experimental::execution_context::id service1::id;
-
 class service2
   : public std::experimental::execution_context::service
 {
 public:
-  static std::experimental::execution_context::id id;
-
   explicit service2(std::experimental::execution_context& ctx)
     : std::experimental::execution_context::service(ctx)
   {
@@ -62,14 +56,10 @@ private:
   }
 };
 
-std::experimental::execution_context::id service2::id;
-
 class service3
   : public std::experimental::execution_context::service
 {
 public:
-  static std::experimental::execution_context::id id;
-
   explicit service3(std::experimental::execution_context& ctx)
     : std::experimental::execution_context::service(ctx)
   {
@@ -90,8 +80,6 @@ private:
     ++shutdown_count;
   }
 };
-
-std::experimental::execution_context::id service3::id;
 
 int main()
 {

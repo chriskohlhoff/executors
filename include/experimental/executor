@@ -32,7 +32,6 @@ template <class> class __work_impl;
 class execution_context
 {
 public:
-  class id;
   class service;
 
   // construct / copy / destroy:
@@ -60,16 +59,6 @@ private:
 void get_executor(execution_context&) = delete;
 void get_executor(const execution_context&) = delete;
 
-// Class used to uniquely identify a service within an execution context.
-
-class execution_context::id
-{
-public:
-  id();
-  id(const id&) = delete;
-  id& operator=(const id&) = delete;
-};
-
 // Base class for all services within an execution context.
 
 class execution_context::service
@@ -90,7 +79,7 @@ private:
   template <class _Service> bool friend has_service(execution_context& __c) noexcept;
   friend struct default_delete<service>;
   execution_context& _M_context;
-  id* _M_id;
+  const type_info* _M_id;
   service* _M_next;
 };
 

@@ -48,10 +48,6 @@ inline void execution_context::shutdown()
   }
 }
 
-inline execution_context::id::id()
-{
-}
-
 inline execution_context::service::service(execution_context& __c)
   : _M_context(__c), _M_next(nullptr)
 {
@@ -88,6 +84,28 @@ inline _Service* __create_service(execution_context&, false_type)
   throw bad_cast();
 };
 
+template <class _Service>
+struct __service_void_type
+{
+  typedef void _Type;
+};
+
+template <class _Service, class = void>
+struct __service_key_type
+{
+  typedef _Service _Type;
+};
+
+template <class _Service>
+struct __service_key_type<_Service,
+  typename __service_void_type<typename _Service::key_type>::_Type>
+{
+  typedef typename _Service::key_type _Type;
+};
+
+template <class _Service>
+using __service_key = typename __service_key_type<_Service>::_Type;
+
 template <class _Service> _Service& use_service(execution_context& __c)
 {
   unique_lock<mutex> __lock(__c._M_mutex);
@@ -95,11 +113,11 @@ template <class _Service> _Service& use_service(execution_context& __c)
   __lock.unlock();
 
   // Check if service already exists.
-  execution_context::id* __id = &_Service::id;
+  const type_info* __id = &typeid(__service_key<_Service>);
   execution_context::service* __s = __first;
   while (__s)
   {
-    if (__id == __s->_M_id)
+    if (*__id == *__s->_M_id)
       return *static_cast<_Service*>(__s);
     __s = __s->_M_next;
   }
@@ -115,7 +133,7 @@ template <class _Service> _Service& use_service(execution_context& __c)
   __s = __c._M_first_service;
   while (__s != __first)
   {
-    if (__id == __s->_M_id)
+    if (*__id == *__s->_M_id)
       return *static_cast<_Service*>(__s);
     __s = __s->_M_next;
   }
@@ -134,11 +152,11 @@ template <class _Service, class... _Args> _Service&
   __lock.unlock();
 
   // Check if service already exists.
-  execution_context::id* __id = &_Service::id;
+  const type_info* __id = &typeid(__service_key<_Service>);
   execution_context::service* __s = __first;
   while (__s)
   {
-    if (__id == __s->_M_id)
+    if (*__id == *__s->_M_id)
       throw service_already_exists();
     __s = __s->_M_next;
   }
@@ -153,7 +171,7 @@ template <class _Service, class... _Args> _Service&
   __s = __c._M_first_service;
   while (__s != __first)
   {
-    if (__id == __s->_M_id)
+    if (*__id == *__s->_M_id)
       throw service_already_exists();
     __s = __s->_M_next;
   }
@@ -170,11 +188,11 @@ template <class _Service> bool has_service(execution_context& __c) noexcept
   execution_context::service* const __first = __c._M_first_service;
   __c._M_mutex.unlock();
 
-  execution_context::id* __id = &_Service::id;
+  const type_info* __id = &typeid(__service_key<_Service>);
   execution_context::service* __s = __first;
   while (__s)
   {
-    if (__id == __s->_M_id)
+    if (*__id == *__s->_M_id)
       return true;
     __s = __s->_M_next;
   }
