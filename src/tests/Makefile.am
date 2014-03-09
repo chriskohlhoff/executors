@@ -5,7 +5,8 @@ SUBDIRS = \
 	system_executor \
 	loop_scheduler \
 	thread_pool \
-	execution_context
+	execution_context \
+	timer
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in

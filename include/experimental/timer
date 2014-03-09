@@ -1,0 +1,91 @@
+//
+// timer
+// ~~~~~
+// Waitable timer.
+//
+// Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
+#ifndef EXECUTORS_EXPERIMENTAL_TIMER_HEADER
+#define EXECUTORS_EXPERIMENTAL_TIMER_HEADER
+
+#include <chrono>
+#include <experimental/executor>
+#include <experimental/bits/timer_queue.h>
+#include <system_error>
+
+namespace std {
+namespace experimental {
+
+template <class _Clock, class _TimerTraits>
+class __timer_service;
+
+template <class _Clock>
+struct timer_traits
+{
+  static typename _Clock::duration to_duration(
+    const typename _Clock::duration& __d);
+
+  static typename _Clock::duration to_duration(
+    const typename _Clock::time_point& __t);
+};
+
+template <class _Clock, class _TimerTraits = timer_traits<_Clock>>
+class basic_timer
+{
+public:
+  typedef _Clock clock_type;
+  typedef typename clock_type::duration duration;
+  typedef typename clock_type::time_point time_point;
+  typedef _TimerTraits traits_type;
+
+  // construct / copy / destroy:
+
+  basic_timer();
+  explicit basic_timer(const duration& __d);
+  explicit basic_timer(const time_point& __t);
+  explicit basic_timer(execution_context& __c);
+  basic_timer(execution_context& __c, const duration& __d);
+  basic_timer(execution_context& __c, const time_point& __t);
+  basic_timer(const basic_timer&) = delete;
+  basic_timer(basic_timer&& __t);
+
+  basic_timer& operator=(const basic_timer&) = delete;
+  basic_timer& operator=(basic_timer&& __t);
+
+  ~basic_timer();
+
+  // timer operations:
+
+  execution_context& context();
+
+  void cancel();
+  void cancel_one();
+
+  time_point expiry() const;
+  void expires_at(const time_point& __t);
+  void expires_after(const duration& __d);
+
+  void wait();
+  void wait(error_code& __ec);
+  template <class _CompletionToken> auto async_wait(_CompletionToken&& __token);
+
+private:
+  __timer_service<_Clock, _TimerTraits>* _M_service;
+  time_point _M_expiry;
+  typename __timer_queue<_Clock, _TimerTraits>::__per_timer_data _M_data;
+};
+
+typedef basic_timer<chrono::system_clock> system_timer;
+typedef basic_timer<chrono::steady_clock> steady_timer;
+typedef basic_timer<chrono::high_resolution_clock> high_resolution_timer;
+
+} // namespace experimental
+} // namespace std
+
+#include <experimental/bits/timer.h>
+
+#endif

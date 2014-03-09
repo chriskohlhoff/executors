@@ -141,7 +141,7 @@ struct __promise_invoker
 template <class... _Values>
 struct __promise_executor
 {
-  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  typedef typename __promise_handler<_Values...>::_Promise _Promise;
   shared_ptr<_Promise> _M_promise;
 
   struct work {};
