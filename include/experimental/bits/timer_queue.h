@@ -50,7 +50,7 @@ public:
   class __per_timer_data
   {
   public:
-    __per_timer_data() : _M_next(nullptr), _M_prev(nullptr) {}
+    __per_timer_data() : _M_heap_index(~size_t(0)), _M_next(nullptr), _M_prev(nullptr) {}
 
   private:
     friend class __timer_queue;
