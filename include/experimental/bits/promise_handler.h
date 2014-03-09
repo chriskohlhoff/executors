@@ -117,7 +117,7 @@ struct __promise_handler<exception_ptr, _Values...>
 template <class _Func, class... _Values>
 struct __promise_invoker
 {
-  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  typedef typename __promise_handler<_Values...>::_Promise _Promise;
   shared_ptr<_Promise> _M_promise;
   _Func _M_func;
 
@@ -144,8 +144,17 @@ struct __promise_executor
   typedef typename __promise_handler<_Values...>::_Promise _Promise;
   shared_ptr<_Promise> _M_promise;
 
-  struct work {};
-  work make_work() { return work{}; }
+  struct work
+  {
+    shared_ptr<_Promise> _M_promise;
+
+    friend __promise_executor get_executor(const work& __w)
+    {
+      return __promise_executor{__w._M_promise};
+    }
+  };
+
+  work make_work() { return work{_M_promise}; }
 
   template <class _F> void post(_F&& __f)
   {
@@ -160,14 +169,25 @@ struct __promise_executor
     __promise_invoker<_Func, _Values...>(_M_promise, forward<_F>(__f))();
   }
 
+  template <class _Func>
+  inline auto wrap(_Func&& __f)
+  {
+    return __wrapper<typename decay<_Func>::type, __promise_executor>(forward<_Func>(__f), *this);
+  }
+
   execution_context& context()
   {
     return system_executor().context();
   }
+
+  friend __promise_executor get_executor(const __promise_executor& __e)
+  {
+    return __e;
+  }
 };
 
 template <class... _Values>
-inline auto get_executor(__promise_handler<_Values...>& __h)
+inline auto get_executor(const __promise_handler<_Values...>& __h)
 {
   return __promise_executor<_Values...>{__h._M_promise};
 }
