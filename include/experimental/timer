@@ -109,5 +109,7 @@ template <class _Rep, class _Period, class _Func,
 } // namespace std
 
 #include <experimental/bits/timer.h>
+#include <experimental/bits/dispatch_at.h>
+#include <experimental/bits/dispatch_after.h>
 
 #endif

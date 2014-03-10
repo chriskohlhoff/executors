@@ -7,6 +7,8 @@ nobase_include_HEADERS = \
 	experimental/thread_pool \
 	experimental/bits/call_stack.h \
 	experimental/bits/dispatch.h \
+	experimental/bits/dispatch_at.h \
+	experimental/bits/dispatch_after.h \
 	experimental/bits/execution_context.h \
 	experimental/bits/executor.h \
 	experimental/bits/invoker.h \
@@ -19,6 +21,7 @@ nobase_include_HEADERS = \
 	experimental/bits/signature_type.h \
 	experimental/bits/system_executor.h \
 	experimental/bits/thread_pool.h \
+	experimental/bits/timed_invoker.h \
 	experimental/bits/timer.h \
 	experimental/bits/timer_queue.h \
 	experimental/bits/wait_op.h \
