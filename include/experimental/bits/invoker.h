@@ -46,24 +46,6 @@ struct __invoker<_Work, void, _Producer, _Consumer>
   }
 };
 
-template <class _Work, class _Result, class _Producer>
-struct __invoker<_Work, _Result, _Producer, __empty_function_void0>
-{
-  _Work _M_work;
-  _Producer _M_producer;
-  __empty_function_void0 _M_consumer;
-  void operator()() { _M_producer(); }
-};
-
-template <class _Work, class _Producer>
-struct __invoker<_Work, void, _Producer, __empty_function_void0>
-{
-  _Work _M_work;
-  _Producer _M_producer;
-  __empty_function_void0 _M_consumer;
-  void operator()() { _M_producer(); }
-};
-
 template <class _Work, class _Result, class _Consumer>
 struct __invoker<_Work, _Result, void, _Consumer>
 {

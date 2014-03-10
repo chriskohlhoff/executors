@@ -228,7 +228,7 @@ bool operator!=(nullptr_t, const executor::work& __w) noexcept;
 
 // Schedule a function to run later.
 
-template <class _Func> void post(_Func&& __f);
+template <class _CompletionToken> auto post(_CompletionToken&& __token);
 template <class _Func, class _CompletionToken>
   auto post(_Func&& __f, _CompletionToken&& __token);
 template <class _Func, class _Executor, class _CompletionToken>
@@ -236,7 +236,7 @@ template <class _Func, class _Executor, class _CompletionToken>
 
 // Schedule a function to run now if possible, later otherwise.
 
-template <class _Func> void dispatch(_Func&& __f);
+template <class _CompletionToken> auto dispatch(_CompletionToken&& __token);
 template <class _Func, class _CompletionToken>
   auto dispatch(_Func&& __f, _CompletionToken&& __token);
 template <class _Func, class _Executor, class _CompletionToken>

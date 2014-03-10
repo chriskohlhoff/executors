@@ -18,11 +18,11 @@
 namespace std {
 namespace experimental {
 
-template <class _Func>
-void dispatch(_Func&& __f)
+template <class _CompletionToken>
+auto dispatch(_CompletionToken&& __token)
 {
-  std::experimental::dispatch(forward<_Func>(__f),
-    get_executor(__f), __empty_function_void0());
+  return std::experimental::dispatch(__empty_function_void0(),
+    forward<_CompletionToken>(__token));
 }
 
 template <class _Func, class _CompletionToken>

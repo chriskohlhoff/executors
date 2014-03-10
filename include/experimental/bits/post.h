@@ -18,11 +18,11 @@
 namespace std {
 namespace experimental {
 
-template <class _Func>
-void post(_Func&& __f)
+template <class _CompletionToken>
+auto post(_CompletionToken&& __token)
 {
-  std::experimental::post(forward<_Func>(__f),
-    get_executor(__f), __empty_function_void0());
+  return std::experimental::post(__empty_function_void0(),
+    forward<_CompletionToken>(__token));
 }
 
 template <class _Func, class _CompletionToken>
