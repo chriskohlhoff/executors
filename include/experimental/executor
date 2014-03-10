@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_EXECUTOR_HEADER
 #define EXECUTORS_EXPERIMENTAL_EXECUTOR_HEADER
 
+#include <experimental/bits/is_handler.h>
 #include <experimental/type_traits>
 #include <memory>
 #include <mutex>
@@ -113,7 +114,9 @@ public:
 
 // Obtain associated executor.
 
-template <class _T> system_executor get_executor(const _T&);
+template <class _T> system_executor get_executor(const _T&,
+  typename enable_if<__is_handler<_T>::value>::type* = 0);
+
 system_executor get_executor(const system_executor&);
 system_executor get_executor(system_executor&&);
 system_executor get_executor(const system_executor::work&);

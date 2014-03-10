@@ -12,6 +12,7 @@ nobase_include_HEADERS = \
 	experimental/bits/execution_context.h \
 	experimental/bits/executor.h \
 	experimental/bits/invoker.h \
+	experimental/bits/is_handler.h \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/operation.h \
 	experimental/bits/post.h \
