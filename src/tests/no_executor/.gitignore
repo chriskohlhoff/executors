@@ -1,4 +1,8 @@
 dispatch_int
 dispatch_void
+dispatch_after_int
+dispatch_after_void
+dispatch_at_int
+dispatch_at_void
 post_int
 post_void
