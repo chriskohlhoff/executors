@@ -133,6 +133,7 @@ int main()
   std::future<int> fut7 = std::experimental::dispatch_at(abs_time, std::move(f3), ex.wrap(std::experimental::use_future));
   fut7.get();
 
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   assert(function_count == 56);
   assert(handler_count == 49);
 }

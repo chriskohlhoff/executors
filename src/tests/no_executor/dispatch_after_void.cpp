@@ -139,6 +139,7 @@ int main()
   std::future<void> fut7 = std::experimental::dispatch_after(rel_time, std::move(f3), std::experimental::use_future);
   fut7.get();
 
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   assert(function_count == 63);
   assert(handler_count == 49);
 
