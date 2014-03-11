@@ -48,6 +48,7 @@ public:
     __op_queue<__operation> __ops;
     _M_queues._Get_all_timers(__ops);
     __ops._Push(_M_ops);
+    __lock.unlock();
   }
 
   template <class _Clock, class _TimerTraits>
