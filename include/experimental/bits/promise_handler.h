@@ -28,9 +28,9 @@ struct __value_pack
   typedef tuple<_Values...> _Type;
 
   template <class... _Args>
-  static void _Apply(promise<_Type>& p, _Args&&... __args)
+  static void _Apply(promise<_Type>& __p, _Args&&... __args)
   {
-    p.set_value(std::make_tuple(forward<_Args>(__args)...));
+    __p.set_value(std::make_tuple(forward<_Args>(__args)...));
   }
 };
 
@@ -40,9 +40,9 @@ struct __value_pack<_Value>
   typedef _Value _Type;
 
   template <class _Arg>
-  static void _Apply(promise<_Type>& p, _Arg&& __arg)
+  static void _Apply(promise<_Type>& __p, _Arg&& __arg)
   {
-    p.set_value(forward<_Arg>(__arg));
+    __p.set_value(forward<_Arg>(__arg));
   }
 };
 
@@ -51,9 +51,9 @@ struct __value_pack<>
 {
   typedef void _Type;
 
-  static void _Apply(promise<_Type>& p)
+  static void _Apply(promise<_Type>& __p)
   {
-    p.set_value();
+    __p.set_value();
   }
 };
 
