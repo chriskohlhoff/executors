@@ -4,8 +4,8 @@
 #include <experimental/timer>
 #include <cassert>
 
-int function_count = 0;
-int handler_count = 0;
+std::atomic<int> function_count(0);
+std::atomic<int> handler_count(0);
 
 void function1()
 {

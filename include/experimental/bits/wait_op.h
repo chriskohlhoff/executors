@@ -62,7 +62,7 @@ public:
   virtual void _Complete()
   {
     unique_ptr<__wait_op> __op(this);
-    get_executor(_M_work).dispatch(
+    get_executor(_M_work).post(
       __wait_invoker<_Func, _Work>(std::move(_M_func), _M_work, _M_ec));
   }
 
