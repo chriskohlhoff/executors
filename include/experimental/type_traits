@@ -35,7 +35,7 @@ namespace experimental {
 // type type shall be constructible from an lvalue or rvalue of the type
 // specified by the _CompletionToken template parameter.
 
-template <class _CompletionToken, class _Signature>
+template <class _CompletionToken, class _Signature, class = void>
 struct handler_type
 {
   // Type: _CompletionToken if _CompletionToken and
