@@ -172,7 +172,7 @@ struct __promise_executor
   template <class _Func>
   inline auto wrap(_Func&& __f)
   {
-    return __wrapper<typename decay<_Func>::type, __promise_executor>(forward<_Func>(__f), *this);
+    return (wrap_with_executor)(forward<_Func>(__f), *this);
   }
 
   execution_context& context()

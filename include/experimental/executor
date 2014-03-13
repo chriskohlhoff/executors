@@ -93,6 +93,48 @@ template <class _Service, class... _Args> _Service&
   make_service(execution_context& __c, _Args&&... __args);
 template <class _Service> bool has_service(execution_context& __c) noexcept;
 
+// The executor_arg_t struct is an empty structure type used as a unique type
+// to disambiguate constructor and function overloading. Specifically, some
+// types have constructors with executor_arg_t as the first argument,
+// immediately followed by an argument of a type that satisfies the Executor
+// requirements.
+
+struct executor_arg_t {};
+constexpr executor_arg_t executor_arg = executor_arg_t{};
+
+// The uses_executor trait detects whether _T has an associated executor that
+// is convertible from type _Executor. Meets the BinaryTypeTrait requirements.
+// The implementation shall provide a definition that is derived from
+// false_type. A program may specialize this template to derive from true_type
+// for a user-defined type _T that can be constructed with an executor, where
+// the first argument of a constructor has type executor_arg_t and the second
+// argument is convertible from type _Executor.
+
+template <class _T, class _Executor> struct uses_executor : false_type {};
+
+// A call wrapper type to associate an object of type _T with an executor of
+// type _Executor.
+
+template <class _T, class _Executor>
+class executor_wrapper;
+
+template <class _T, class _Executor>
+  struct uses_executor<executor_wrapper<_T, _Executor>, _Executor> : true_type {};
+
+template <class _T, class _Executor, class _Signature>
+  struct handler_type<executor_wrapper<_T, _Executor>, _Signature>;
+
+template <class _T, class _Executor>
+  class async_result<executor_wrapper<_T, _Executor>>;
+
+// Associate an object of type _T with an executor of type _Executor. If
+// uses_executor<_T, _Executor>::value is false, returns an object of type
+// executor_wrapper<_T, _Executor>. Otherwise, returns a copy of __t
+// constructed as _T(executor_arg, __e, __t).
+
+template <class _T, class _Executor>
+  auto wrap_with_executor(_T&& __t, const _Executor& __e);
+
 // The system executor represents an execution context where functions are
 // permitted to run on arbitrary threads. The post() function schedules the
 // function to run on an unspecified system thread pool, and dispatch() invokes
@@ -259,6 +301,7 @@ template<class _Alloc>
 
 #include <experimental/bits/execution_context.h>
 #include <experimental/bits/system_executor.h>
+#include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/executor.h>
 #include <experimental/bits/post.h>
 #include <experimental/bits/dispatch.h>

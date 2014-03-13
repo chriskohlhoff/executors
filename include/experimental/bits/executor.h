@@ -13,7 +13,6 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_EXECUTOR_H
 
 #include <memory>
-#include <experimental/bits/wrapper.h>
 
 namespace std {
 namespace experimental {
@@ -499,7 +498,7 @@ inline executor::work executor::make_work()
 template <class _Func>
 inline auto executor::wrap(_Func&& __f)
 {
-  return __wrapper<typename decay<_Func>::type, executor>(forward<_Func>(__f), *this);
+  return (wrap_with_executor)(forward<_Func>(__f), *this);
 }
 
 inline execution_context& executor::context()

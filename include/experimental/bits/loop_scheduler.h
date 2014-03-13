@@ -13,7 +13,6 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_LOOP_SCHEDULER_H
 
 #include <cassert>
-#include <experimental/bits/wrapper.h>
 
 namespace std {
 namespace experimental {
@@ -118,9 +117,7 @@ inline loop_scheduler::executor::work loop_scheduler::executor::make_work()
 template <class _Func>
 inline auto loop_scheduler::executor::wrap(_Func&& __f)
 {
-  return __wrapper<
-    typename decay<_Func>::type, loop_scheduler::executor>(
-      forward<_Func>(__f), *this);
+  return (wrap_with_executor)(forward<_Func>(__f), *this);
 }
 
 inline execution_context& loop_scheduler::executor::context()

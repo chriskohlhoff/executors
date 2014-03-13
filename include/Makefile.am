@@ -11,6 +11,7 @@ nobase_include_HEADERS = \
 	experimental/bits/dispatch_after.h \
 	experimental/bits/execution_context.h \
 	experimental/bits/executor.h \
+	experimental/bits/executor_wrapper.h \
 	experimental/bits/invoker.h \
 	experimental/bits/is_handler.h \
 	experimental/bits/loop_scheduler.h \
@@ -25,8 +26,7 @@ nobase_include_HEADERS = \
 	experimental/bits/timed_invoker.h \
 	experimental/bits/timer.h \
 	experimental/bits/timer_queue.h \
-	experimental/bits/wait_op.h \
-	experimental/bits/wrapper.h
+	experimental/bits/wait_op.h
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in
