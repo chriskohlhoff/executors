@@ -55,6 +55,9 @@ private:
 
 constexpr use_future_t<> use_future;
 
+template <class _Alloc, class _R, class... _Args>
+  struct handler_type<use_future_t<_Alloc>, _R(_Args...)>;
+
 } // namespace experimental
 } // namespace std
 
