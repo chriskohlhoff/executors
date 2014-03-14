@@ -9,6 +9,20 @@ AC_PROG_CXX
 AC_LANG(C++)
 AC_PROG_RANLIB
 
+AC_ARG_WITH(boost,
+  AC_HELP_STRING([--with-boost=DIR],[location of boost distribution]),
+[
+  if test "${withval}" = no; then
+    CPPFLAGS="$CPPFLAGS -DEXECUTORS_NO_BOOST=1"
+  else
+    CPPFLAGS="$CPPFLAGS -I${withval}"
+    LIBS="$LIBS -L${withval}/stage/lib -lboost_coroutine -lboost_context -lboost_system"
+  fi
+],
+[
+  CPPFLAGS="$CPPFLAGS -DEXECUTORS_NO_BOOST=1"
+])
+
 WINDOWS=no
 case $host in
   *-*-linux*)
@@ -43,13 +57,15 @@ case $host in
 esac
 
 if test "$GXX" = yes; then
-  CPPFLAGS="-std=c++1y $CPPFLAGS"
+  CPPFLAGS="-std=c++1y -Wno-unused-local-typedefs $CPPFLAGS"
 fi
 
 AC_OUTPUT([
   Makefile
   include/Makefile
   src/Makefile
+  src/examples/Makefile
+  src/examples/timer/Makefile
   src/tests/Makefile
   src/tests/execution_context/Makefile
   src/tests/executor/Makefile

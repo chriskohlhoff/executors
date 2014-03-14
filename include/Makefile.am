@@ -5,6 +5,7 @@ nobase_include_HEADERS = \
 	experimental/timer \
 	experimental/type_traits \
 	experimental/thread_pool \
+	experimental/yield \
 	experimental/bits/call_stack.h \
 	experimental/bits/dispatch.h \
 	experimental/bits/dispatch_at.h \
@@ -14,6 +15,7 @@ nobase_include_HEADERS = \
 	experimental/bits/executor_wrapper.h \
 	experimental/bits/invoker.h \
 	experimental/bits/is_handler.h \
+	experimental/bits/is_yieldable.h \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/operation.h \
 	experimental/bits/post.h \
@@ -26,7 +28,8 @@ nobase_include_HEADERS = \
 	experimental/bits/timed_invoker.h \
 	experimental/bits/timer.h \
 	experimental/bits/timer_queue.h \
-	experimental/bits/wait_op.h
+	experimental/bits/wait_op.h \
+	experimental/bits/yield_context.h
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in
