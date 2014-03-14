@@ -22,29 +22,29 @@ class executor_wrapper
 {
 public:
   template <class _U> executor_wrapper(executor_arg_t, const _Executor& __e, _U&& __u)
-    : _M_wrapped(forward<_U>(__u)), _M_executor(__e)
+    : executor_wrapper(__e, forward<_U>(__u))
   {
   }
 
   template <class _U> executor_wrapper(const executor_wrapper<_U, _Executor>& __w)
-    : _M_wrapped(__w._M_wrapped), _M_executor(__w._M_executor)
+    : executor_wrapper(__w._M_executor, __w._M_wrapped)
   {
   }
 
   template <class _U> executor_wrapper(executor_arg_t, const _Executor& __e,
     const executor_wrapper<_U, _Executor>& __w)
-      : _M_wrapped(__w._M_wrapped), _M_executor(__e)
+      : executor_wrapper(__e, __w._M_wrapped)
   {
   }
 
   template <class _U> executor_wrapper(executor_wrapper<_U, _Executor>&& __w)
-    : _M_wrapped(std::move(__w._M_wrapped)), _M_executor(std::move(__w._M_executor))
+    : executor_wrapper(std::move(__w._M_executor), std::move(__w._M_wrapped))
   {
   }
 
   template <class _U> executor_wrapper(executor_arg_t, const _Executor& __e,
     executor_wrapper<_U, _Executor>&& __w)
-      : _M_wrapped(std::move(__w._M_wrapped)), _M_executor(__e)
+      : executor_wrapper(__e, std::move(__w._M_wrapped))
   {
   }
 
@@ -64,10 +64,25 @@ public:
   }
 
 private:
+  template <class _E, class _U> explicit executor_wrapper(_E&& __e, _U&& __u)
+    : executor_wrapper(forward<_E>(__e), forward<_U>(__u), uses_executor<_T, _Executor>())
+  {
+  }
+
+  template <class _E, class _U> explicit executor_wrapper(_E&& __e, _U&& __u, true_type)
+    : _M_executor(forward<_E>(__e)), _M_wrapped(executor_arg, _M_executor, forward<_U>(__u))
+  {
+  }
+
+  template <class _E, class _U> explicit executor_wrapper(_E&& __e, _U&& __u, false_type)
+    : _M_executor(forward<_E>(__e)), _M_wrapped(forward<_U>(__u))
+  {
+  }
+
   template <class _U, class _E> friend class executor_wrapper;
   friend class async_result<executor_wrapper>;
-  _T _M_wrapped;
   _Executor _M_executor;
+  _T _M_wrapped;
 };
 
 template <class _T, class _Executor, class _Signature>
