@@ -12,8 +12,8 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_DISPATCH_AT_H
 #define EXECUTORS_EXPERIMENTAL_BITS_DISPATCH_AT_H
 
+#include <experimental/bits/invoker.h>
 #include <experimental/bits/timed_invoker.h>
-#include <experimental/bits/signature_type.h>
 
 namespace std {
 namespace experimental {
@@ -38,15 +38,16 @@ auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
   _Func&& __f, _CompletionToken&& __token)
 {
   typedef typename decay<_Func>::type _DecayFunc;
-  typedef typename result_of<_DecayFunc()>::type _Result;
+  typedef __signature_t<_DecayFunc> _FuncSignature;
+  typedef __result_t<_FuncSignature> _Result;
   typedef typename decay<_Result>::type _DecayResult;
-  typedef __signature_type_t<_Result> _Signature;
+  typedef __make_signature_t<void, _Result> _HandlerSignature;
+  typedef handler_type_t<_CompletionToken, _HandlerSignature> _Handler;
 
-  typedef handler_type_t<_CompletionToken, _Signature> _Handler;
-  async_completion<_CompletionToken, _Signature> __completion(__token);
+  async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
 
   auto __completion_executor(get_executor(__completion.handler));
-  (dispatch_at)(__abs_time, __invoker<_DecayResult, _DecayFunc, _Handler>{
+  (dispatch_at)(__abs_time, __invoker<_DecayFunc, _Handler, _FuncSignature>{
     forward<_Func>(__f), std::move(__completion.handler), __completion_executor.make_work()});
 
   return __completion.result.get();

@@ -13,7 +13,7 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_EXECUTOR_WRAPPER_H
 
 #include <experimental/type_traits>
-#include <experimental/bits/is_handler.h>
+#include <experimental/bits/function_traits.h>
 
 namespace std {
 namespace experimental {
@@ -83,7 +83,7 @@ private:
 
 template <class _T>
 class __executor_wrapper_wrapped<_T,
-  typename enable_if<is_class<_T>::value && __is_handler<_T>::value>::type>
+  typename enable_if<is_class<_T>::value && __is_callable<_T>::value>::type>
     : private _T
 {
 public:
@@ -101,7 +101,7 @@ protected:
 
 template <class _T>
 class __executor_wrapper_wrapped<_T,
-  typename enable_if<is_class<_T>::value && !__is_handler<_T>::value>::type>
+  typename enable_if<is_class<_T>::value && !__is_callable<_T>::value>::type>
     : private _T
 {
 protected:
@@ -116,7 +116,8 @@ protected:
 
 template <class _T>
 class __executor_wrapper_wrapped<_T,
-  typename enable_if<!is_class<_T>::value && __is_handler<_T>::value && !__is_handler_function<_T>::value>::type>
+  typename enable_if<!is_class<_T>::value && __is_callable<_T>::value
+    && !__is_callable_function<_T>::value>::type>
 {
 public:
   template <class... _Args> auto operator()(_Args&&... __args)
@@ -146,7 +147,7 @@ private:
 
 template <class _T>
 class __executor_wrapper_wrapped<_T,
-  typename enable_if<!is_class<_T>::value && !__is_handler<_T>::value>::type>
+  typename enable_if<!is_class<_T>::value && !__is_callable<_T>::value>::type>
 {
 protected:
   template <class _U, class _E> friend class executor_wrapper;

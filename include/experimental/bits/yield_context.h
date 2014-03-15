@@ -17,8 +17,8 @@
 #include <tuple>
 #include <utility>
 #include <experimental/bits/executor_wrapper.h>
+#include <experimental/bits/function_traits.h>
 #include <experimental/bits/invoker.h>
-#include <experimental/bits/is_yieldable.h>
 
 #ifndef EXECUTORS_NO_BOOST
 # include <boost/coroutine/all.hpp>
@@ -382,13 +382,21 @@ template <class _ExecutorTo, class _Func, class _ExecutorFrom>
 struct uses_executor<__yield_context_launcher<_ExecutorTo, _Func>, _ExecutorFrom>
   : is_convertible<_ExecutorFrom, _ExecutorTo> {};
 
+template <class _T, class = void>
+struct __is_yieldable : false_type {};
+
+template <class _T>
+struct __is_yieldable<_T,
+  typename enable_if<is_convertible<__last_argument_t<__signature_t<_T>>,
+    yield_context>::value>::type> : true_type {};
+
 template <class _Func, class _R, class... _Args>
 struct handler_type<_Func, _R(_Args...),
-  typename enable_if<__is_yieldable<_Func(_Args...)>::value
-    && !__is_executor_wrapper<_Func>::value>::type>
+  typename enable_if<__is_yieldable<typename decay<_Func>::type>::value
+    && !__is_executor_wrapper<typename decay<_Func>::type>::value>::type>
 {
   typedef typename decay<_Func>::type _DecayFunc;
-  typedef typename __yield_argument_type<_DecayFunc>::type _YieldContext;
+  typedef __last_argument_t<__signature_t<_DecayFunc>> _YieldContext;
   typedef decltype(get_executor(declval<_YieldContext>())) _Executor;
   typedef __yield_context_launcher<_Executor, _DecayFunc> type;
 };

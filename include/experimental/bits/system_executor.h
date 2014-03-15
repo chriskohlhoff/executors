@@ -89,7 +89,7 @@ inline execution_context& system_executor::context()
 
 template <class _T>
 inline system_executor get_executor(const _T&,
-  typename enable_if<__is_handler<_T>::value>::type*)
+  typename enable_if<__is_callable<_T>::value>::type*)
 {
   return system_executor();
 }

@@ -13,7 +13,6 @@
 #define EXECUTORS_EXPERIMENTAL_YIELD_HEADER
 
 #include <experimental/type_traits>
-#include <experimental/bits/is_yieldable.h>
 
 namespace std {
 namespace experimental {

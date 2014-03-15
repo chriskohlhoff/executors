@@ -12,8 +12,6 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_TIMED_INVOKER_H
 #define EXECUTORS_EXPERIMENTAL_BITS_TIMED_INVOKER_H
 
-#include <experimental/bits/invoker.h>
-
 namespace std {
 namespace experimental {
 
