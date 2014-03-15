@@ -47,9 +47,9 @@ auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
   return __completion.result.get();
 }
 
-template <class _Rep, class _Period, class _Func, class _Executor, class _CompletionToken>
+template <class _Rep, class _Period, class _Executor, class _Func, class _CompletionToken>
 auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
-  _Func&& __f, _Executor&& __e, _CompletionToken&& __token)
+  _Executor&& __e, _Func&& __f, _CompletionToken&& __token)
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef typename result_of<_DecayFunc()>::type _Result;

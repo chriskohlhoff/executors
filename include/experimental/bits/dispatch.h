@@ -45,8 +45,8 @@ auto dispatch(_Func&& __f, _CompletionToken&& __token)
   return __completion.result.get();
 }
 
-template <class _Func, class _Executor, class _CompletionToken>
-auto dispatch(_Func&& __f, _Executor&& __e, _CompletionToken&& __token)
+template <class _Executor, class _Func, class _CompletionToken>
+auto dispatch(_Executor&& __e, _Func&& __f, _CompletionToken&& __token)
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef typename result_of<_DecayFunc()>::type _Result;

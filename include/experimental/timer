@@ -89,10 +89,10 @@ template <class _Clock, class _Duration, class _CompletionToken>
 template <class _Clock, class _Duration, class _Func, class _CompletionToken>
   auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
     _Func&& __f, _CompletionToken&& __token);
-template <class _Clock, class _Duration, class _Func,
-  class _Executor, class _CompletionToken>
+template <class _Clock, class _Duration, class _Executor,
+  class _Func, class _CompletionToken>
     auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      _Func&& __f, _Executor&& __e, _CompletionToken&& __token);
+      _Executor&& __e, _Func&& __f, _CompletionToken&& __token);
 
 template <class _Rep, class _Period, class _CompletionToken>
   auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
@@ -100,10 +100,10 @@ template <class _Rep, class _Period, class _CompletionToken>
 template <class _Rep, class _Period, class _Func, class _CompletionToken>
   auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
     _Func&& __f, _CompletionToken&& __token);
-template <class _Rep, class _Period, class _Func,
-  class _Executor, class _CompletionToken>
+template <class _Rep, class _Period, class _Executor,
+  class _Func, class _CompletionToken>
     auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      _Func&& __f, _Executor&& __e, _CompletionToken&& __token);
+      _Executor&& __e, _Func&& __f, _CompletionToken&& __token);
 
 } // namespace experimental
 } // namespace std
