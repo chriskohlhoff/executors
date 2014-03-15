@@ -18,6 +18,8 @@ nobase_include_HEADERS = \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/operation.h \
 	experimental/bits/post.h \
+	experimental/bits/post_at.h \
+	experimental/bits/post_after.h \
 	experimental/bits/promise_handler.h \
 	experimental/bits/reactor.h \
 	experimental/bits/scheduler.h \
