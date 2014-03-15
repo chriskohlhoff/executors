@@ -22,8 +22,14 @@ template <class _Rep, class _Period, class _CompletionToken>
 auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
   _CompletionToken&& __token)
 {
-  return std::experimental::dispatch_after(__rel_time,
-    __empty_function_void0(), forward<_CompletionToken>(__token));
+  typedef handler_type_t<_CompletionToken, void()> _Handler;
+  async_completion<_CompletionToken, void()> __completion(__token);
+
+  auto __completion_executor(get_executor(__completion.handler));
+  __timed_invoker<chrono::steady_clock, _Handler>(__completion_executor.context(),
+    __rel_time, std::move(__completion.handler))._Start(__completion_executor);
+
+  return __completion.result.get();
 }
 
 template <class _Rep, class _Period, class _Func, class _CompletionToken>
@@ -32,17 +38,15 @@ auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef typename result_of<_DecayFunc()>::type _Result;
+  typedef typename decay<_Result>::type _DecayResult;
   typedef __signature_type_t<_Result> _Signature;
-  typedef handler_type_t<_CompletionToken, _Signature> _Handler;
 
+  typedef handler_type_t<_CompletionToken, _Signature> _Handler;
   async_completion<_CompletionToken, _Signature> __completion(__token);
 
   auto __completion_executor(get_executor(__completion.handler));
-  auto __work(__completion_executor.make_work());
-
-  __timed_invoker<chrono::steady_clock, decltype(__work), typename decay<_Result>::type,
-    _DecayFunc, _Handler>(__completion_executor.context(), __rel_time, __work,
-      forward<_Func>(__f), std::move(__completion.handler))._Start(__completion_executor);
+  (dispatch_after)(__rel_time, __invoker<_DecayResult, _DecayFunc, _Handler>{
+    forward<_Func>(__f), std::move(__completion.handler), __completion_executor.make_work()});
 
   return __completion.result.get();
 }
@@ -51,21 +55,7 @@ template <class _Rep, class _Period, class _Executor, class _Func, class _Comple
 auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
   _Executor&& __e, _Func&& __f, _CompletionToken&& __token)
 {
-  typedef typename decay<_Func>::type _DecayFunc;
-  typedef typename result_of<_DecayFunc()>::type _Result;
-  typedef __signature_type_t<_Result> _Signature;
-  typedef handler_type_t<_CompletionToken, _Signature> _Handler;
-
-  async_completion<_CompletionToken, _Signature> __completion(__token);
-
-  auto __completion_executor(get_executor(__completion.handler));
-  auto __work(__completion_executor.make_work());
-
-  __timed_invoker<chrono::steady_clock, decltype(__work), typename decay<_Result>::type,
-    _DecayFunc, _Handler>(__completion_executor.context(), __rel_time, __work,
-      forward<_Func>(__f), std::move(__completion.handler))._Start(__e);
-
-  return __completion.result.get();
+  return (dispatch_after)(__rel_time, __e.wrap(forward<_Func>(__f)), forward<_CompletionToken>(__token));
 }
 
 } // namespace experimental

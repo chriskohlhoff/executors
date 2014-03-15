@@ -21,8 +21,12 @@ namespace experimental {
 template <class _CompletionToken>
 auto post(_CompletionToken&& __token)
 {
-  return std::experimental::post(__empty_function_void0(),
-    forward<_CompletionToken>(__token));
+  async_completion<_CompletionToken, void()> __completion(__token);
+
+  auto __completion_executor(get_executor(__completion.handler));
+  __completion_executor.post(std::move(__completion.handler));
+
+  return __completion.result.get();
 }
 
 template <class _Func, class _CompletionToken>
@@ -30,17 +34,14 @@ auto post(_Func&& __f, _CompletionToken&& __token)
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef typename result_of<_DecayFunc()>::type _Result;
+  typedef typename decay<_Result>::type _DecayResult;
   typedef __signature_type_t<_Result> _Signature;
-  typedef handler_type_t<_CompletionToken, _Signature> _Handler;
 
+  typedef handler_type_t<_CompletionToken, _Signature> _Handler;
   async_completion<_CompletionToken, _Signature> __completion(__token);
 
-  auto __completion_executor(get_executor(__completion.handler));
-  auto __work(__completion_executor.make_work());
-
-  __completion_executor.post(
-    __invoker<decltype(__work), typename decay<_Result>::type, _DecayFunc, _Handler>{
-      __work, forward<_Func>(__f), std::move(__completion.handler)});
+  (post)(__invoker<_DecayResult, _DecayFunc, _Handler>{forward<_Func>(__f),
+    std::move(__completion.handler), get_executor(__completion.handler).make_work()});
 
   return __completion.result.get();
 }
@@ -48,21 +49,7 @@ auto post(_Func&& __f, _CompletionToken&& __token)
 template <class _Executor, class _Func, class _CompletionToken>
 auto post(_Executor&& __e, _Func&& __f, _CompletionToken&& __token)
 {
-  typedef typename decay<_Func>::type _DecayFunc;
-  typedef typename result_of<_DecayFunc()>::type _Result;
-  typedef __signature_type_t<_Result> _Signature;
-  typedef handler_type_t<_CompletionToken, _Signature> _Handler;
-
-  async_completion<_CompletionToken, _Signature> __completion(__token);
-
-  auto __completion_executor(get_executor(__completion.handler));
-  auto __work(__completion_executor.make_work());
-
-  __e.post(
-    __invoker<decltype(__work), typename decay<_Result>::type, _DecayFunc, _Handler>{
-      __work, forward<_Func>(__f), std::move(__completion.handler)});
-
-  return __completion.result.get();
+  return (post)(__e.wrap(forward<_Func>(__f)), forward<_CompletionToken>(__token));
 }
 
 } // namespace experimental

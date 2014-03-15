@@ -17,25 +17,25 @@
 namespace std {
 namespace experimental {
 
-template <class _Clock, class _Work, class _Result, class _Producer, class _Consumer>
+template <class _Clock, class _Handler>
 class __timed_invoker
 {
 public:
-  template <class _P, class _C>
+  template <class _H>
   __timed_invoker(execution_context& __context,
-      const typename _Clock::time_point& __abs_time,
-      const _Work& __work, _P&& __producer, _C&& __consumer)
+      const typename _Clock::time_point& __abs_time, _H&& __h)
     : _M_timer(new basic_timer<_Clock>(__context, __abs_time)),
-      _M_invoker{__work, forward<_P>(__producer), forward<_C>(__consumer)}
+      _M_handler(forward<_H>(__h)),
+      _M_handler_work(get_executor(_M_handler).make_work())
   {
   }
 
-  template <class _P, class _C>
+  template <class _H>
   __timed_invoker(execution_context& __context,
-      const typename _Clock::duration& __rel_time,
-      const _Work& __work, _P&& __producer, _C&& __consumer)
+      const typename _Clock::duration& __rel_time, _H&& __h)
     : _M_timer(new basic_timer<_Clock>(__context, __rel_time)),
-      _M_invoker{__work, forward<_P>(__producer), forward<_C>(__consumer)}
+      _M_handler(forward<_H>(__h)),
+      _M_handler_work(get_executor(_M_handler).make_work())
   {
   }
 
@@ -48,12 +48,13 @@ public:
 
   void operator()(const error_code&)
   {
-    _M_invoker();
+    _M_handler();
   }
 
 private:
   unique_ptr<basic_timer<_Clock>> _M_timer;
-  __invoker<_Work, _Result, _Producer, _Consumer> _M_invoker;
+  _Handler _M_handler;
+  typename decltype(get_executor(declval<_Handler>()))::work _M_handler_work;
 };
 
 } // namespace experimental
