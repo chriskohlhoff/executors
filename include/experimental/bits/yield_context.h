@@ -16,6 +16,7 @@
 #include <system_error>
 #include <tuple>
 #include <utility>
+#include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/invoker.h>
 #include <experimental/bits/is_yieldable.h>
 
@@ -383,7 +384,8 @@ struct uses_executor<__yield_context_launcher<_ExecutorTo, _Func>, _ExecutorFrom
 
 template <class _Func, class _R, class... _Args>
 struct handler_type<_Func, _R(_Args...),
-  typename enable_if<__is_yieldable<_Func(_Args...)>::value>::type>
+  typename enable_if<__is_yieldable<_Func(_Args...)>::value
+    && !__is_executor_wrapper<_Func>::value>::type>
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef typename __yield_argument_type<_DecayFunc>::type _YieldContext;
