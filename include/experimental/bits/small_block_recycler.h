@@ -26,7 +26,7 @@ public:
   __small_block_recycler(const __small_block_recycler&) = delete;
   __small_block_recycler& operator=(const __small_block_recycler&) = delete;
 
-  __small_block_recycler() : _M_memory(nullptr)
+  __small_block_recycler() : _M_memory(nullptr), _M_next_memory(nullptr)
   {
   }
 
@@ -34,6 +34,8 @@ public:
   {
     if (_M_memory)
       ::operator delete(_M_memory);
+    if (_M_next_memory)
+      ::operator delete(_M_next_memory);
   }
 
   template <class _T>
@@ -70,7 +72,8 @@ public:
     if (_M_memory)
     {
       void* const __p = _M_memory;
-      _M_memory = 0;
+      _M_memory = _M_next_memory;
+      _M_next_memory = nullptr;
 
       unsigned char* const __mem = static_cast<unsigned char*>(__p);
       if (static_cast<size_t>(__mem[0]) >= __size)
@@ -101,6 +104,14 @@ public:
           _M_memory = __p;
           return;
         }
+
+        if (_M_next_memory == 0)
+        {
+          unsigned char* const __mem = static_cast<unsigned char*>(__p);
+          __mem[0] = __mem[__size];
+          _M_next_memory = __p;
+          return;
+        }
       }
 
       ::operator delete(__p);
@@ -122,6 +133,7 @@ private:
   };
 
   void* _M_memory;
+  void* _M_next_memory;
   static thread_local __small_block_recycler _S_instance;
 };
 
