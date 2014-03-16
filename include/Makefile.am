@@ -2,6 +2,7 @@ nobase_include_HEADERS = \
 	experimental/executor \
 	experimental/future \
 	experimental/loop_scheduler \
+	experimental/strand \
 	experimental/timer \
 	experimental/type_traits \
 	experimental/thread_pool \
@@ -24,6 +25,7 @@ nobase_include_HEADERS = \
 	experimental/bits/reactor.h \
 	experimental/bits/scheduler.h \
 	experimental/bits/small_block_recycler.h \
+	experimental/bits/strand.h \
 	experimental/bits/system_executor.h \
 	experimental/bits/thread_pool.h \
 	experimental/bits/timed_invoker.h \
