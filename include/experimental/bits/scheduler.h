@@ -23,6 +23,7 @@
 
 #include <experimental/bits/call_stack.h>
 #include <experimental/bits/operation.h>
+#include <experimental/bits/small_block_recycler.h>
 
 namespace std {
 namespace experimental {
@@ -194,13 +195,15 @@ public:
 
   virtual void _Complete()
   {
-    unique_ptr<__scheduler_op> __op(this);
-    _M_func();
+    __small_block_recycler<>::_Unique_ptr<__scheduler_op> __op(this);
+    _Func __f(std::move(_M_func));
+    __op.reset();
+    __f();
   }
 
   virtual void _Destroy()
   {
-    delete this;
+    __small_block_recycler<>::_Destroy(this);
   }
 
 private:
@@ -211,8 +214,8 @@ private:
 template <class _F> void __scheduler::_Post(_F&& __f)
 {
   typedef typename decay<_F>::type _Func;
-  unique_ptr<__scheduler_op<_Func>> __op(
-    new __scheduler_op<_Func>(forward<_F>(__f), *this));
+  __small_block_recycler<>::_Unique_ptr<__scheduler_op<_Func>> __op(
+    __small_block_recycler<>::_Create<__scheduler_op<_Func>>(forward<_F>(__f), *this));
 
   lock_guard<mutex> lock(_M_mutex);
 

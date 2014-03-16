@@ -41,14 +41,16 @@ public:
 
   virtual void _Complete()
   {
-    unique_ptr<__wait_op> __op(this);
-    get_executor(_M_work).post(
-      __invoke_with_result<const error_code, _Func>{_M_ec, std::move(_M_func)});
+    __small_block_recycler<>::_Unique_ptr<__wait_op> __op(this);
+    auto __executor(get_executor(_M_work));
+    __invoke_with_result<const error_code, _Func> __i{_M_ec, std::move(_M_func)};
+    __op.reset();
+    __executor.post(std::move(__i));
   }
 
   virtual void _Destroy()
   {
-    delete this;
+    __small_block_recycler<>::_Destroy(this);
   }
 
 private:

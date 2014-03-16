@@ -23,6 +23,7 @@ nobase_include_HEADERS = \
 	experimental/bits/promise_handler.h \
 	experimental/bits/reactor.h \
 	experimental/bits/scheduler.h \
+	experimental/bits/small_block_recycler.h \
 	experimental/bits/system_executor.h \
 	experimental/bits/thread_pool.h \
 	experimental/bits/timed_invoker.h \
