@@ -45,16 +45,14 @@ template <class _Rep, class _Period>
 size_t loop_scheduler::run_for(
   const chrono::duration<_Rep, _Period>& __rel_time)
 {
-  assert(0 && "not implemented yet");
-  return 0;
+  return this->_Run_for(__rel_time);
 }
 
 template <class _Clock, class _Duration>
 size_t loop_scheduler::run_until(
   const chrono::time_point<_Clock, _Duration>& __abs_time)
 {
-  assert(0 && "not implemented yet");
-  return 0;
+  return this->_Run_until(__abs_time);
 }
 
 inline size_t loop_scheduler::poll()

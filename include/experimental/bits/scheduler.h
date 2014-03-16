@@ -104,6 +104,32 @@ public:
     return _Do_run_one(__lock);
   }
 
+  template <class _Rep, class _Period>
+  size_t _Run_for(const chrono::duration<_Rep, _Period>& __rel_time)
+  {
+    return this->_Run_until(chrono::steady_clock::now() + __rel_time);
+  }
+
+  template <class _Clock, class _Duration>
+  size_t _Run_until(const chrono::time_point<_Clock, _Duration>& __abs_time)
+  {
+    if (_M_outstanding_work == 0)
+    {
+      _Stop();
+      return 0;
+    }
+
+    typename __call_stack<__scheduler>::__context __c(this);
+
+    unique_lock<mutex> __lock(_M_mutex);
+
+    std::size_t __n = 0;
+    for (; _Clock::now() < __abs_time && _Do_run_one_until(__lock, __abs_time); __lock.lock())
+      if (__n != (numeric_limits<size_t>::max)())
+        ++__n;
+    return __n;
+  }
+
   size_t _Poll()
   {
     if (_M_outstanding_work == 0)
@@ -142,6 +168,29 @@ private:
   {
     while (_M_queue._Empty() && !_M_stopped)
       _M_condition.wait(__lock);
+
+    if (_M_stopped)
+      return 0;
+
+    __operation* __op = _M_queue._Front();
+    _M_queue._Pop();
+
+    if (!_M_one_thread && !_M_queue._Empty())
+      _M_condition.notify_one();
+
+    __lock.unlock();
+
+    __op->_Complete();
+    return 1;
+  }
+
+  template <class _Clock, class _Duration>
+  size_t _Do_run_one_until(unique_lock<mutex>& __lock,
+    const chrono::time_point<_Clock, _Duration>& __abs_time)
+  {
+    while (_M_queue._Empty() && !_M_stopped)
+      if (_M_condition.wait_until(__lock, __abs_time) == cv_status::timeout)
+        return 0;
 
     if (_M_stopped)
       return 0;
