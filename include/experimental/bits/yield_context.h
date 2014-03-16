@@ -50,6 +50,27 @@ struct __yield_context_caller
 struct __yield_context_callee
 {
   boost::coroutines::push_coroutine<void> _M_coro;
+  atomic_flag _M_lock = ATOMIC_FLAG_INIT;
+
+  class _Lock_guard
+  {
+  public:
+    _Lock_guard(const _Lock_guard&) = delete;
+    _Lock_guard& operator=(const _Lock_guard&) = delete;
+
+    explicit _Lock_guard(__yield_context_callee& __c) : _M_lock(__c._M_lock)
+    {
+      while (_M_lock.test_and_set(memory_order_acquire)) {}
+    }
+
+    ~_Lock_guard()
+    {
+      _M_lock.clear(memory_order_release);
+    }
+
+  private:
+    atomic_flag& _M_lock;
+  };
 };
 
 template <class... _Values>
@@ -132,7 +153,10 @@ struct __yield_context_handler
   {
     _M_result->_Apply(forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
+    {
+      typename __yield_context_callee::_Lock_guard __lock(*_M_callee);
       _M_callee->_M_coro();
+    }
   }
 
   _Executor _M_executor;
@@ -160,7 +184,10 @@ struct __yield_context_handler<_Executor, error_code, _Values...>
       _M_result->_M_exception = make_exception_ptr(system_error(__e));
     _M_result->_Apply(forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
+    {
+      typename __yield_context_callee::_Lock_guard __lock(*_M_callee);
       _M_callee->_M_coro();
+    }
   }
 
   _Executor _M_executor;
@@ -186,7 +213,10 @@ struct __yield_context_handler<_Executor, exception_ptr, _Values...>
     _M_result->_M_exception = __e;
     _M_result->_Apply(forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
+    {
+      typename __yield_context_callee::_Lock_guard __lock(*_M_callee);
       _M_callee->_M_coro();
+    }
   }
 
   _Executor _M_executor;
@@ -374,6 +404,8 @@ struct __yield_context_launcher
       __ep{std::move(_M_func), std::tie(forward<_Args>(__args)...), std::move(_M_work), __callee};
 
     __callee->_M_coro = boost::coroutines::push_coroutine<void>(std::move(__ep));
+
+    typename __yield_context_callee::_Lock_guard __lock(*__callee);
     __callee->_M_coro();
   }
 };
