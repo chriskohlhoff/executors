@@ -31,6 +31,41 @@ namespace experimental {
 class __scheduler
 {
 public:
+  struct _Context
+  {
+    __scheduler* _M_scheduler;
+    __op_queue<__operation> _M_private_queue;
+    typename __call_stack<__scheduler, _Context>::__context _M_context;
+    unique_lock<mutex> _M_lock;
+
+    explicit _Context(__scheduler* __s)
+      : _M_scheduler(__s), _M_context(__s, *this), _M_lock(__s->_M_mutex)
+    {
+    }
+
+    ~_Context()
+    {
+      if (!_M_private_queue._Empty())
+      {
+        if (!_M_lock.owns_lock())
+          _M_lock.lock();
+
+        _M_scheduler->_M_queue._Push(_M_private_queue);
+      }
+    }
+
+    void _Lock()
+    {
+      if (!_M_lock.owns_lock())
+        _M_lock.lock();
+
+      if (!_M_private_queue._Empty())
+        _M_scheduler->_M_queue._Push(_M_private_queue);
+    }
+  };
+
+  typedef __call_stack<__scheduler, _Context> _Call_stack;
+
   __scheduler(size_t __concurrency_hint = ~size_t(0))
     : _M_outstanding_work(0), _M_stopped(false),
       _M_one_thread(__concurrency_hint == 1)
@@ -79,12 +114,10 @@ public:
       return 0;
     }
 
-    typename __call_stack<__scheduler>::__context __c(this);
-
-    unique_lock<mutex> __lock(_M_mutex);
+    _Context __ctx(this);
 
     std::size_t __n = 0;
-    for (; _Do_run_one(__lock); __lock.lock())
+    for (; _Do_run_one(__ctx._M_lock); __ctx._Lock())
       if (__n != (numeric_limits<size_t>::max)())
         ++__n;
     return __n;
@@ -98,10 +131,9 @@ public:
       return 0;
     }
 
-    typename __call_stack<__scheduler>::__context __c(this);
+    _Context __ctx(this);
 
-    unique_lock<mutex> __lock(_M_mutex);
-    return _Do_run_one(__lock);
+    return _Do_run_one(__ctx._M_lock);
   }
 
   template <class _Rep, class _Period>
@@ -119,12 +151,10 @@ public:
       return 0;
     }
 
-    typename __call_stack<__scheduler>::__context __c(this);
-
-    unique_lock<mutex> __lock(_M_mutex);
+    _Context __ctx(this);
 
     std::size_t __n = 0;
-    for (; _Clock::now() < __abs_time && _Do_run_one_until(__lock, __abs_time); __lock.lock())
+    for (; _Do_run_one_until(__ctx._M_lock, __abs_time); __ctx._Lock())
       if (__n != (numeric_limits<size_t>::max)())
         ++__n;
     return __n;
@@ -138,12 +168,10 @@ public:
       return 0;
     }
 
-    typename __call_stack<__scheduler>::__context __c(this);
-
-    unique_lock<mutex> __lock(_M_mutex);
+    _Context __ctx(this);
 
     std::size_t __n = 0;
-    for (; _Do_poll_one(__lock); __lock.lock())
+    for (; _Do_poll_one(__ctx._M_lock); __ctx._Lock())
       if (__n != (numeric_limits<size_t>::max)())
         ++__n;
     return __n;
@@ -157,10 +185,9 @@ public:
       return 0;
     }
 
-    typename __call_stack<__scheduler>::__context __c(this);
+    _Context __ctx(this);
 
-    unique_lock<mutex> __lock(_M_mutex);
-    return _Do_poll_one(__lock);
+    return _Do_poll_one(__ctx._M_lock);
   }
 
 private:
@@ -188,6 +215,9 @@ private:
   size_t _Do_run_one_until(unique_lock<mutex>& __lock,
     const chrono::time_point<_Clock, _Duration>& __abs_time)
   {
+    if (_Clock::now() >= __abs_time)
+      return 0;
+
     while (_M_queue._Empty() && !_M_stopped)
       if (_M_condition.wait_until(__lock, __abs_time) == cv_status::timeout)
         return 0;
@@ -282,13 +312,18 @@ template <class _F> void __scheduler::_Post(_F&& __f)
   __small_block_recycler<>::_Unique_ptr<__scheduler_op<_Func>> __op(
     __small_block_recycler<>::_Create<__scheduler_op<_Func>>(forward<_F>(__f), *this));
 
-  lock_guard<mutex> lock(_M_mutex);
+  if (_Context* __ctx = _M_one_thread ? _Call_stack::_Contains(this) : nullptr)
+  {
+    __ctx->_M_private_queue._Push(__op.get());
+  }
+  else
+  {
+    lock_guard<mutex> lock(_M_mutex);
 
-  _M_queue._Push(__op.get());
-
-  if (!_M_one_thread || !__call_stack<__scheduler>::_Contains(this))
+    _M_queue._Push(__op.get());
     if (_M_queue._Front() == __op.get())
       _M_condition.notify_one();
+  }
 
   __op.release();
 }
@@ -296,7 +331,7 @@ template <class _F> void __scheduler::_Post(_F&& __f)
 template <class _F> void __scheduler::_Dispatch(_F&& __f)
 {
   typedef typename decay<_F>::type _Func;
-  if (__call_stack<__scheduler>::_Contains(this))
+  if (_Call_stack::_Contains(this))
   {
     _Func __tmp(forward<_F>(__f));
     __tmp();
