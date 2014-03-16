@@ -15,7 +15,7 @@ void chain(loop_scheduler::executor ex, int i)
 
 int main()
 {
-  loop_scheduler s;
+  loop_scheduler s(1);
   auto ex = get_executor(s);
 
   for (int c = 0; c < chains; ++c)

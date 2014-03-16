@@ -31,7 +31,11 @@ namespace experimental {
 class __scheduler
 {
 public:
-  __scheduler() : _M_outstanding_work(0), _M_stopped(false) {} 
+  __scheduler(size_t __concurrency_hint = ~size_t(0))
+    : _M_outstanding_work(0), _M_stopped(false),
+      _M_one_thread(__concurrency_hint == 1)
+  {
+  }
 
   template <class _F> void _Post(_F&& __f);
   template <class _F> void _Dispatch(_F&& __f);
@@ -145,7 +149,7 @@ private:
     __operation* __op = _M_queue._Front();
     _M_queue._Pop();
 
-    if (!_M_queue._Empty())
+    if (!_M_one_thread && !_M_queue._Empty())
       _M_condition.notify_one();
 
     __lock.unlock();
@@ -162,7 +166,7 @@ private:
     __operation* __op = _M_queue._Front();
     _M_queue._Pop();
 
-    if (!_M_queue._Empty())
+    if (!_M_one_thread && !_M_queue._Empty())
       _M_condition.notify_one();
 
     __lock.unlock();
@@ -176,6 +180,7 @@ private:
   __op_queue<__operation> _M_queue;
   atomic<size_t> _M_outstanding_work;
   bool _M_stopped;
+  const bool _M_one_thread;
 };
 
 template <class _Func>
@@ -232,8 +237,9 @@ template <class _F> void __scheduler::_Post(_F&& __f)
 
   _M_queue._Push(__op.get());
 
-  if (_M_queue._Front() == __op.get())
-    _M_condition.notify_one();
+  if (!_M_one_thread || !__call_stack<__scheduler>::_Contains(this))
+    if (_M_queue._Front() == __op.get())
+      _M_condition.notify_one();
 
   __op.release();
 }

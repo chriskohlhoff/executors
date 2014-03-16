@@ -21,6 +21,7 @@ inline thread_pool::thread_pool()
 }
 
 inline thread_pool::thread_pool(size_t __num_threads)
+  : __scheduler(__num_threads)
 {
   _Work_started();
   for (size_t __i = 0; __i < __num_threads; ++__i)

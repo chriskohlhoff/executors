@@ -22,8 +22,8 @@ inline loop_scheduler::loop_scheduler()
 }
 
 inline loop_scheduler::loop_scheduler(size_t __concurrency_hint)
+  : __scheduler(__concurrency_hint)
 {
-  (void)__concurrency_hint;
 }
 
 inline loop_scheduler::~loop_scheduler()
