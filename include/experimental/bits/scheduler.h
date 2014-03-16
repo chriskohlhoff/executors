@@ -183,22 +183,33 @@ class __scheduler_op
   : public __operation
 {
 public:
+  __scheduler_op(const __scheduler_op&) = delete;
+  __scheduler_op& operator=(const __scheduler_op&) = delete;
+
   template <class _F> __scheduler_op(_F&& __f, __scheduler& __s)
-    : _M_func(forward<_F>(__f)), _M_owner(__s)
+    : _M_func(forward<_F>(__f)), _M_owner(&__s)
   {
+    _M_owner->_Work_started();
+  }
+
+  __scheduler_op(__scheduler_op&& __s)
+    : _M_func(std::move(__s._M_func)), _M_owner(__s._M_owner)
+  {
+    __s._M_owner = 0;
   }
 
   ~__scheduler_op()
   {
-    _M_owner._Work_finished();
+    if (_M_owner)
+      _M_owner->_Work_finished();
   }
 
   virtual void _Complete()
   {
     __small_block_recycler<>::_Unique_ptr<__scheduler_op> __op(this);
-    _Func __f(std::move(_M_func));
+    __scheduler_op __tmp(std::move(*this));
     __op.reset();
-    __f();
+    __tmp._M_func();
   }
 
   virtual void _Destroy()
@@ -208,7 +219,7 @@ public:
 
 private:
   _Func _M_func;
-  __scheduler& _M_owner;
+  __scheduler* _M_owner;
 };
 
 template <class _F> void __scheduler::_Post(_F&& __f)
@@ -220,7 +231,6 @@ template <class _F> void __scheduler::_Post(_F&& __f)
   lock_guard<mutex> lock(_M_mutex);
 
   _M_queue._Push(__op.get());
-  _Work_started();
 
   if (_M_queue._Front() == __op.get())
     _M_condition.notify_one();
