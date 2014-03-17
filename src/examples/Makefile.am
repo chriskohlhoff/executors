@@ -1,4 +1,6 @@
 SUBDIRS = \
+	channel \
+	executor \
 	timer
 
 MAINTAINERCLEANFILES = \
