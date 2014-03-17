@@ -180,7 +180,7 @@ struct __yield_context_handler<_Executor, error_code, _Values...>
   {
     if (_M_error_code)
       *_M_error_code = __e;
-    else
+    else if (__e)
       _M_result->_M_exception = make_exception_ptr(system_error(__e));
     _M_result->_Apply(forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
