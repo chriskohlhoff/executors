@@ -1,4 +1,5 @@
 #include <experimental/channel>
+#include <experimental/strand>
 #include <experimental/timer>
 #include <experimental/yield>
 #include <iostream>
@@ -27,9 +28,10 @@ void printer(channel<std::string>& c, yield_context yield)
 int main()
 {
   channel<std::string> c;
+  auto s = make_strand(system_executor());
 
-  dispatch([&](yield_context yield){ pinger(c, yield); });
-  dispatch([&](yield_context yield){ printer(c, yield); });
+  dispatch(s.wrap([&](yield_context yield){ pinger(c, yield); }));
+  dispatch(s.wrap([&](yield_context yield){ printer(c, yield); }));
 
   std::string input;
   std::getline(std::cin, input);
