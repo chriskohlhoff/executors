@@ -29,6 +29,19 @@ struct __invoke_with_result
   }
 };
 
+template <class _Result1, class _Result2, class _Consumer>
+struct __invoke_with_result_2
+{
+  _Result1 _M_result1;
+  _Result2 _M_result2;
+  _Consumer _M_consumer;
+
+  void operator()()
+  {
+    _M_consumer(std::move(_M_result1), std::move(_M_result2));
+  }
+};
+
 template <class _Producer, class _Consumer, class _Signature>
 struct __invoker;
 

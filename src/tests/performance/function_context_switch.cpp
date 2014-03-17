@@ -2,6 +2,8 @@
 #include <chrono>
 #include <iostream>
 
+#include <experimental/channel>
+
 using namespace std::experimental;
 
 const int chains = 4;
@@ -17,6 +19,8 @@ int main()
 {
   loop_scheduler s(1);
   auto ex = get_executor(s);
+
+  channel<int> c;
 
   for (int c = 0; c < chains; ++c)
     dispatch(ex.wrap([=]{ chain(ex, 0); }));

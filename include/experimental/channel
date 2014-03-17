@@ -1,0 +1,77 @@
+//
+// channel
+// ~~~~~~~
+// A channel of values.
+//
+// Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
+#ifndef EXECUTORS_EXPERIMENTAL_CHANNEL_HEADER
+#define EXECUTORS_EXPERIMENTAL_CHANNEL_HEADER
+
+#include <deque>
+#include <system_error>
+#include <experimental/executor>
+#include <experimental/bits/channel_base.h>
+
+namespace std {
+namespace experimental {
+
+template <class _T, class _Cont = deque<_T>>
+class channel
+  : private __channel_base
+{
+public:
+  typedef typename _Cont::value_type value_type;
+
+  // construct / copy / destroy:
+
+  channel();
+  explicit channel(size_t __capacity);
+  explicit channel(execution_context& __c);
+  channel(execution_context& __c, size_t __capacity);
+  channel(const channel&) = delete;
+  channel(channel&& __c);
+
+  channel& operator=(const channel&) = delete;
+  channel& operator=(channel&& __c);
+
+  ~channel();
+
+  // channel operations:
+
+  execution_context& context();
+
+  size_t capacity() const;
+  bool is_open() const;
+  void reset();
+  void close();
+  void cancel();
+  bool ready() const;
+
+  template <class _U> void put(_U&& __u);
+  template <class _U> void put(_U&& __u, error_code& __ec);
+  template <class _U, class _CompletionToken> auto put(_U&& __u, _CompletionToken&& __token);
+
+  value_type get();
+  value_type get(error_code& __ec);
+  template <class _CompletionToken> auto get(_CompletionToken&& __token);
+
+private:
+  class _Op;
+  template <class> class _PutOp;
+  template <class> class _GetOp;
+  void _Start_put(_Op* __op);
+  void _Start_get(_Op* __op);
+  _Cont _M_buffer;
+};
+
+} // namespace experimental
+} // namespace std
+
+#include <experimental/bits/channel.h>
+
+#endif
