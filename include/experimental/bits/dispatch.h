@@ -40,8 +40,9 @@ auto dispatch(_Func&& __f, _CompletionToken&& __token)
 
   async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
 
+  auto __completion_executor(get_executor(__completion.handler));
   (dispatch)(__invoker<_DecayFunc, _Handler, _FuncSignature>{forward<_Func>(__f),
-    std::move(__completion.handler), get_executor(__completion.handler).make_work()});
+    std::move(__completion.handler), __completion_executor.make_work()});
 
   return __completion.result.get();
 }

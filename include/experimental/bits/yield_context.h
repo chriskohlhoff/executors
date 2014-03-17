@@ -386,7 +386,7 @@ struct __yield_context_launcher
   typename  _Executor::work _M_work;
 
   template <class _F> __yield_context_launcher(_F&& __f)
-    : _M_func(forward<_F>(__f)), _M_work(get_executor(__f).make_work())
+    : _M_func(forward<_F>(__f)), _M_work(get_executor(_M_func).make_work())
   {
   }
 
