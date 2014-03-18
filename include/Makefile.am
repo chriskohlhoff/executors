@@ -1,4 +1,5 @@
 nobase_include_HEADERS = \
+	experimental/channel \
 	experimental/executor \
 	experimental/future \
 	experimental/loop_scheduler \
@@ -8,6 +9,8 @@ nobase_include_HEADERS = \
 	experimental/thread_pool \
 	experimental/yield \
 	experimental/bits/call_stack.h \
+	experimental/bits/channel.h \
+	experimental/bits/channel_void.h \
 	experimental/bits/dispatch.h \
 	experimental/bits/dispatch_at.h \
 	experimental/bits/dispatch_after.h \

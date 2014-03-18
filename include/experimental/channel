@@ -20,7 +20,8 @@
 namespace std {
 namespace experimental {
 
-template <class _T, class _Cont = deque<_T>>
+template <class _T,
+  class _Cont = typename conditional<is_same<_T, void>::value, void, deque<_T>>::type>
 class channel
   : private __channel_base
 {
@@ -69,9 +70,57 @@ private:
   _Cont _M_buffer;
 };
 
+template <class _Cont>
+class channel<void, _Cont>
+  : private __channel_base
+{
+public:
+  typedef void value_type;
+
+  // construct / copy / destroy:
+
+  channel();
+  explicit channel(size_t __capacity);
+  explicit channel(execution_context& __c);
+  channel(execution_context& __c, size_t __capacity);
+  channel(const channel&) = delete;
+  channel(channel&& __c);
+
+  channel& operator=(const channel&) = delete;
+  channel& operator=(channel&& __c);
+
+  ~channel();
+
+  // channel operations:
+
+  execution_context& context();
+
+  size_t capacity() const;
+  bool is_open() const;
+  void reset();
+  void close();
+  void cancel();
+  bool ready() const;
+
+  void put();
+  void put(error_code& __ec);
+  template <class _CompletionToken> auto put(_CompletionToken&& __token);
+
+  void get();
+  void get(error_code& __ec);
+  template <class _CompletionToken> auto get(_CompletionToken&& __token);
+
+private:
+  template <class> class _Op;
+  void _Start_put(__channel_op* __op);
+  void _Start_get(__channel_op* __op);
+  size_t _M_buffered;
+};
+
 } // namespace experimental
 } // namespace std
 
 #include <experimental/bits/channel.h>
+#include <experimental/bits/channel_void.h>
 
 #endif

@@ -133,31 +133,31 @@ private:
 };
 
 template <class _T, class _Cont>
-channel<_T, _Cont>::channel()
+inline channel<_T, _Cont>::channel()
   : __channel_base(system_executor().context(), 0)
 {
 }
 
 template <class _T, class _Cont>
-channel<_T, _Cont>::channel(size_t __capacity)
+inline channel<_T, _Cont>::channel(size_t __capacity)
   : __channel_base(system_executor().context(), __capacity)
 {
 }
 
 template <class _T, class _Cont>
-channel<_T, _Cont>::channel(execution_context& __c)
+inline channel<_T, _Cont>::channel(execution_context& __c)
   : __channel_base(__c, 0)
 {
 }
 
 template <class _T, class _Cont>
-channel<_T, _Cont>::channel(execution_context& __c, size_t __capacity)
+inline channel<_T, _Cont>::channel(execution_context& __c, size_t __capacity)
   : __channel_base(__c, __capacity)
 {
 }
 
 template <class _T, class _Cont>
-channel<_T, _Cont>::channel(channel&& __c)
+inline channel<_T, _Cont>::channel(channel&& __c)
   : __channel_base(static_cast<__channel_base&&>(__c)), _M_buffer(__c._M_buffer)
 {
 }
@@ -165,13 +165,13 @@ channel<_T, _Cont>::channel(channel&& __c)
 template <class _T, class _Cont>
 channel<_T, _Cont>& channel<_T, _Cont>::operator=(channel&& __c)
 {
-  _Move_from(__c);
+  _Move_from(static_cast<__channel_base&&>(__c));
   _M_buffer = std::move(__c._M_buffer);
   return *this;
 }
 
 template <class _T, class _Cont>
-channel<_T, _Cont>::~channel()
+inline channel<_T, _Cont>::~channel()
 {
 }
 
@@ -194,26 +194,26 @@ inline bool channel<_T, _Cont>::is_open() const
 }
 
 template <class _T, class _Cont>
-void channel<_T, _Cont>::reset()
+inline void channel<_T, _Cont>::reset()
 {
   _Reset();
   _M_buffer.clear();
 }
 
 template <class _T, class _Cont>
-void channel<_T, _Cont>::close()
+inline void channel<_T, _Cont>::close()
 {
   _Close();
 }
 
 template <class _T, class _Cont>
-void channel<_T, _Cont>::cancel()
+inline void channel<_T, _Cont>::cancel()
 {
   _Cancel();
 }
 
 template <class _T, class _Cont>
-bool channel<_T, _Cont>::ready() const
+inline bool channel<_T, _Cont>::ready() const
 {
   return _Ready();
 }
