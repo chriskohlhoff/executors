@@ -52,7 +52,7 @@ public:
   void reset();
 
 private:
-  friend executor get_executor(loop_scheduler& __s);
+  friend executor make_executor(loop_scheduler& __s);
 };
 
 class loop_scheduler::executor
@@ -76,11 +76,11 @@ public:
 
 private:
   friend class loop_scheduler;
-  friend executor get_executor(loop_scheduler& __s);
-  friend executor get_executor(const executor& __e);
-  friend executor get_executor(executor&& __e);
-  friend executor get_executor(const work& __w);
-  friend executor get_executor(work&& __w);
+  friend executor make_executor(loop_scheduler& __s);
+  friend executor make_executor(const executor& __e);
+  friend executor make_executor(executor&& __e);
+  friend executor make_executor(const work& __w);
+  friend executor make_executor(work&& __w);
   explicit executor(loop_scheduler* __s) : _M_scheduler(__s) {}
   loop_scheduler* _M_scheduler;
 };
@@ -94,19 +94,19 @@ public:
 
 private:
   friend class executor;
-  friend executor get_executor(const work& __w);
-  friend executor get_executor(work&& __w);
+  friend executor make_executor(const work& __w);
+  friend executor make_executor(work&& __w);
   loop_scheduler* _M_scheduler;
   explicit work(loop_scheduler* __s);
 };
 
-loop_scheduler::executor get_executor(loop_scheduler& __s);
-loop_scheduler::executor get_executor(const loop_scheduler&) = delete;
-loop_scheduler::executor get_executor(loop_scheduler&&) = delete;
-loop_scheduler::executor get_executor(const loop_scheduler::executor& __e);
-loop_scheduler::executor get_executor(loop_scheduler::executor&& __e);
-loop_scheduler::executor get_executor(const loop_scheduler::executor::work& __w);
-loop_scheduler::executor get_executor(loop_scheduler::executor::work&& __w);
+loop_scheduler::executor make_executor(loop_scheduler& __s);
+loop_scheduler::executor make_executor(const loop_scheduler&) = delete;
+loop_scheduler::executor make_executor(loop_scheduler&&) = delete;
+loop_scheduler::executor make_executor(const loop_scheduler::executor& __e);
+loop_scheduler::executor make_executor(loop_scheduler::executor&& __e);
+loop_scheduler::executor make_executor(const loop_scheduler::executor::work& __w);
+loop_scheduler::executor make_executor(loop_scheduler::executor::work&& __w);
 
 } // namespace experimental
 } // namespace std

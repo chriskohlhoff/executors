@@ -38,7 +38,7 @@ public:
   ~thread_pool();
 
 private:
-  friend executor get_executor(thread_pool& __p);
+  friend executor make_executor(thread_pool& __p);
   vector<thread> _M_threads;
 };
 
@@ -63,11 +63,11 @@ public:
 
 private:
   friend class thread_pool;
-  friend executor get_executor(thread_pool& __p);
-  friend executor get_executor(const executor& __e);
-  friend executor get_executor(executor&& __e);
-  friend executor get_executor(const work& __w);
-  friend executor get_executor(work&& __w);
+  friend executor make_executor(thread_pool& __p);
+  friend executor make_executor(const executor& __e);
+  friend executor make_executor(executor&& __e);
+  friend executor make_executor(const work& __w);
+  friend executor make_executor(work&& __w);
   explicit executor(thread_pool* __p) : _M_pool(__p) {}
   thread_pool* _M_pool;
 };
@@ -81,19 +81,19 @@ public:
 
 private:
   friend class executor;
-  friend executor get_executor(const work& __w);
-  friend executor get_executor(work&& __w);
+  friend executor make_executor(const work& __w);
+  friend executor make_executor(work&& __w);
   thread_pool* _M_pool;
   explicit work(thread_pool* __p);
 };
 
-thread_pool::executor get_executor(thread_pool& __s);
-thread_pool::executor get_executor(const thread_pool&) = delete;
-thread_pool::executor get_executor(thread_pool&&) = delete;
-thread_pool::executor get_executor(const thread_pool::executor& __e);
-thread_pool::executor get_executor(thread_pool::executor&& __e);
-thread_pool::executor get_executor(const thread_pool::executor::work& __w);
-thread_pool::executor get_executor(thread_pool::executor::work&& __w);
+thread_pool::executor make_executor(thread_pool& __s);
+thread_pool::executor make_executor(const thread_pool&) = delete;
+thread_pool::executor make_executor(thread_pool&&) = delete;
+thread_pool::executor make_executor(const thread_pool::executor& __e);
+thread_pool::executor make_executor(thread_pool::executor&& __e);
+thread_pool::executor make_executor(const thread_pool::executor::work& __w);
+thread_pool::executor make_executor(thread_pool::executor::work&& __w);
 
 } // namespace experimental
 } // namespace std

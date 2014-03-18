@@ -35,15 +35,15 @@ class __wait_op
 {
 public:
   template <class _F> explicit __wait_op(_F&& __f)
-    : _M_func(forward<_F>(__f)), _M_work(get_executor(_M_func).make_work())
+    : _M_func(forward<_F>(__f)), _M_work(make_executor(_M_func).make_work())
   {
   }
 
   virtual void _Complete()
   {
     __small_block_recycler<>::_Unique_ptr<__wait_op> __op(this);
-    typename decltype(get_executor(declval<_Func>()))::work __work(std::move(_M_work));
-    auto __executor(get_executor(__work));
+    typename decltype(make_executor(declval<_Func>()))::work __work(std::move(_M_work));
+    auto __executor(make_executor(__work));
     __invoke_with_result<const error_code, _Func> __i{_M_ec, std::move(_M_func)};
     __op.reset();
     __executor.post(std::move(__i));
@@ -56,7 +56,7 @@ public:
 
 private:
   _Func _M_func;
-  typename decltype(get_executor(declval<_Func>()))::work _M_work;
+  typename decltype(make_executor(declval<_Func>()))::work _M_work;
 };
 
 } // namespace experimental

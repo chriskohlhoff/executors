@@ -11,7 +11,7 @@ const int iterations = 100000;
 int main()
 {
   loop_scheduler s(1);
-  auto ex = get_executor(s);
+  auto ex = make_executor(s);
 
   channel<int> ch1(s);
   channel<int> ch2(s);

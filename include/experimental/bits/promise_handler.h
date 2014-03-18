@@ -148,7 +148,7 @@ struct __promise_executor
   {
     shared_ptr<_Promise> _M_promise;
 
-    friend __promise_executor get_executor(const work& __w)
+    friend __promise_executor make_executor(const work& __w)
     {
       return __promise_executor{__w._M_promise};
     }
@@ -180,14 +180,14 @@ struct __promise_executor
     return system_executor().context();
   }
 
-  friend __promise_executor get_executor(const __promise_executor& __e)
+  friend __promise_executor make_executor(const __promise_executor& __e)
   {
     return __e;
   }
 };
 
 template <class... _Values>
-inline auto get_executor(const __promise_handler<_Values...>& __h)
+inline auto make_executor(const __promise_handler<_Values...>& __h)
 {
   return __promise_executor<_Values...>{__h._M_promise};
 }

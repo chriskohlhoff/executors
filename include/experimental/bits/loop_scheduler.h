@@ -151,29 +151,29 @@ inline loop_scheduler::executor::work::~work()
   _M_scheduler->_Work_finished();
 }
 
-inline loop_scheduler::executor get_executor(loop_scheduler& __s)
+inline loop_scheduler::executor make_executor(loop_scheduler& __s)
 {
   return loop_scheduler::executor(&__s);
 }
 
-inline loop_scheduler::executor get_executor(const loop_scheduler::executor& __e)
+inline loop_scheduler::executor make_executor(const loop_scheduler::executor& __e)
 {
   return __e;
 }
 
-inline loop_scheduler::executor get_executor(loop_scheduler::executor&& __e)
+inline loop_scheduler::executor make_executor(loop_scheduler::executor&& __e)
 {
   return std::move(__e);
 }
 
 inline loop_scheduler::executor
-  get_executor(const loop_scheduler::executor::work& __w)
+  make_executor(const loop_scheduler::executor::work& __w)
 {
   return loop_scheduler::executor(__w._M_scheduler);
 }
 
 inline loop_scheduler::executor
-  get_executor(loop_scheduler::executor::work&& __w)
+  make_executor(loop_scheduler::executor::work&& __w)
 {
   return loop_scheduler::executor(__w._M_scheduler);
 }

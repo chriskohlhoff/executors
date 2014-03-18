@@ -56,7 +56,7 @@ int main()
   handler3 h3;
 
   std::unique_ptr<std::experimental::thread_pool> scheduler(new std::experimental::thread_pool);
-  auto ex = get_executor(*scheduler);
+  auto ex = make_executor(*scheduler);
 
   std::experimental::dispatch(ex.wrap(function1), handler1);
   std::experimental::dispatch(ex.wrap(function1), &handler1);

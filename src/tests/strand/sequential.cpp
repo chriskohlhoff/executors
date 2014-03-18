@@ -10,7 +10,7 @@ int count = 0;
 int main()
 {
   std::experimental::loop_scheduler scheduler;
-  auto ex = make_strand(get_executor(scheduler));
+  auto ex = make_strand(make_executor(scheduler));
 
   for (int i = 0; i < 10; ++i)
   {

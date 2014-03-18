@@ -18,7 +18,7 @@ void chain(loop_scheduler::executor ex, int i)
 int main()
 {
   loop_scheduler s(1);
-  auto ex = get_executor(s);
+  auto ex = make_executor(s);
 
   channel<int> c;
 

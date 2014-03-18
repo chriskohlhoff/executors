@@ -88,28 +88,28 @@ inline execution_context& system_executor::context()
 }
 
 template <class _T>
-inline system_executor get_executor(const _T&,
+inline system_executor make_executor(const _T&,
   typename enable_if<__is_callable<_T>::value>::type*)
 {
   return system_executor();
 }
 
-inline system_executor get_executor(const system_executor&)
+inline system_executor make_executor(const system_executor&)
 {
   return system_executor();
 }
 
-inline system_executor get_executor(system_executor&&)
+inline system_executor make_executor(system_executor&&)
 {
   return system_executor();
 }
 
-inline system_executor get_executor(const system_executor::work&)
+inline system_executor make_executor(const system_executor::work&)
 {
   return system_executor();
 }
 
-inline system_executor get_executor(system_executor::work&&)
+inline system_executor make_executor(system_executor::work&&)
 {
   return system_executor();
 }

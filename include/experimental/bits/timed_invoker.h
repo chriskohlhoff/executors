@@ -24,7 +24,7 @@ public:
       const typename _Clock::time_point& __abs_time, _H&& __h)
     : _M_timer(new basic_timer<_Clock>(__context, __abs_time)),
       _M_handler(forward<_H>(__h)),
-      _M_handler_work(get_executor(_M_handler).make_work())
+      _M_handler_work(make_executor(_M_handler).make_work())
   {
   }
 
@@ -33,7 +33,7 @@ public:
       const typename _Clock::duration& __rel_time, _H&& __h)
     : _M_timer(new basic_timer<_Clock>(__context, __rel_time)),
       _M_handler(forward<_H>(__h)),
-      _M_handler_work(get_executor(_M_handler).make_work())
+      _M_handler_work(make_executor(_M_handler).make_work())
   {
   }
 
@@ -52,7 +52,7 @@ public:
 private:
   unique_ptr<basic_timer<_Clock>> _M_timer;
   _Handler _M_handler;
-  typename decltype(get_executor(declval<_Handler>()))::work _M_handler_work;
+  typename decltype(make_executor(declval<_Handler>()))::work _M_handler_work;
 };
 
 } // namespace experimental

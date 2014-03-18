@@ -197,7 +197,7 @@ public:
   {
   }
 
-  friend _Executor get_executor(const executor_wrapper& __w)
+  friend _Executor make_executor(const executor_wrapper& __w)
   {
     return __w._M_executor;
   }

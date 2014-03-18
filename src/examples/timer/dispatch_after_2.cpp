@@ -8,7 +8,7 @@ using namespace std::experimental;
 int main()
 {
   loop_scheduler scheduler;
-  auto executor = get_executor(scheduler);
+  auto executor = make_executor(scheduler);
 
   dispatch(
     executor.wrap(

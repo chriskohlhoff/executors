@@ -49,7 +49,7 @@ private:
 };
 
 template <class _Executor>
-  _Executor get_executor(const basic_yield_context<_Executor>& __c);
+  _Executor make_executor(const basic_yield_context<_Executor>& __c);
 
 typedef basic_yield_context<executor> yield_context;
 

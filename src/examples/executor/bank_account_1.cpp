@@ -42,7 +42,7 @@ private:
   int id_;
   int balance_ = 0;
   thread_pool pool_{1};
-  thread_pool::executor ex_ = get_executor(pool_);
+  thread_pool::executor ex_ = make_executor(pool_);
 };
 
 int main()

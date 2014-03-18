@@ -57,8 +57,8 @@ private:
   service* _M_first_service;
 };
 
-void get_executor(execution_context&) = delete;
-void get_executor(const execution_context&) = delete;
+void make_executor(execution_context&) = delete;
+void make_executor(const execution_context&) = delete;
 
 // Base class for all services within an execution context.
 
@@ -156,13 +156,13 @@ public:
 
 // Obtain associated executor.
 
-template <class _T> system_executor get_executor(const _T&,
+template <class _T> system_executor make_executor(const _T&,
   typename enable_if<__is_callable<_T>::value>::type* = 0);
 
-system_executor get_executor(const system_executor&);
-system_executor get_executor(system_executor&&);
-system_executor get_executor(const system_executor::work&);
-system_executor get_executor(system_executor::work&&);
+system_executor make_executor(const system_executor&);
+system_executor make_executor(system_executor&&);
+system_executor make_executor(const system_executor::work&);
+system_executor make_executor(system_executor::work&&);
 
 class bad_executor;
 
@@ -213,14 +213,14 @@ public:
   template <class _Executor> const _Executor* target() const noexcept;
 
 private:
-  friend executor get_executor(const executor::work& __w);
-  friend executor get_executor(executor::work&& __w);
+  friend executor make_executor(const executor::work& __w);
+  friend executor make_executor(executor::work&& __w);
   explicit executor(__executor_impl_base* __i) : _M_impl(__i) {}
   __executor_impl_base* _M_impl;
 };
 
-executor get_executor(const executor& __e);
-executor get_executor(executor&& __e);
+executor make_executor(const executor& __e);
+executor make_executor(executor&& __e);
 
 bool operator==(const executor& __e, nullptr_t) noexcept;
 bool operator==(nullptr_t, const executor& __e) noexcept;
@@ -257,14 +257,14 @@ public:
 
 private:
   friend class executor;
-  friend executor get_executor(const executor::work& __w);
-  friend executor get_executor(executor::work&& __w);
+  friend executor make_executor(const executor::work& __w);
+  friend executor make_executor(executor::work&& __w);
   __work_impl_base* _M_impl;
   explicit work(__work_impl_base* __i) : _M_impl(__i) {}
 };
 
-executor get_executor(const executor::work& __w);
-executor get_executor(executor::work&& __w);
+executor make_executor(const executor::work& __w);
+executor make_executor(executor::work&& __w);
 
 bool operator==(const executor::work& __w, nullptr_t) noexcept;
 bool operator==(nullptr_t, const executor::work& __w) noexcept;

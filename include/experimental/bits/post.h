@@ -22,7 +22,7 @@ auto post(_CompletionToken&& __token)
 {
   async_completion<_CompletionToken, void()> __completion(__token);
 
-  auto __completion_executor(get_executor(__completion.handler));
+  auto __completion_executor(make_executor(__completion.handler));
   __completion_executor.post(std::move(__completion.handler));
 
   return __completion.result.get();
@@ -40,7 +40,7 @@ auto post(_Func&& __f, _CompletionToken&& __token)
 
   async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
 
-  auto __completion_executor(get_executor(__completion.handler));
+  auto __completion_executor(make_executor(__completion.handler));
   (post)(__invoker<_DecayFunc, _Handler, _FuncSignature>{forward<_Func>(__f),
     std::move(__completion.handler), __completion_executor.make_work()});
 

@@ -107,27 +107,27 @@ inline thread_pool::executor::work::~work()
   _M_pool->_Work_finished();
 }
 
-inline thread_pool::executor get_executor(thread_pool& __p)
+inline thread_pool::executor make_executor(thread_pool& __p)
 {
   return thread_pool::executor(&__p);
 }
 
-inline thread_pool::executor get_executor(const thread_pool::executor& __e)
+inline thread_pool::executor make_executor(const thread_pool::executor& __e)
 {
   return __e;
 }
 
-inline thread_pool::executor get_executor(thread_pool::executor&& __e)
+inline thread_pool::executor make_executor(thread_pool::executor&& __e)
 {
   return std::move(__e);
 }
 
-inline thread_pool::executor get_executor(const thread_pool::executor::work& __w)
+inline thread_pool::executor make_executor(const thread_pool::executor::work& __w)
 {
   return thread_pool::executor(__w._M_pool);
 }
 
-inline thread_pool::executor get_executor(thread_pool::executor::work&& __w)
+inline thread_pool::executor make_executor(thread_pool::executor::work&& __w)
 {
   return thread_pool::executor(__w._M_pool);
 }

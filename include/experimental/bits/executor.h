@@ -169,8 +169,8 @@ private:
 template <class _Work>
 inline __executor_impl_base* __work_impl<_Work>::_Get_executor() const
 {
-  typedef decltype(get_executor(_M_work)) _Executor;
-  return __executor_impl<_Executor>::_Create(get_executor(_M_work));
+  typedef decltype(make_executor(_M_work)) _Executor;
+  return __executor_impl<_Executor>::_Create(make_executor(_M_work));
 }
 
 template <>
@@ -528,12 +528,12 @@ inline const _Executor* executor::target() const noexcept
   return static_cast<_Executor*>(_M_impl->_Target());
 }
 
-inline executor get_executor(const executor& __e)
+inline executor make_executor(const executor& __e)
 {
   return __e;
 }
 
-inline executor get_executor(executor&& __e)
+inline executor make_executor(executor&& __e)
 {
   return std::move(__e);
 }
@@ -659,12 +659,12 @@ inline executor::work::operator bool() const noexcept
   return _M_impl != __bad_work_impl::_Create();
 }
 
-inline executor get_executor(const executor::work& __w)
+inline executor make_executor(const executor::work& __w)
 {
   return executor(__w._M_impl->_Get_executor());
 }
 
-inline executor get_executor(executor::work&& __w)
+inline executor make_executor(executor::work&& __w)
 {
   return executor(__w._M_impl->_Get_executor());
 }

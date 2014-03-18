@@ -71,22 +71,22 @@ public:
 
   ~work();
 
-  friend strand get_executor(const work& __w) { return __w._Get_strand(); }
-  friend strand get_executor(work&& __w) { return __w._Move_strand(); }
+  friend strand make_executor(const work& __w) { return __w._Get_strand(); }
+  friend strand make_executor(work&& __w) { return __w._Move_strand(); }
 
 private:
   friend class strand;
   work(typename _Executor::work&& __w, const shared_ptr<__strand_impl>& __i);
-  strand _Get_strand() const { return strand(get_executor(_M_work), _M_impl); }
-  strand _Move_strand() { return strand(get_executor(_M_work), std::move(_M_impl)); }
+  strand _Get_strand() const { return strand(make_executor(_M_work), _M_impl); }
+  strand _Move_strand() { return strand(make_executor(_M_work), std::move(_M_impl)); }
   typename _Executor::work _M_work;
   shared_ptr<__strand_impl> _M_impl;
 };
 
 template <class _Executor>
-  strand<_Executor> get_executor(const strand<_Executor>& __e);
+  strand<_Executor> make_executor(const strand<_Executor>& __e);
 template <class _Executor>
-  strand<_Executor> get_executor(strand<_Executor>&& __e);
+  strand<_Executor> make_executor(strand<_Executor>&& __e);
 
 template <class _T> auto make_strand(_T&& __t);
 

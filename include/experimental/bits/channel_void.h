@@ -24,7 +24,7 @@ class channel<void, _Cont>::_Op
 public:
   template <class _H> explicit _Op(_H&& __h)
     : _M_handler(forward<_H>(__h)),
-      _M_work(get_executor(_M_handler).make_work())
+      _M_work(make_executor(_M_handler).make_work())
   {
   }
 
@@ -38,8 +38,8 @@ public:
     else if (this->_M_result == __channel_op::_Result::__broken_pipe)
       __ec = make_error_code(errc::broken_pipe);
 
-    typename decltype(get_executor(declval<_Handler>()))::work __work(std::move(_M_work));
-    auto __executor(get_executor(__work));
+    typename decltype(make_executor(declval<_Handler>()))::work __work(std::move(_M_work));
+    auto __executor(make_executor(__work));
     __invoke_with_result<error_code, _Handler> __i{__ec, std::move(_M_handler)};
     __op.reset();
     __executor.post(std::move(__i));
@@ -52,7 +52,7 @@ public:
 
 private:
   _Handler _M_handler;
-  typename decltype(get_executor(declval<_Handler>()))::work _M_work;
+  typename decltype(make_executor(declval<_Handler>()))::work _M_work;
 };
 
 template <class _Cont>

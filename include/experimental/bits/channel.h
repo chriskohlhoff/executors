@@ -64,7 +64,7 @@ class channel<_T, _Cont>::_PutOp
 public:
   template <class _U, class _H> explicit _PutOp(_U&& __u, _H&& __h)
     : _Op(forward<_U>(__u)), _M_handler(forward<_H>(__h)),
-      _M_work(get_executor(_M_handler).make_work())
+      _M_work(make_executor(_M_handler).make_work())
   {
   }
 
@@ -78,8 +78,8 @@ public:
     else if (this->_M_result == __channel_op::_Result::__broken_pipe)
       __ec = make_error_code(errc::broken_pipe);
 
-    typename decltype(get_executor(declval<_Handler>()))::work __work(std::move(_M_work));
-    auto __executor(get_executor(__work));
+    typename decltype(make_executor(declval<_Handler>()))::work __work(std::move(_M_work));
+    auto __executor(make_executor(__work));
     __invoke_with_result<const error_code, _Handler> __i{__ec, std::move(_M_handler)};
     __op.reset();
     __executor.post(std::move(__i));
@@ -92,7 +92,7 @@ public:
 
 private:
   _Handler _M_handler;
-  typename decltype(get_executor(declval<_Handler>()))::work _M_work;
+  typename decltype(make_executor(declval<_Handler>()))::work _M_work;
 };
 
 template <class _T, class _Cont> template <class _Handler>
@@ -101,7 +101,7 @@ class channel<_T, _Cont>::_GetOp
 {
 public:
   template <class _H> explicit _GetOp(_H&& __h)
-    : _M_handler(forward<_H>(__h)), _M_work(get_executor(_M_handler).make_work())
+    : _M_handler(forward<_H>(__h)), _M_work(make_executor(_M_handler).make_work())
   {
   }
 
@@ -115,8 +115,8 @@ public:
     else if (this->_M_result == __channel_op::_Result::__broken_pipe)
       __ec = make_error_code(errc::broken_pipe);
 
-    typename decltype(get_executor(declval<_Handler>()))::work __work(std::move(_M_work));
-    auto __executor(get_executor(__work));
+    typename decltype(make_executor(declval<_Handler>()))::work __work(std::move(_M_work));
+    auto __executor(make_executor(__work));
     __invoke_with_result_2<const error_code, _T, _Handler> __i{__ec, this->_Get_value(), std::move(_M_handler)};
     __op.reset();
     __executor.post(std::move(__i));
@@ -129,7 +129,7 @@ public:
 
 private:
   _Handler _M_handler;
-  typename decltype(get_executor(declval<_Handler>()))::work _M_work;
+  typename decltype(make_executor(declval<_Handler>()))::work _M_work;
 };
 
 template <class _T, class _Cont>

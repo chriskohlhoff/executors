@@ -255,9 +255,9 @@ struct __yield_context_executor
     exception_ptr* _M_exception;
     typename _Executor::work _M_work;
 
-    friend __yield_context_executor get_executor(const work& __w)
+    friend __yield_context_executor make_executor(const work& __w)
     {
-      return __yield_context_executor{__w._M_exception, get_executor(__w._M_work)};
+      return __yield_context_executor{__w._M_exception, make_executor(__w._M_work)};
     }
   };
 
@@ -286,14 +286,14 @@ struct __yield_context_executor
     return _M_executor.context();
   }
 
-  friend __yield_context_executor get_executor(const __yield_context_executor& __e)
+  friend __yield_context_executor make_executor(const __yield_context_executor& __e)
   {
     return __e;
   }
 };
 
 template <class _Executor, class... _Values>
-inline auto get_executor(const __yield_context_handler<_Executor, _Values...>& __h)
+inline auto make_executor(const __yield_context_handler<_Executor, _Values...>& __h)
 {
   return __yield_context_executor<_Executor>{&__h._M_result->_M_exception, __h._M_executor};
 }
@@ -363,7 +363,7 @@ struct __yield_context_entry_point
 
     __yield_context_caller __caller{__coro};
     typename _Executor::work __w(std::move(_M_work));
-    basic_yield_context<_Executor> __ctx(get_executor(__w));
+    basic_yield_context<_Executor> __ctx(make_executor(__w));
     __ctx._M_callee = std::move(_M_callee);
     __ctx._M_caller = &__caller;
 
@@ -386,13 +386,13 @@ struct __yield_context_launcher
   typename  _Executor::work _M_work;
 
   template <class _F> __yield_context_launcher(_F&& __f)
-    : _M_func(forward<_F>(__f)), _M_work(get_executor(_M_func).make_work())
+    : _M_func(forward<_F>(__f)), _M_work(make_executor(_M_func).make_work())
   {
   }
 
   template <class _F> __yield_context_launcher(
     executor_arg_t, const _Executor& __e, _F&& __f)
-      : _M_func(forward<_F>(__f)), _M_work(get_executor(__e).make_work())
+      : _M_func(forward<_F>(__f)), _M_work(make_executor(__e).make_work())
   {
   }
 
@@ -429,7 +429,7 @@ struct handler_type<_Func, _R(_Args...),
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef __last_argument_t<__signature_t<_DecayFunc>> _YieldContext;
-  typedef decltype(get_executor(declval<_YieldContext>())) _Executor;
+  typedef decltype(make_executor(declval<_YieldContext>())) _Executor;
   typedef __yield_context_launcher<_Executor, _DecayFunc> type;
 };
 

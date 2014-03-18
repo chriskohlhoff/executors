@@ -246,7 +246,7 @@ struct __strand_invoker
 
       if (__more)
       {
-        auto __executor(get_executor(_M_invoker->_M_work));
+        auto __executor(make_executor(_M_invoker->_M_work));
         __executor.post(std::move(*_M_invoker));
       }
     }
@@ -385,13 +385,13 @@ inline strand<_Executor>::work::~work()
 }
 
 template <class _Executor>
-inline strand<_Executor> get_executor(const strand<_Executor>& __e)
+inline strand<_Executor> make_executor(const strand<_Executor>& __e)
 {
   return __e;
 }
 
 template <class _Executor>
-inline strand<_Executor> get_executor(strand<_Executor>&& __e)
+inline strand<_Executor> make_executor(strand<_Executor>&& __e)
 {
   return std::move(__e);
 }

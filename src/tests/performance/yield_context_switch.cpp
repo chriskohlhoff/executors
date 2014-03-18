@@ -11,7 +11,7 @@ const int iterations = 1000000;
 int main()
 {
   loop_scheduler s(1);
-  auto ex = get_executor(s);
+  auto ex = make_executor(s);
 
   for (int c = 0; c < chains; ++c)
   {

@@ -25,7 +25,7 @@ auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
   typedef handler_type_t<_CompletionToken, void()> _Handler;
   async_completion<_CompletionToken, void()> __completion(__token);
 
-  auto __completion_executor(get_executor(__completion.handler));
+  auto __completion_executor(make_executor(__completion.handler));
 
   __timed_invoker<_Clock, _Handler>(__completion_executor.context(), __abs_time,
     std::move(__completion.handler))._Start(__completion_executor);
@@ -46,7 +46,7 @@ auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
 
   async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
 
-  auto __completion_executor(get_executor(__completion.handler));
+  auto __completion_executor(make_executor(__completion.handler));
   (post_at)(__abs_time, __invoker<_DecayFunc, _Handler, _FuncSignature>{
     forward<_Func>(__f), std::move(__completion.handler), __completion_executor.make_work()});
 

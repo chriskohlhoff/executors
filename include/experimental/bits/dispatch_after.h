@@ -25,7 +25,7 @@ auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
   typedef handler_type_t<_CompletionToken, void()> _Handler;
   async_completion<_CompletionToken, void()> __completion(__token);
 
-  auto __completion_executor(get_executor(__completion.handler));
+  auto __completion_executor(make_executor(__completion.handler));
   __timed_invoker<chrono::steady_clock, _Handler>(__completion_executor.context(),
     __rel_time, std::move(__completion.handler))._Start(__completion_executor);
 
@@ -45,7 +45,7 @@ auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
 
   async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
 
-  auto __completion_executor(get_executor(__completion.handler));
+  auto __completion_executor(make_executor(__completion.handler));
   (dispatch_after)(__rel_time, __invoker<_DecayFunc, _Handler, _FuncSignature>{
     forward<_Func>(__f), std::move(__completion.handler), __completion_executor.make_work()});
 
