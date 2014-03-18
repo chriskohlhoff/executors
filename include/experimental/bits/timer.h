@@ -239,7 +239,7 @@ void basic_timer<_Clock, _TimerTraits>::wait(error_code& __ec)
 }
 
 template <class _Clock, class _TimerTraits> template <class _CompletionToken>
-auto basic_timer<_Clock, _TimerTraits>::async_wait(_CompletionToken&& __token)
+auto basic_timer<_Clock, _TimerTraits>::wait(_CompletionToken&& __token)
 {
   typedef handler_type_t<_CompletionToken, void(error_code)> _Handler;
   async_completion<_CompletionToken, void(error_code)> __completion(__token);

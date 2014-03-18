@@ -41,7 +41,7 @@ public:
   void _Start(_Executor& __e)
   {
     basic_timer<_Clock>* __timer = _M_timer.get();
-    __timer->async_wait(__e.wrap(std::move(*this)));
+    __timer->wait(__e.wrap(std::move(*this)));
   }
 
   void operator()(const error_code&)

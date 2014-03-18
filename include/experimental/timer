@@ -71,7 +71,7 @@ public:
 
   void wait();
   void wait(error_code& __ec);
-  template <class _CompletionToken> auto async_wait(_CompletionToken&& __token);
+  template <class _CompletionToken> auto wait(_CompletionToken&& __token);
 
 private:
   __timer_service<_Clock, _TimerTraits>* _M_service;

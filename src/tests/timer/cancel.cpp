@@ -13,14 +13,14 @@ int main()
 {
   std::experimental::steady_timer t1(std::chrono::seconds(1));
 
-  t1.async_wait(handler1);
-  t1.async_wait(handler1);
-  t1.async_wait(handler1);
-  t1.async_wait(handler1);
-  t1.async_wait(handler1);
-  t1.async_wait(handler1);
-  t1.async_wait(handler1);
-  t1.async_wait(handler1);
+  t1.wait(handler1);
+  t1.wait(handler1);
+  t1.wait(handler1);
+  t1.wait(handler1);
+  t1.wait(handler1);
+  t1.wait(handler1);
+  t1.wait(handler1);
+  t1.wait(handler1);
 
   assert(success_count == 0);
   assert(failure_count == 0);
