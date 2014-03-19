@@ -219,7 +219,7 @@ we will always incur the cost of a context switch (plus an extra context switch 
         std::forward<CompletionToken>(token));
     }
 
-then the enclosed function object can be executed before `dispatch()` returns. The only condition where it will run later is when the strand is already busy on another thread. In this case, in order to meet the strand's non-concurrency guarantee, the function object must be added to the strand's work queue. In the common case there is no contention on the thread and the cost is minimised.
+then the enclosed function object can be executed before `dispatch()` returns. The only condition where it will run later is when the strand is already busy on another thread. In this case, in order to meet the strand's non-concurrency guarantee, the function object must be added to the strand's work queue. In the common case there is no contention on the strand and the cost is minimised.
 
 ### Composition using resumable functions
 
