@@ -65,7 +65,7 @@ public:
 private:
   int id_;
   int balance_ = 0;
-  strand<system_executor> ex_ = make_strand(system_executor());
+  strand<system_executor> ex_;
 };
 
 int main()

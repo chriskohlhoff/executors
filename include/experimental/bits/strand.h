@@ -117,6 +117,13 @@ __strand_impl::~__strand_impl()
 }
 
 template <class _Executor>
+inline strand<_Executor>::strand(typename enable_if<is_default_constructible<_Executor>::value>::type*)
+  : _M_executor(),
+    _M_impl(make_shared<__strand_impl>(use_service<__strand_service>(_M_executor.context())))
+{
+}
+
+template <class _Executor>
 inline strand<_Executor>::strand(_Executor __e)
   : _M_executor(std::move(__e)),
     _M_impl(make_shared<__strand_impl>(use_service<__strand_service>(_M_executor.context())))
