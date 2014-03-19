@@ -51,7 +51,7 @@ By performing a dispatch operation, we are giving the executor the option of hav
 Type of executor | Behaviour of dispatch
 ---------------- | ---------------------
 System           | Always runs the function object before returning from `dispatch()`.
-Thread pool      | If we're inside the thread pool, runs the fucntion object before returning from `dispatch()`. Otherwise, adds to the thread pool's work queue.
+Thread pool      | If we're inside the thread pool, runs the function object before returning from `dispatch()`. Otherwise, adds to the thread pool's work queue.
 Strand           | If we're inside the strand, or if the strand queue is empty, runs the function object before returning from `dispatch()`. Otherwise, adds to the strand's work queue.
 Future / Promise | Wraps the function object in a try/catch block, and runs it before returning from `dispatch()`.
 
@@ -62,8 +62,8 @@ As a simple example, let us consider how to implement the Active Object design p
     class bank_account
     {
       int balance_ = 0;
-      thread_pool pool_{1};
-      mutable thread_pool::executor ex_ = make_executor(pool_);
+      std::experimental::thread_pool pool_{1};
+      mutable std::experimental::thread_pool::executor ex_ = std::experimental::make_executor(pool_);
 
     public:
       void deposit(int amount)
@@ -86,13 +86,13 @@ As a simple example, let us consider how to implement the Active Object design p
 
 First, we create a private thread pool with a single thread:
 
-    thread_pool pool_{1};
+    std::experimental::thread_pool pool_{1};
 
 A thread pool is an example of an **execution context**. An execution context represents a place where function objects will be executed. This is distinct from an executor which, as an embodiment of a set of rules, is intended to be a lightweight object that is cheap to copy and wrap for further adaptation.
 
-Therefore, to inject function objects into thread pool, we must create an executor for it:
+Therefore, to inject function objects into thread pool, we must create an executor for it using the library function `make_executor()`::
 
-    thread_pool::executor ex_ = make_executor(pool_);
+    std::experimental::thread_pool::executor ex_ = std::experimental::make_executor(pool_);
 
 To add the function to the queue, we then use a post operation:
 
@@ -104,27 +104,27 @@ To add the function to the queue, we then use a post operation:
 
 ### Waiting for function completion
 
-When implementing the Active Object pattern, we will normally want to wait for the operation to complete. For this, we can use the free function `post()`:
+When implementing the Active Object pattern, we will normally want to wait for the operation to complete. To do this we can reimplement our `bank_account` member functions using the free function `post()`. This function allows us to pass a **completion token**. A completion token specifies how we want to be notified when the function finishes. For example:
 
     void withdraw(int amount)
     {
-      std::future<void> fut = post(ex_, [=]
+      std::future<void> fut = std::experimental::post(ex_, [=]
         {
           if (balance_ >= amount)
             balance_ -= amount;
         },
-        use_future);
+        std::experimental::use_future);
       fut.get();
     }
 
-Here, `use_future` is a **completion token**. A completion token tells the library how we want to be notified when the function finishes. When passed the `use_future` token, the free function `post()` returns the result via a `std::future`.
+Here, the `use_future` completion token is specified. When passed the `use_future` token, the free function `post()` returns the result via a `std::future`.
 
 Other types of completion token include plain function objects (used as callbacks), resumable functions or coroutines, and even user-defined types. If we want our active object to accept any type of completion token, we simply change the member functions to accept the token as a template parameter:
 
     template <class CompletionToken>
     auto withdraw(int amount, CompletionToken&& token)
     {
-      return post(ex_, [=]
+      return std::experimental::post(ex_, [=]
         {
           if (balance_ >= amount)
             balance_ -= amount;
@@ -132,11 +132,11 @@ Other types of completion token include plain function objects (used as callback
         std::forward<CompletionToken>(token));
     }
 
-The caller of this function can now choose to receive the result via a `std::future`:
+The caller of this function can now choose how to receive the result of the operation, as opposed to having a single strategy hard-coded in the `bank_account` implementation. For example, the caller could choose to receive the result via a `std::future`:
 
     bank_account acct;
     // ...
-    std::future<void> fut = acct.withdraw(10, use_future);
+    std::future<void> fut = acct.withdraw(10, std::experimental::use_future);
     fut.get();
 
 or callback:
@@ -152,7 +152,7 @@ or any other type that meets the completion token requirements. This approach al
       template <class CompletionToken>
       auto balance(CompletionToken&& token) const
       {
-        return post(ex_, [=]
+        return std::experimental::post(ex_, [=]
           {
             return balance_;
           },
@@ -162,7 +162,7 @@ or any other type that meets the completion token requirements. This approach al
 
 When using `use_future`, the future's value type is determined automatically from the executed function's return type:
 
-    std::future<int> fut = acct.balance();
+    std::future<int> fut = acct.balance(std::experimental::use_future);
     std::cout << "balance is " << fut.get() << "\n";
 
 Similarly, when using a callback, the function's result is passed as an argument:
@@ -173,7 +173,7 @@ Similarly, when using a callback, the function's result is passed as an argument
 
 Clearly, having a private thread for each `bank_account` is not going to scale well to thousands or millions of objects. We may instead want all bank accounts to share a thread pool. The `system_executor` object provides access to a system thread pool which we can use for this purpose:
 
-    system_executor ex;
+    std::experimental::system_executor ex;
     ex.post([]{ std::cout << "Hello, world!\n"; });
 
 However, the system thread pool uses an unspecified number of threads, and the posted function could run on any of them. The original reason for using the Active Object pattern was to limit the `bank_account` object's internal logic to run on a single thread. Fortunately, we can also limit concurrency by using the `strand<>` template.
@@ -185,7 +185,7 @@ We can convert the `bank_account` class to use a strand very simply:
     class bank_account
     {
       int balance_ = 0;
-      mutable strand<system_executor> ex_;
+      mutable std::experimental::strand<std::experimental::system_executor> ex_;
 
     public:
       // ...
@@ -198,7 +198,7 @@ As noted above, a post operation always submits a function object for later exec
     template <class CompletionToken>
     auto withdraw(int amount, CompletionToken&& token)
     {
-      return post(ex_, [=]
+      return std::experimental::post(ex_, [=]
         {
           if (balance_ >= amount)
             balance_ -= amount;
@@ -211,7 +211,7 @@ we will always incur the cost of a context switch (plus an extra context switch 
     template <class CompletionToken>
     auto withdraw(int amount, CompletionToken&& token)
     {
-      return dispatch(ex_, [=]
+      return std::experimental::dispatch(ex_, [=]
         {
           if (balance_ >= amount)
             balance_ -= amount;
@@ -234,12 +234,12 @@ A first attempt at solving this might use a `std::future`:
       template <class CompletionToken>
       auto transfer(bank_account& to_acct, CompletionToken&& token)
       {
-        return dispatch(ex_, [=, &to_acct]
+        return std::experimental::dispatch(ex_, [=, &to_acct]
           {
             if (balance_ >= amount)
             {
               balance_ -= amount;
-              std::future<void> fut = to_acct.deposit(amount, use_future);
+              std::future<void> fut = to_acct.deposit(amount, std::experimental::use_future);
               fut.get();
             }
           },
@@ -254,7 +254,8 @@ This executors library offers an alternative approach: resumable functions, or c
       template <class CompletionToken>
       auto transfer(bank_account& to_acct, CompletionToken&& token)
       {
-        return dispatch(ex_, [=, &to_acct](yield_context yield)
+        return std::experimental::dispatch(ex_,
+          [=, &to_acct](std::experimental::yield_context yield)
           {
             if (balance_ >= amount)
             {
@@ -276,7 +277,8 @@ These resumable functions are implemented entirely as a library construct, and r
       template <class CompletionToken>
       auto transfer(std::vector<bank_account*> to_accts, CompletionToken&& token)
       {
-        return dispatch(ex_, [=](yield_context yield)
+        return std::experimental::dispatch(ex_,
+          [=](std::experimental::yield_context yield)
           {
             if (balance_ >= amount)
             {
@@ -300,7 +302,7 @@ Ultimately, executors are defined by a set of type requirements, and each of the
     class bank_account
     {
       int balance_ = 0;
-      mutable strand<Executor> ex_;
+      mutable std::experimental::strand<Executor> ex_;
 
     public:
       // ...
@@ -311,10 +313,10 @@ On the other hand, in many situations runtime polymorphism will be preferred. To
     class bank_account
     {
       int balance_ = 0;
-      mutable strand<executor> ex_;
+      mutable std::experimental::strand<std::experimental::executor> ex_;
 
     public:
-      explicit bank_account(const executor& ex = system_executor())
+      explicit bank_account(const std::experimental::executor& ex = std::experimental::system_executor())
         : ex_(ex)
       {
       }
@@ -324,8 +326,8 @@ On the other hand, in many situations runtime polymorphism will be preferred. To
 
 The `bank_account` class can then be constructed using an explicitly-specified thread pool:
 
-    thread_pool pool;
-    auto ex = make_executor(pool);
+    std::experimental::thread_pool pool;
+    auto ex = std::experimental::make_executor(pool);
     bank_account acct(ex);
 
 or any other object that meets the executor type requirements.
