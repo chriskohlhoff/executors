@@ -180,8 +180,8 @@ class __work_impl<system_executor::work>
 public:
   static __work_impl_base* _Create()
   {
-    static __work_impl __w;
-    return &__w;
+    static __work_impl* __w = new __work_impl;
+    return __w;
   }
 
   static __work_impl_base* _Create(system_executor::work)
@@ -212,8 +212,8 @@ class __executor_impl<system_executor>
 public:
   static __executor_impl_base* _Create()
   {
-    static __executor_impl __e;
-    return &__e;
+    static __executor_impl* __e = new __executor_impl;
+    return __e;
   }
 
   static __executor_impl_base* _Create(const system_executor&)
@@ -295,8 +295,8 @@ class __bad_work_impl
 public:
   static __work_impl_base* _Create()
   {
-    static __bad_work_impl __w;
-    return &__w;
+    static __bad_work_impl* __w = new __bad_work_impl;
+    return __w;
   }
 
   virtual __work_impl_base* _Clone() const
@@ -321,8 +321,8 @@ class __bad_executor_impl
 public:
   static __executor_impl_base* _Create()
   {
-    static __bad_executor_impl __e;
-    return &__e;
+    static __bad_executor_impl* __e = new __bad_executor_impl;
+    return __e;
   }
 
   virtual __executor_impl_base* _Clone() const

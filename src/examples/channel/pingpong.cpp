@@ -3,31 +3,32 @@
 #include <experimental/timer>
 #include <experimental/yield>
 #include <iostream>
+#include <memory>
 #include <string>
 
 using namespace std::experimental;
 
-void pinger(channel<std::string>& c, yield_context yield)
+void pinger(std::shared_ptr<channel<std::string>>& c, yield_context yield)
 {
   for (int i = 0; ; ++i)
   {
-    c.put("ping", yield);
+    c->put("ping", yield);
   }
 }
 
-void ponger(channel<std::string>& c, yield_context yield)
+void ponger(std::shared_ptr<channel<std::string>>& c, yield_context yield)
 {
   for (int i = 0; ; ++i)
   {
-    c.put("pong", yield);
+    c->put("pong", yield);
   }
 }
 
-void printer(channel<std::string>& c, yield_context yield)
+void printer(std::shared_ptr<channel<std::string>>& c, yield_context yield)
 {
   for (;;)
   {
-    std::string msg = c.get(yield);
+    std::string msg = c->get(yield);
     std::cout << msg << std::endl;
     dispatch_after(std::chrono::seconds(1), yield);
   }
@@ -35,7 +36,7 @@ void printer(channel<std::string>& c, yield_context yield)
 
 int main()
 {
-  channel<std::string> c;
+  auto c = std::make_shared<channel<std::string>>();
   auto s = make_strand(system_executor());
 
   dispatch(s.wrap([&](yield_context yield){ pinger(c, yield); }));
