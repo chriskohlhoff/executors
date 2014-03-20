@@ -11,7 +11,7 @@ This is a potential standard library proposal that covers:
 * [Timers](#timers)
 * [Channels](#channels)
 
-It has been tested with both g++ 4.9 (experimental) and clang 3.4, using the `-std=c++1y` compiler option.
+It has been tested with g++ 4.8.2, g++ 4.9 (experimental) and clang 3.4, each using the `-std=c++1y` compiler option.
 
 <a name="executors"/> Executors
 -------------------------------
