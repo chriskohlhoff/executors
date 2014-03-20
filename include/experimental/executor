@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_EXECUTOR_HEADER
 #define EXECUTORS_EXPERIMENTAL_EXECUTOR_HEADER
 
+#include <experimental/bits/executor_wrapper_base.h>
 #include <experimental/bits/function_traits.h>
 #include <experimental/type_traits>
 #include <memory>
@@ -116,7 +117,38 @@ template <class _T, class _Executor> struct uses_executor : false_type {};
 // type _Executor.
 
 template <class _T, class _Executor>
-class executor_wrapper;
+class executor_wrapper
+  : public __executor_wrapper_base_executor<_Executor>,
+    public __executor_wrapper_base_wrapped<_T>
+{
+public:
+  // construct / copy / destroy:
+
+  executor_wrapper(const executor_wrapper& __w);
+  executor_wrapper(executor_wrapper&& __w);
+  template <class _U> executor_wrapper(const executor_wrapper<_U, _Executor>& __w);
+  template <class _U> executor_wrapper(executor_wrapper<_U, _Executor>&& __w);
+  template <class _U> executor_wrapper(executor_arg_t, const _Executor& __e, _U&& __u);
+  executor_wrapper(executor_arg_t, const _Executor& __e, const executor_wrapper& __w);
+  executor_wrapper(executor_arg_t, const _Executor& __e, executor_wrapper&& __w);
+  template <class _U> executor_wrapper(executor_arg_t, const _Executor& __e,
+    const executor_wrapper<_U, _Executor>& __w);
+  template <class _U> executor_wrapper(executor_arg_t, const _Executor& __e,
+    executor_wrapper<_U, _Executor>&& __w);
+
+  ~executor_wrapper();
+
+  // executor wrapper operations:
+
+  friend _Executor make_executor(const executor_wrapper& __w) { return __w._M_executor; }
+
+private:
+  template <class _U, class _E> friend class executor_wrapper;
+  friend class async_result<executor_wrapper>;
+  template <class _E, class _U> executor_wrapper(_E&& __e, _U&& __u);
+  template <class _E, class _U> executor_wrapper(_E&& __e, _U&& __u, true_type);
+  template <class _E, class _U> executor_wrapper(_E&& __e, _U&& __u, false_type);
+};
 
 template <class _T, class _Executor>
   struct uses_executor<executor_wrapper<_T, _Executor>, _Executor> : true_type {};
