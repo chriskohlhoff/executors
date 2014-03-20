@@ -3,15 +3,18 @@ A C++14 library for executors
 
 This is a potential standard library proposal that covers:
 
-* Executors and schedulers
-* An alternative to `std::async()`
-* Resumable functions / coroutines
-* A model for asynchronous operations
+* [Executors](#executors)
+  * Executors and schedulers
+  * Resumable functions / coroutines
+  * A model for asynchronous operations
+  * An alternative to `std::async()`
+* [Timers](#timers)
+* [Channels](#channels)
 
 It has been tested with both g++ 4.9 (experimental) and clang 3.4, using the `-std=c++1y` compiler option.
 
-Executors
----------
+<a name="executors"/> Executors
+-------------------------------
 
 The central concept of this library is the **executor**. An executor embodies a set of rules about where, when and how to run a function object. For example:
 
@@ -331,3 +334,13 @@ The `bank_account` class can then be constructed using an explicitly-specified t
     bank_account acct(ex);
 
 or any other object that meets the executor type requirements.
+
+<a name="timers"/> Timers
+-------------------------
+
+TBD.
+
+<a name="channels"/> Channels
+-----------------------------
+
+TBD.
