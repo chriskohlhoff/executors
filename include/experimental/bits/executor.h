@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_EXECUTOR_H
 #define EXECUTORS_EXPERIMENTAL_BITS_EXECUTOR_H
 
+#include <atomic>
 #include <memory>
 
 namespace std {
@@ -89,20 +90,24 @@ public:
 
   virtual __work_impl_base* _Clone() const
   {
-    return new __work_impl(_M_work);
+    __work_impl* __w = const_cast<__work_impl*>(this);
+    ++__w->_M_ref_count;
+    return __w;
   }
 
   virtual void _Destroy()
   {
-    delete this;
+    if (--_M_ref_count == 0)
+      delete this;
   }
 
   virtual __executor_impl_base* _Get_executor() const;
 
 private:
-  explicit __work_impl(const _Work& __w) : _M_work(__w) {}
+  explicit __work_impl(const _Work& __w) : _M_work(__w), _M_ref_count(1) {}
   ~__work_impl() {}
   _Work _M_work;
+  atomic<size_t> _M_ref_count;
 };
 
 template <class _Executor>
@@ -117,12 +122,15 @@ public:
 
   virtual __executor_impl_base* _Clone() const
   {
-    return new __executor_impl(_M_executor);
+    __executor_impl* __e = const_cast<__executor_impl*>(this);
+    ++__e->_M_ref_count;
+    return __e;
   }
 
   virtual void _Destroy()
   {
-    delete this;
+    if (--_M_ref_count == 0)
+      delete this;
   }
 
   virtual void _Post(__function_ptr&& __f)
@@ -161,9 +169,10 @@ public:
   }
 
 private:
-  explicit __executor_impl(const _Executor& __e) : _M_executor(__e) {}
+  explicit __executor_impl(const _Executor& __e) : _M_executor(__e), _M_ref_count(1) {}
   ~__executor_impl() {}
   _Executor _M_executor;
+  atomic<size_t> _M_ref_count;
 };
 
 template <class _Work>
