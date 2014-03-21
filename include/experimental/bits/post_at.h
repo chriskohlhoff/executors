@@ -47,7 +47,7 @@ auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
   async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
 
   auto __completion_executor(make_executor(__completion.handler));
-  (post_at)(__abs_time, __invoker<_DecayFunc, _Handler, _FuncSignature>{
+  (post_at)(__abs_time, __invoker<_DecayFunc, _FuncSignature, _Handler>{
     forward<_Func>(__f), std::move(__completion.handler), __completion_executor.make_work()});
 
   return __completion.result.get();

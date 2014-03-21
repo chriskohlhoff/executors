@@ -1,7 +1,7 @@
 //
 // invoker.h
 // ~~~~~~~~~
-// Function objects to adapt other functions to executor requirements.
+// Function objects used to implement post, dispatch, etc.
 //
 // Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
@@ -17,91 +17,85 @@ namespace experimental {
 
 struct __empty_function_void0 { void operator()() {} };
 
-template <class _Result, class _Consumer>
+template <class _Result, class _Handler>
 struct __invoke_with_result
 {
   _Result _M_result;
-  _Consumer _M_consumer;
+  _Handler _M_handler;
 
   void operator()()
   {
-    _M_consumer(std::move(_M_result));
+    _M_handler(std::move(_M_result));
   }
 };
 
-template <class _Result1, class _Result2, class _Consumer>
+template <class _Result1, class _Result2, class _Handler>
 struct __invoke_with_result_2
 {
   _Result1 _M_result1;
   _Result2 _M_result2;
-  _Consumer _M_consumer;
+  _Handler _M_handler;
 
   void operator()()
   {
-    _M_consumer(std::move(_M_result1), std::move(_M_result2));
+    _M_handler(std::move(_M_result1), std::move(_M_result2));
   }
 };
 
-template <class _Producer, class _Consumer, class _Signature>
+template <class _Func, class _FuncSignature, class _Handler>
 struct __invoker;
 
-template <class _Producer, class _Consumer, class _Result, class... _Args>
-struct __invoker<_Producer, _Consumer, _Result(_Args...)>
+template <class _Func, class _FuncResult, class... _FuncArgs, class _Handler>
+struct __invoker<_Func, _FuncResult(_FuncArgs...), _Handler>
 {
-  typedef __make_signature_t<void, _Result> _ConsumerSignature;
+  _Func _M_func;
+  _Handler _M_handler;
+  typename decltype(make_executor(declval<_Handler>()))::work _M_handler_work;
 
-  _Producer _M_producer;
-  _Consumer _M_consumer;
-  typename decltype(make_executor(declval<_Consumer>()))::work _M_consumer_work;
-
-  void operator()(_Args... __args)
+  void operator()(_FuncArgs... __args)
   {
-    make_executor(_M_consumer_work).dispatch(
-      __invoke_with_result<_Result, _Consumer>{
-        _M_producer(forward<_Args>(__args)...), std::move(_M_consumer)});
+    this->_Invoke(is_same<void, _FuncResult>(), forward<_FuncArgs>(__args)...);
+  }
+
+private:
+  void _Invoke(true_type, _FuncArgs... __args)
+  {
+    _M_func(forward<_FuncArgs>(__args)...);
+    make_executor(_M_handler_work).dispatch(std::move(_M_handler));
+  }
+
+  void _Invoke(false_type, _FuncArgs... __args)
+  {
+    make_executor(_M_handler_work).dispatch(
+      __invoke_with_result<_FuncResult, _Handler>{
+        _M_func(forward<_FuncArgs>(__args)...), std::move(_M_handler)});
   }
 };
 
-template <class _Producer, class _Consumer, class... _Args>
-struct __invoker<_Producer, _Consumer, void(_Args...)>
+struct __invoker_func_executor
 {
-  typedef __make_signature_t<void> _ConsumerSignature;
-
-  _Producer _M_producer;
-  _Consumer _M_consumer;
-  typename decltype(make_executor(declval<_Consumer>()))::work _M_consumer_work;
-
-  void operator()(_Args... __args)
+  template <class _Func, class _FuncSignature, class _Handler>
+  static auto _Get(const __invoker<_Func, _FuncSignature, _Handler>& __i)
   {
-    _M_producer(forward<_Args>(__args)...);
-    make_executor(_M_consumer_work).dispatch(std::move(_M_consumer));
+    return make_executor(__i._M_func);
   }
 };
 
-struct __invoker_producer_executor
+struct __invoker_handler_executor
 {
-  template <class _Producer, class _Consumer, class _Signature>
-  static auto _Get(const __invoker<_Producer, _Consumer, _Signature>& __i)
+  template <class _Func, class _FuncSignature, class _Handler>
+  static auto _Get(const __invoker<_Func, _FuncSignature, _Handler>& __i)
   {
-    return make_executor(__i._M_producer);
+    return make_executor(__i._M_handler);
   }
 };
 
-struct __invoker_consumer_executor
+template <class _Func, class _FuncSignature, class _Handler>
+inline auto make_executor(const __invoker<_Func, _FuncSignature, _Handler>& __i)
 {
-  template <class _Producer, class _Consumer, class _Signature>
-  static auto _Get(const __invoker<_Producer, _Consumer, _Signature>& __i)
-  {
-    return make_executor(__i._M_consumer);
-  }
-};
-
-template <class _Producer, class _Consumer, class _Signature>
-inline auto make_executor(const __invoker<_Producer, _Consumer, _Signature>& __i)
-{
-  typedef decltype(make_executor(__i._M_producer)) _ProducerExecutor;
-  return conditional<is_same<_ProducerExecutor, system_executor>::value,
-    __invoker_consumer_executor, __invoker_producer_executor>::type::_Get(__i);
+  typedef decltype(make_executor(__i._M_func)) _FuncExecutor;
+  return conditional<is_same<_FuncExecutor, system_executor>::value,
+    __invoker_handler_executor, __invoker_func_executor>::type::_Get(__i);
 }
 
 } // namespace experimental
