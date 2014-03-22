@@ -371,7 +371,7 @@ The `post_at()` function can instead be used to run a function object at an abso
     std::experimental::post_after(start_time + std::chrono::seconds(1),
       []{ std::cout << "Hello, world!\n"; });
 
-The library also provides `dispatch_after()` and `dispatch_at()` as counterparts to `post_after()` and `post_at()` respectively. As dispatch operations, they are permitted to rn the function object before returning, according to the rules of the underlying executor.
+The library also provides `dispatch_after()` and `dispatch_at()` as counterparts to `post_after()` and `post_at()` respectively. As dispatch operations, they are permitted to run the function object before returning, according to the rules of the underlying executor.
 
 ### Timer operations in resumable functions
 
