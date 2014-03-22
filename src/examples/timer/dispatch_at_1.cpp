@@ -3,7 +3,10 @@
 #include <experimental/yield>
 #include <iostream>
 
-using namespace std::experimental;
+using std::experimental::dispatch;
+using std::experimental::dispatch_at;
+using std::experimental::use_future;
+using std::experimental::yield_context;
 
 int main()
 {

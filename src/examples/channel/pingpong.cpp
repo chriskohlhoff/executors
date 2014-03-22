@@ -6,11 +6,16 @@
 #include <memory>
 #include <string>
 
-using namespace std::experimental;
+using std::experimental::channel;
+using std::experimental::dispatch;
+using std::experimental::dispatch_after;
+using std::experimental::strand;
+using std::experimental::system_executor;
+using std::experimental::yield_context;
 
 void pinger(std::shared_ptr<channel<std::string>>& c, yield_context yield)
 {
-  for (int i = 0; ; ++i)
+  for (;;)
   {
     c->put("ping", yield);
   }
@@ -18,7 +23,7 @@ void pinger(std::shared_ptr<channel<std::string>>& c, yield_context yield)
 
 void ponger(std::shared_ptr<channel<std::string>>& c, yield_context yield)
 {
-  for (int i = 0; ; ++i)
+  for (;;)
   {
     c->put("pong", yield);
   }
@@ -37,7 +42,7 @@ void printer(std::shared_ptr<channel<std::string>>& c, yield_context yield)
 int main()
 {
   auto c = std::make_shared<channel<std::string>>();
-  auto s = make_strand(system_executor());
+  strand<system_executor> s;
 
   dispatch(s.wrap([&](yield_context yield){ pinger(c, yield); }));
   dispatch(s.wrap([&](yield_context yield){ ponger(c, yield); }));

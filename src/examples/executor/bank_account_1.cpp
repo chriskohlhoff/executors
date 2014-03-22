@@ -1,7 +1,8 @@
 #include <experimental/thread_pool>
 #include <iostream>
 
-using namespace std::experimental;
+using std::experimental::make_executor;
+using std::experimental::thread_pool;
 
 // Traditional active object pattern.
 

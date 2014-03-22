@@ -3,7 +3,11 @@
 #include <experimental/yield>
 #include <iostream>
 
-using namespace std::experimental;
+using std::experimental::dispatch;
+using std::experimental::dispatch_at;
+using std::experimental::loop_scheduler;
+using std::experimental::make_executor;
+using std::experimental::yield_context;
 
 int main()
 {

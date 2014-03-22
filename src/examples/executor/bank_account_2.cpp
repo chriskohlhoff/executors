@@ -2,7 +2,10 @@
 #include <experimental/strand>
 #include <iostream>
 
-using namespace std::experimental;
+using std::experimental::dispatch;
+using std::experimental::strand;
+using std::experimental::system_executor;
+using std::experimental::use_future;
 
 // Active object sharing a system-wide pool of threads.
 // The caller gets to wait for the operation to finish.
