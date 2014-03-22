@@ -308,6 +308,11 @@ Ultimately, executors are defined by a set of type requirements, and each of the
       mutable std::experimental::strand<Executor> ex_;
 
     public:
+      explicit bank_account(const Executor& ex)
+        : ex_(ex)
+      {
+      }
+
       // ...
     };
 
@@ -338,7 +343,85 @@ or any other object that meets the executor type requirements.
 <a name="timers"/> Timers
 -------------------------
 
-TBD.
+### Convenience functions for timer operations
+
+When working with executors, we will often need to schedule functions to run at, or after, a time. This library provides several high-level operations we can use for this purpose.
+
+First of these is the `post_after()` function, which we can use to schedule a function to run after a delay:
+
+    std::experimental::post_after(std::chrono::seconds(1),
+      []{ std::cout << "Hello, world!\n"; });
+
+If we want to be notified when the function has finished, we can specify a completion token as well:
+
+    std::future<void> fut = std::experimental::post_after(std::chrono::seconds(1),
+      []{ std::cout << "Hello, world!\n"; }, std::experimental::use_future);
+    fut.get();
+
+Both of the above examples use the system executor. We can of course specify an executor of our own:
+
+    std::experimental::thread_pool pool;
+    std::experimental::post_after(pool, std::chrono::seconds(1),
+      []{ std::cout << "Hello, world!\n"; });
+
+The `post_at()` function can instead be used to run a function object at an absolute time:
+
+    auto start_time = std::chrono::steady_clock::now();
+    // ...
+    std::experimental::post_after(start_time + std::chrono::seconds(1),
+      []{ std::cout << "Hello, world!\n"; });
+
+The library also provides `dispatch_after()` and `dispatch_at()` as counterparts to `post_after()` and `post_at()` respectively. As dispatch operations, they are permitted to rn the function object before returning, according to the rules of the underlying executor.
+
+### Timer operations in resumable functions
+
+These high-level convenience functions can easily be used in resumable functions to provide the resumable equivalent of `std::thread_thread::sleep()`:
+
+    dispatch(
+      [](yield_context yield)
+      {
+        auto start_time = std::chrono::steady_clock::now();
+        for (int i = 0; i < 10; ++i)
+        {
+          std::experimental::dispatch_at(start_time + std::chrono::seconds(i + 1), yield);
+          std::cout << i << std::endl;
+        }
+      });
+
+Here, the `yield` object is passed as a completion token to `dispatch_at()`. The resumable function is automatically suspended and resumes once the absolute time is reached.
+
+### Timer objects and cancellation of timer operations
+
+The convenience functions do not provide a way to cancel a timer operation. For this level of control we want to use one of the timer classes provided by the library: `steady_timer`, `system_timer` or `high_resolution_timer`.
+
+Timer objects can work with any execution context. When constructing a timer object, we can choose whether it uses the system context:
+
+    std::experimental::steady_timer timer;
+
+or a specific context, such as a thread pool:
+
+    std::experimental::thread_pool pool;
+    std::experimental::steady_timer timer(pool);
+
+In the latter case, the timer cannot be used once its execution context ceases to exist.
+
+A timer object has an associated expiry time, which can be set using either a relative value:
+
+    timer.expires_after(std::chrono::seconds(60));
+
+or an absolute one:
+
+    timer.expires_at(start_time + std::chrono::seconds(60));
+
+Once the expiry time is set, we then wait for the timer to expire:
+
+    timer.wait([[(std::error_code ec){ std::cout << "Hello, world!\n"; });
+
+Finally, if we want to cancel the wait, we simply use the `cancel()` member function:
+
+    timer.cancel();
+
+If the cancellation was succesful, the function object is called with a `error_code` equivalent to the condition `std::errc::operation_canceled`.
 
 <a name="channels"/> Channels
 -----------------------------
