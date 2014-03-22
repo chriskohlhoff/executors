@@ -55,8 +55,8 @@ int main()
   const handler2 ch2;
   handler3 h3;
 
-  std::unique_ptr<std::experimental::thread_pool> scheduler(new std::experimental::thread_pool);
-  auto ex = make_executor(*scheduler);
+  std::experimental::thread_pool pool;
+  auto ex = make_executor(pool);
 
   std::experimental::post(ex.wrap(function1), handler1);
   std::experimental::post(ex.wrap(function1), &handler1);
@@ -128,8 +128,7 @@ int main()
   std::future<int> fut7 = std::experimental::post(ex.wrap(std::move(f3)), std::experimental::use_future);
   fut7.get();
 
-  scheduler.reset();
-
+  pool.join();
   assert(function_count == 56);
   assert(handler_count == 49);
 }

@@ -4,8 +4,8 @@
 
 int main()
 {
-  std::unique_ptr<std::experimental::thread_pool> scheduler(new std::experimental::thread_pool(1));
-  auto ex = make_executor(*scheduler);
+  std::experimental::thread_pool pool(1);
+  auto ex = make_executor(pool);
 
   int count = 0;
   ex.post(
@@ -16,6 +16,6 @@ int main()
       assert(count == count_before_dispatch + 1);
     });
 
-  scheduler.reset();
+  pool.join();
   assert(count == 1);
 }

@@ -12,6 +12,8 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_THREAD_POOL_H
 #define EXECUTORS_EXPERIMENTAL_BITS_THREAD_POOL_H
 
+#include <stdexcept>
+
 namespace std {
 namespace experimental {
 
@@ -23,17 +25,35 @@ inline thread_pool::thread_pool()
 inline thread_pool::thread_pool(size_t __num_threads)
   : __scheduler(__num_threads)
 {
-  _Work_started();
-  for (size_t __i = 0; __i < __num_threads; ++__i)
-    _M_threads.emplace_back([this](){ _Run(); });
+  if (__num_threads > 0)
+  {
+    _Work_started();
+    for (size_t __i = 0; __i < __num_threads; ++__i)
+      _M_threads.emplace_back([this](){ _Run(); });
+  }
 }
 
 inline thread_pool::~thread_pool()
 {
+  _Stop();
+  join();
   shutdown();
-  _Work_finished();
-  for (auto& __t: _M_threads)
-    __t.join();
+}
+
+inline void thread_pool::stop()
+{
+  _Stop();
+}
+
+inline void thread_pool::join()
+{
+  if (!_M_threads.empty())
+  {
+    _Work_finished();
+    for (auto& __t: _M_threads)
+      __t.join();
+    _M_threads.clear();
+  }
 }
 
 inline thread_pool::executor::executor(

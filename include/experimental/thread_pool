@@ -37,6 +37,11 @@ public:
   thread_pool& operator=(const thread_pool&) = delete;
   ~thread_pool();
 
+  // thread pool operations:
+
+  void stop();
+  void join();
+
 private:
   friend executor make_executor(thread_pool& __p);
   vector<thread> _M_threads;
