@@ -426,4 +426,36 @@ If the cancellation was successful, the function object is called with a `error_
 <a name="channels"/> Channels
 -----------------------------
 
-TBD.
+Channels provide a lightweight mechanism for chains of asynchronous operations (and especially resumable functions) to communicate and synchronise their execution. Here is a simple example that will print "ping" once a second until stopped:
+
+    void pinger(std::shared_ptr<std::experimental::channel<std::string>> c, std::experimental::yield_context yield)
+    {
+      for (;;)
+      {
+        c->put("ping", yield);
+      }
+    }
+
+    void printer(std::shared_ptr<std::experimental::channel<std::string>> c, std::experimental::yield_context yield)
+    {
+      for (;;)
+      {
+        std::string msg = c->get(yield);
+        std::cout << msg << std::endl;
+        std::experimental::dispatch_after(std::chrono::seconds(1), yield);
+      }
+    }
+
+    int main()
+    {
+      auto c = std::make_shared<std::experimental::channel<std::string>>();
+      std::experimental::strand<std::experimental::system_executor> ex;
+
+      std::experimental::dispatch(ex.wrap([&](std::experimental::yield_context yield){ pinger(c, yield); }));
+      std::experimental::dispatch(ex.wrap([&](std::experimental::yield_context yield){ printer(c, yield); }));
+
+      std::string input;
+      std::getline(std::cin, input);
+    }
+
+When `pinger` attempts to `put` a string into the channel it will wait until `printer` is ready to `get` it.
