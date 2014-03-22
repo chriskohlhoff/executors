@@ -421,7 +421,7 @@ Finally, if we want to cancel the wait, we simply use the `cancel()` member func
 
     timer.cancel();
 
-If the cancellation was succesful, the function object is called with a `error_code` equivalent to the condition `std::errc::operation_canceled`.
+If the cancellation was successful, the function object is called with a `error_code` equivalent to the condition `std::errc::operation_canceled`.
 
 <a name="channels"/> Channels
 -----------------------------
