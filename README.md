@@ -378,7 +378,7 @@ The library also provides `dispatch_after()` and `dispatch_at()` as counterparts
 These high-level convenience functions can easily be used in resumable functions to provide the resumable equivalent of `std::thread_thread::sleep()`:
 
     dispatch(
-      [](yield_context yield)
+      [](std::experimental::yield_context yield)
       {
         auto start_time = std::chrono::steady_clock::now();
         for (int i = 0; i < 10; ++i)
@@ -428,7 +428,9 @@ If the cancellation was successful, the function object is called with a `error_
 
 Channels provide a lightweight mechanism for chains of asynchronous operations (and especially resumable functions) to communicate and synchronise their execution. Here is a simple example that will print "ping" once a second until stopped:
 
-    void pinger(std::shared_ptr<std::experimental::channel<std::string>> c, std::experimental::yield_context yield)
+    void pinger(
+      std::shared_ptr<std::experimental::channel<std::string>> c,
+      std::experimental::yield_context yield)
     {
       for (;;)
       {
@@ -436,7 +438,9 @@ Channels provide a lightweight mechanism for chains of asynchronous operations (
       }
     }
 
-    void printer(std::shared_ptr<std::experimental::channel<std::string>> c, std::experimental::yield_context yield)
+    void printer(
+      std::shared_ptr<std::experimental::channel<std::string>> c,
+      std::experimental::yield_context yield)
     {
       for (;;)
       {
@@ -451,8 +455,11 @@ Channels provide a lightweight mechanism for chains of asynchronous operations (
       auto c = std::make_shared<std::experimental::channel<std::string>>();
       std::experimental::strand<std::experimental::system_executor> ex;
 
-      std::experimental::dispatch(ex.wrap([&](std::experimental::yield_context yield){ pinger(c, yield); }));
-      std::experimental::dispatch(ex.wrap([&](std::experimental::yield_context yield){ printer(c, yield); }));
+      std::experimental::dispatch(
+        ex.wrap([&](std::experimental::yield_context yield){ pinger(c, yield); }));
+
+      std::experimental::dispatch(
+        ex.wrap([&](std::experimental::yield_context yield){ printer(c, yield); }));
 
       std::string input;
       std::getline(std::cin, input);
