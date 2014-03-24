@@ -34,7 +34,6 @@ auto post(_Func&& __f, _CompletionToken&& __token)
   typedef typename decay<_Func>::type _DecayFunc;
   typedef __signature_t<_DecayFunc> _FuncSignature;
   typedef __result_t<_FuncSignature> _Result;
-  typedef typename decay<_Result>::type _DecayResult;
   typedef __make_signature_t<void, _Result> _HandlerSignature;
   typedef handler_type_t<_CompletionToken, _HandlerSignature> _Handler;
 
