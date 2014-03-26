@@ -319,6 +319,20 @@ template <class _Func, class _CompletionToken>
 template <class _Executor, class _Func, class _CompletionToken>
   auto dispatch(_Executor&& __e, _Func&& __f, _CompletionToken&& __token);
 
+// Schedule two functions to run concurrently later.
+
+template <class _Func1, class _Func2, class _CompletionToken>
+  auto copost(_Func1&& __f1, _Func2&& __f2, _CompletionToken&& __token);
+template <class _Executor, class _Func1, class _Func2, class _CompletionToken>
+  auto copost(_Executor&& __e, _Func1&& __f1, _Func2&& __f2, _CompletionToken&& __token);
+
+// Schedule two functions to run now if possible, run concurrently later otherwise.
+
+template <class _Func1, class _Func2, class _CompletionToken>
+  auto codispatch(_Func1&& __f1, _Func2&& __f2, _CompletionToken&& __token);
+template <class _Executor, class _Func1, class _Func2, class _CompletionToken>
+  auto codispatch(_Executor&& __e, _Func1&& __f1, _Func2&& __f2, _CompletionToken&& __token);
+
 } // namespace experimental
 
 template<class _Alloc>
@@ -337,5 +351,7 @@ template<class _Alloc>
 #include <experimental/bits/executor.h>
 #include <experimental/bits/post.h>
 #include <experimental/bits/dispatch.h>
+#include <experimental/bits/copost.h>
+#include <experimental/bits/codispatch.h>
 
 #endif

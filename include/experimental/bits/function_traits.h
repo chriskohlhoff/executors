@@ -98,11 +98,44 @@ using __signature_t = typename __signature<_T>::type;
 
 // __make_signature: Creates a signature from return and argument types.
 
+template <class... _Args>
+struct __signature_arg_pack {};
+
+template <class _Pack, class _Arg>
+struct __signature_arg_pack_append;
+
+template <class... _Args, class _Arg>
+struct __signature_arg_pack_append<__signature_arg_pack<_Args...>, _Arg>
+{
+  typedef __signature_arg_pack<_Args..., _Arg> type;
+};
+
+template <class _R, class _Pack, class... _Args>
+struct __signature_void_remover;
+
 template <class _R, class... _Args>
-struct __make_signature : __signature_base<_R(_Args...)> {};
+struct __signature_void_remover<_R, __signature_arg_pack<_Args...>>
+  : __signature_base<_R(_Args...)> {};
+
+template <class _R, class _Pack, class _Arg, class... _Args>
+struct __signature_void_remover<_R, _Pack, _Arg, _Args...>
+  : __signature_void_remover<_R,
+    typename __signature_arg_pack_append<_Pack, _Arg>::type, _Args...> {};
+
+template <class _R, class _Pack, class... _Args>
+struct __signature_void_remover<_R, _Pack, void, _Args...>
+  : __signature_void_remover<_R, _Pack, _Args...> {};
+
+template <class _R, class... _Args>
+struct __make_signature
+  : __signature_void_remover<_R, __signature_arg_pack<>, _Args...> {};
 
 template <class _R>
 struct __make_signature<_R, void> : __signature_base<_R()> {};
+
+template <class _R, class... _Args>
+struct __make_signature<_R, __signature_arg_pack<_Args...>>
+  : __signature_base<_R(_Args...)> {};
 
 template <class _R, class... _Args>
 using __make_signature_t = typename __make_signature<_R, _Args...>::type;
