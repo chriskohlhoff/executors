@@ -42,60 +42,57 @@ struct __invoke_with_result_2
   }
 };
 
-template <class _Func, class _FuncSignature, class _Handler>
-struct __invoker;
-
-template <class _Func, class _FuncResult, class... _FuncArgs, class _Handler>
-struct __invoker<_Func, _FuncResult(_FuncArgs...), _Handler>
+template <class _Handler>
+class __invoker
 {
-  _Func _M_func;
-  _Handler _M_handler;
-  typename decltype(make_executor(declval<_Handler>()))::work _M_handler_work;
-
-  void operator()(_FuncArgs... __args)
+public:
+  template <class _H> explicit __invoker(_H&& __h)
+    : _M_handler(forward<_H>(__h)),
+      _M_handler_work(make_executor(_M_handler).make_work())
   {
-    this->_Invoke(is_same<void, _FuncResult>(), forward<_FuncArgs>(__args)...);
   }
 
-private:
-  void _Invoke(true_type, _FuncArgs... __args)
+  void operator()()
   {
-    _M_func(forward<_FuncArgs>(__args)...);
     make_executor(_M_handler_work).dispatch(std::move(_M_handler));
   }
 
-  void _Invoke(false_type, _FuncArgs... __args)
+  template <class _T> void operator()(_T&& __t)
   {
     make_executor(_M_handler_work).dispatch(
-      __invoke_with_result<_FuncResult, _Handler>{
-        _M_func(forward<_FuncArgs>(__args)...), std::move(_M_handler)});
+      __invoke_with_result<typename decay<_T>::type, _Handler>{
+        forward<_T>(__t), std::move(_M_handler)});
   }
+
+private:
+  _Handler _M_handler;
+  typename decltype(make_executor(declval<_Handler>()))::work _M_handler_work;
 };
 
 struct __invoker_func_executor
 {
-  template <class _Func, class _FuncSignature, class _Handler>
-  static auto _Get(const __invoker<_Func, _FuncSignature, _Handler>& __i)
+  template <class _Func, class _Handler>
+  static auto _Get(_Func& __f, _Handler&)
   {
-    return make_executor(__i._M_func);
+    return make_executor(__f);
   }
 };
 
 struct __invoker_handler_executor
 {
-  template <class _Func, class _FuncSignature, class _Handler>
-  static auto _Get(const __invoker<_Func, _FuncSignature, _Handler>& __i)
+  template <class _Func, class _Handler>
+  static auto _Get(_Func&, _Handler& __h)
   {
-    return make_executor(__i._M_handler);
+    return make_executor(__h);
   }
 };
 
-template <class _Func, class _FuncSignature, class _Handler>
-inline auto make_executor(const __invoker<_Func, _FuncSignature, _Handler>& __i)
+template <class _Func, class _Handler>
+inline auto __make_invoker_executor(_Func& __f, _Handler& __h)
 {
-  typedef decltype(make_executor(__i._M_func)) _FuncExecutor;
+  typedef decltype(make_executor(__f)) _FuncExecutor;
   return conditional<is_same<_FuncExecutor, system_executor>::value,
-    __invoker_handler_executor, __invoker_func_executor>::type::_Get(__i);
+    __invoker_handler_executor, __invoker_func_executor>::type::_Get(__f, __h);
 }
 
 } // namespace experimental

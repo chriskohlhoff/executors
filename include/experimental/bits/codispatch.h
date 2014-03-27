@@ -22,11 +22,13 @@ auto codispatch(_Func1&& __f1, _Func2&& __f2, _CompletionToken&& __token)
 {
   typedef typename decay<_Func1>::type _DecayFunc1;
   typedef __signature_t<_DecayFunc1> _Func1Signature;
-  typedef __result_t<_Func1Signature> _Result1;
+  typedef continuation_traits<_DecayFunc1> _Traits1;
+  typedef typename _Traits1::result_type _Result1;
 
   typedef typename decay<_Func2>::type _DecayFunc2;
   typedef __signature_t<_DecayFunc2> _Func2Signature;
-  typedef __result_t<_Func2Signature> _Result2;
+  typedef continuation_traits<_DecayFunc2> _Traits2;
+  typedef typename _Traits2::result_type _Result2;
 
   typedef __make_signature_t<void, _Result1, _Result2> _HandlerSignature;
   typedef handler_type_t<_CompletionToken, _HandlerSignature> _Handler;
@@ -36,10 +38,8 @@ auto codispatch(_Func1&& __f1, _Func2&& __f2, _CompletionToken&& __token)
   unique_ptr<__coinvoker_handler<_Result1, _Result2, _Handler>> __h(
     new __coinvoker_handler<_Result1, _Result2, _Handler>(std::move(__completion.handler)));
 
-  __coinvoker<1, _DecayFunc1, _Func1Signature, _Result1, _Result2, _Handler>
-    __i1(forward<_Func1>(__f1), __h.get());
-  __coinvoker<2, _DecayFunc2, _Func2Signature, _Result1, _Result2, _Handler>
-    __i2(forward<_Func2>(__f2), __h.get());
+  auto __i1(_Traits1::chain(forward<_Func1>(__f1), __coinvoker<1, _Result1, _Result2, _Handler>(__h.get())));
+  auto __i2(_Traits2::chain(forward<_Func2>(__f2), __coinvoker<2, _Result1, _Result2, _Handler>(__h.get())));
 
   __h->_Prime();
   __h.release();

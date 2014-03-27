@@ -146,23 +146,20 @@ private:
   typename decltype(make_executor(declval<_Handler>()))::work _M_handler_work;
 };
 
-template <int _Tag, class _Func, class _FuncSignature, class _Result1, class _Result2, class _Handler>
-class __coinvoker;
-
-template <int _Tag, class _Func, class _FuncResult, class... _FuncArgs, class _Result1, class _Result2, class _Handler>
-class __coinvoker<_Tag, _Func, _FuncResult(_FuncArgs...), _Result1, _Result2, _Handler>
+template <int _Tag, class _Result1, class _Result2, class _Handler>
+class __coinvoker
 {
 public:
   __coinvoker(const __coinvoker&) = delete;
   __coinvoker& operator=(const __coinvoker&) = delete;
 
-  template <class _F> __coinvoker(_F&& __f, __coinvoker_handler<_Result1, _Result2, _Handler>* __h)
-    : _M_func(forward<_F>(__f)), _M_handler(__h)
+  explicit __coinvoker(__coinvoker_handler<_Result1, _Result2, _Handler>* __h)
+    : _M_handler(__h)
   {
   }
 
   __coinvoker(__coinvoker&& __f)
-    : _M_func(std::move(__f._M_func)), _M_handler(__f._M_handler)
+    : _M_handler(__f._M_handler)
   {
     __f._M_handler = 0;
   }
@@ -173,27 +170,18 @@ public:
       _M_handler->_Release();
   }
 
-  void operator()(_FuncArgs... __args)
+  template <class... _Args> void operator()(_Args&&... __args)
   {
-    this->_Invoke(is_same<void, _FuncResult>(), forward<_FuncArgs>(__args)...);
-    _Complete();
+    _M_handler->_Set_result(integral_constant<int, _Tag>(), forward<_Args>(__args)...);
+    this->_Complete();
+  }
+
+  auto _Get_executor() const
+  {
+    return make_executor(_M_handler->_M_handler);
   }
 
 private:
-  friend struct __coinvoker_func_executor;
-  friend struct __coinvoker_handler_executor;
-
-  void _Invoke(true_type, _FuncArgs... __args)
-  {
-    _M_func(forward<_FuncArgs>(__args)...);
-    _M_handler->_Set_result(integral_constant<int, _Tag>());
-  }
-
-  void _Invoke(false_type, _FuncArgs... __args)
-  {
-    _M_handler->_Set_result(integral_constant<int, _Tag>(), _M_func(forward<_FuncArgs>(__args)...));
-  }
-
   void _Complete()
   {
     __coinvoker_handler<_Result1, _Result2, _Handler>* __h = _M_handler;
@@ -201,34 +189,13 @@ private:
     __h->_Complete();
   }
 
-  _Func _M_func;
   __coinvoker_handler<_Result1, _Result2, _Handler>* _M_handler;
 };
 
-struct __coinvoker_func_executor
+template <int _Tag, class _Result1, class _Result2, class _Handler>
+inline auto make_executor(const __coinvoker<_Tag, _Result1, _Result2, _Handler>& __i)
 {
-  template <int _Tag, class _Func, class _FuncSignature, class _Result1, class _Result2, class _Handler>
-  static auto _Get(const __coinvoker<_Tag, _Func, _FuncSignature, _Result1, _Result2, _Handler>& __i)
-  {
-    return make_executor(__i._M_func);
-  }
-};
-
-struct __coinvoker_handler_executor
-{
-  template <int _Tag, class _Func, class _FuncSignature, class _Result1, class _Result2, class _Handler>
-  static auto _Get(const __coinvoker<_Tag, _Func, _FuncSignature, _Result1, _Result2, _Handler>& __i)
-  {
-    return make_executor(__i._M_handler->_M_handler);
-  }
-};
-
-template <int _Tag, class _Func, class _FuncSignature, class _Result1, class _Result2, class _Handler>
-inline auto make_executor(const __coinvoker<_Tag, _Func, _FuncSignature, _Result1, _Result2, _Handler>& __i)
-{
-  typedef decltype(make_executor(declval<_Func>())) _FuncExecutor;
-  return conditional<is_same<_FuncExecutor, system_executor>::value,
-    __coinvoker_handler_executor, __coinvoker_func_executor>::type::_Get(__i);
+  return __i._Get_executor();
 }
 
 } // namespace experimental

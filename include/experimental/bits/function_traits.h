@@ -13,6 +13,7 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_FUNCTION_TRAITS_H
 
 #include <type_traits>
+#include <utility>
 
 namespace std {
 namespace experimental {
@@ -174,6 +175,50 @@ struct __last_argument<_R(_Args...)> : __last_argument_in_pack<_Args...> {};
 
 template <class _Signature>
 using __last_argument_t = typename __last_argument<_Signature>::type;
+
+// __function_traits: Helper template for determining signature and result.
+
+template <class _T>
+struct __function_traits
+{
+  typedef __signature_t<_T> signature;
+  typedef __result_t<signature> result_type;
+};
+
+// __chain: Chains a normal function to a continuation.
+
+template <class _Func, class _FuncSignature, class _Continuation>
+class __chain;
+
+template <class _Func, class _FuncResult, class... _FuncArgs, class _Continuation>
+class __chain<_Func, _FuncResult(_FuncArgs...), _Continuation>
+{
+public:
+  template <class _F, class _C> __chain(_F&& __f, _C&& __c)
+    : _M_func(forward<_F>(__f)), _M_continuation(forward<_C>(__c))
+  {
+  }
+
+  void operator()(_FuncArgs... __args)
+  {
+    this->_Invoke(is_same<void, _FuncResult>(), forward<_FuncArgs>(__args)...);
+  }
+
+private:
+  void _Invoke(true_type, _FuncArgs... __args)
+  {
+    _M_func(forward<_FuncArgs>(__args)...);
+    _M_continuation();
+  }
+
+  void _Invoke(false_type, _FuncArgs... __args)
+  {
+    _M_continuation(_M_func(forward<_FuncArgs>(__args)...));
+  }
+
+  _Func _M_func;
+  _Continuation _M_continuation;
+};
 
 } // namespace experimental
 } // namespace std

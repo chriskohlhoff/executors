@@ -31,17 +31,16 @@ auto dispatch(_CompletionToken&& __token)
 template <class _Func, class _CompletionToken>
 auto dispatch(_Func&& __f, _CompletionToken&& __token)
 {
-  typedef typename decay<_Func>::type _DecayFunc;
-  typedef __signature_t<_DecayFunc> _FuncSignature;
-  typedef __result_t<_FuncSignature> _Result;
+  typedef continuation_traits<_Func> _Traits;
+  typedef typename _Traits::result_type _Result;
   typedef __make_signature_t<void, _Result> _HandlerSignature;
   typedef handler_type_t<_CompletionToken, _HandlerSignature> _Handler;
 
   async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
 
-  auto __completion_executor(make_executor(__completion.handler));
-  (dispatch)(__invoker<_DecayFunc, _FuncSignature, _Handler>{forward<_Func>(__f),
-    std::move(__completion.handler), __completion_executor.make_work()});
+  auto __executor(__make_invoker_executor(__f, __completion.handler));
+  (dispatch)(__executor.wrap(_Traits::chain(forward<_Func>(__f),
+    __invoker<_Handler>(std::move(__completion.handler)))));
 
   return __completion.result.get();
 }
