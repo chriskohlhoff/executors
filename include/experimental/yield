@@ -12,6 +12,9 @@
 #ifndef EXECUTORS_EXPERIMENTAL_YIELD_HEADER
 #define EXECUTORS_EXPERIMENTAL_YIELD_HEADER
 
+#include <memory>
+#include <system_error>
+#include <experimental/executor>
 #include <experimental/type_traits>
 
 namespace std {
