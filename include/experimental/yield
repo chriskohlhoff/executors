@@ -54,6 +54,9 @@ private:
 template <class _Executor>
   _Executor make_executor(const basic_yield_context<_Executor>& __c);
 
+template <class _Executor, class _R, class... _Args>
+  struct handler_type<basic_yield_context<_Executor>, _R(_Args...)>;
+
 typedef basic_yield_context<executor> yield_context;
 
 } // namespace experimental
