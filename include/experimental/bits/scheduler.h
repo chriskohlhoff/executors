@@ -37,14 +37,20 @@ public:
     __op_queue<__operation> _M_private_queue;
     typename __call_stack<__scheduler, _Context>::__context _M_context;
     unique_lock<mutex> _M_lock;
+    ptrdiff_t _M_work_delta;
 
     explicit _Context(__scheduler* __s)
-      : _M_scheduler(__s), _M_context(__s, *this), _M_lock(__s->_M_mutex)
+      : _M_scheduler(__s), _M_context(__s, *this), _M_lock(__s->_M_mutex),
+        _M_work_delta(0)
     {
     }
 
     ~_Context()
     {
+      if (_M_work_delta)
+        if (_M_scheduler->_M_outstanding_work.fetch_add(_M_work_delta) == -_M_work_delta)
+          _M_scheduler->_Stop();
+
       if (!_M_private_queue._Empty())
       {
         if (!_M_lock.owns_lock())
@@ -56,6 +62,13 @@ public:
 
     void _Lock()
     {
+      if (_M_work_delta)
+      {
+        if (_M_scheduler->_M_outstanding_work.fetch_add(_M_work_delta) == -_M_work_delta)
+          _M_scheduler->_Stop();
+        _M_work_delta = 0;
+      }
+
       if (!_M_lock.owns_lock())
         _M_lock.lock();
 
@@ -117,7 +130,7 @@ public:
     _Context __ctx(this);
 
     std::size_t __n = 0;
-    for (; _Do_run_one(__ctx._M_lock); __ctx._Lock())
+    for (; _Do_run_one(__ctx); __ctx._Lock())
       if (__n != (numeric_limits<size_t>::max)())
         ++__n;
     return __n;
@@ -133,7 +146,7 @@ public:
 
     _Context __ctx(this);
 
-    return _Do_run_one(__ctx._M_lock);
+    return _Do_run_one(__ctx);
   }
 
   template <class _Rep, class _Period>
@@ -154,7 +167,7 @@ public:
     _Context __ctx(this);
 
     std::size_t __n = 0;
-    for (; _Do_run_one_until(__ctx._M_lock, __abs_time); __ctx._Lock())
+    for (; _Do_run_one_until(__ctx, __abs_time); __ctx._Lock())
       if (__n != (numeric_limits<size_t>::max)())
         ++__n;
     return __n;
@@ -171,7 +184,7 @@ public:
     _Context __ctx(this);
 
     std::size_t __n = 0;
-    for (; _Do_poll_one(__ctx._M_lock); __ctx._Lock())
+    for (; _Do_poll_one(__ctx); __ctx._Lock())
       if (__n != (numeric_limits<size_t>::max)())
         ++__n;
     return __n;
@@ -187,14 +200,14 @@ public:
 
     _Context __ctx(this);
 
-    return _Do_poll_one(__ctx._M_lock);
+    return _Do_poll_one(__ctx);
   }
 
 private:
-  size_t _Do_run_one(unique_lock<mutex>& __lock)
+  size_t _Do_run_one(_Context& __ctx)
   {
     while (_M_queue._Empty() && !_M_stopped)
-      _M_condition.wait(__lock);
+      _M_condition.wait(__ctx._M_lock);
 
     if (_M_stopped)
       return 0;
@@ -205,21 +218,22 @@ private:
     if (!_M_one_thread && !_M_queue._Empty())
       _M_condition.notify_one();
 
-    __lock.unlock();
+    __ctx._M_lock.unlock();
+    __ctx._M_work_delta = -1;
 
     __op->_Complete();
     return 1;
   }
 
   template <class _Clock, class _Duration>
-  size_t _Do_run_one_until(unique_lock<mutex>& __lock,
+  size_t _Do_run_one_until(_Context& __ctx,
     const chrono::time_point<_Clock, _Duration>& __abs_time)
   {
     if (_Clock::now() >= __abs_time)
       return 0;
 
     while (_M_queue._Empty() && !_M_stopped)
-      if (_M_condition.wait_until(__lock, __abs_time) == cv_status::timeout)
+      if (_M_condition.wait_until(__ctx._M_lock, __abs_time) == cv_status::timeout)
         return 0;
 
     if (_M_stopped)
@@ -231,13 +245,14 @@ private:
     if (!_M_one_thread && !_M_queue._Empty())
       _M_condition.notify_one();
 
-    __lock.unlock();
+    __ctx._M_lock.unlock();
+    __ctx._M_work_delta = -1;
 
     __op->_Complete();
     return 1;
   }
 
-  size_t _Do_poll_one(unique_lock<mutex>& __lock)
+  size_t _Do_poll_one(_Context& __ctx)
   {
     if (_M_queue._Empty() || _M_stopped)
       return 0;
@@ -248,7 +263,8 @@ private:
     if (!_M_one_thread && !_M_queue._Empty())
       _M_condition.notify_one();
 
-    __lock.unlock();
+    __ctx._M_lock.unlock();
+    __ctx._M_work_delta = -1;
 
     __op->_Complete();
     return 1;
@@ -257,7 +273,7 @@ private:
   mutable mutex _M_mutex;
   condition_variable _M_condition;
   __op_queue<__operation> _M_queue;
-  atomic<size_t> _M_outstanding_work;
+  atomic<ptrdiff_t> _M_outstanding_work;
   bool _M_stopped;
   const bool _M_one_thread;
 };
@@ -270,30 +286,26 @@ public:
   __scheduler_op(const __scheduler_op&) = delete;
   __scheduler_op& operator=(const __scheduler_op&) = delete;
 
-  template <class _F> __scheduler_op(_F&& __f, __scheduler& __s)
-    : _M_func(forward<_F>(__f)), _M_owner(&__s)
+  template <class _F> __scheduler_op(_F&& __f)
+    : _M_func(forward<_F>(__f))
   {
-    _M_owner->_Work_started();
   }
 
   __scheduler_op(__scheduler_op&& __s)
-    : _M_func(std::move(__s._M_func)), _M_owner(__s._M_owner)
+    : _M_func(std::move(__s._M_func))
   {
-    __s._M_owner = 0;
   }
 
   ~__scheduler_op()
   {
-    if (_M_owner)
-      _M_owner->_Work_finished();
   }
 
   virtual void _Complete()
   {
     __small_block_recycler<>::_Unique_ptr<__scheduler_op> __op(this);
-    __scheduler_op __tmp(std::move(*this));
+    _Func __tmp(std::move(_M_func));
     __op.reset();
-    __tmp._M_func();
+    __tmp();
   }
 
   virtual void _Destroy()
@@ -303,27 +315,41 @@ public:
 
 private:
   _Func _M_func;
-  __scheduler* _M_owner;
 };
 
 template <class _F> void __scheduler::_Post(_F&& __f)
 {
   typedef typename decay<_F>::type _Func;
   __small_block_recycler<>::_Unique_ptr<__scheduler_op<_Func>> __op(
-    __small_block_recycler<>::_Create<__scheduler_op<_Func>>(forward<_F>(__f), *this));
+    __small_block_recycler<>::_Create<__scheduler_op<_Func>>(forward<_F>(__f)));
 
-  if (_Context* __ctx = _M_one_thread ? _Call_stack::_Contains(this) : nullptr)
+  _Context* __ctx = _Call_stack::_Contains(this);
+  if (__ctx == nullptr)
   {
+    ++_M_outstanding_work;
+  }
+  else if (_M_one_thread)
+  {
+    ++__ctx->_M_work_delta;
     __ctx->_M_private_queue._Push(__op.get());
+
+    __op.release();
+    return;
+  }
+  else if (__ctx->_M_work_delta < 0)
+  {
+    ++__ctx->_M_work_delta;
   }
   else
   {
-    lock_guard<mutex> lock(_M_mutex);
-
-    _M_queue._Push(__op.get());
-    if (_M_queue._Front() == __op.get())
-      _M_condition.notify_one();
+    ++_M_outstanding_work;
   }
+
+  lock_guard<mutex> lock(_M_mutex);
+
+  _M_queue._Push(__op.get());
+  if (_M_queue._Front() == __op.get())
+    _M_condition.notify_one();
 
   __op.release();
 }
