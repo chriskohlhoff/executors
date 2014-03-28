@@ -1,7 +1,7 @@
 //
 // yield
 // ~~~~~
-// Coroutines / resumable functions.
+// Stackful coroutines / resumable functions.
 //
 // Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //

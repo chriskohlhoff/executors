@@ -1,7 +1,7 @@
 //
 // yield_context.h
 // ~~~~~~~~~~~~~~~
-// Coroutine implementation.
+// Stackful coroutine implementation.
 //
 // Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
@@ -19,6 +19,7 @@
 #include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/function_traits.h>
 #include <experimental/bits/invoker.h>
+#include <experimental/bits/tuple_utils.h>
 
 #ifndef EXECUTORS_NO_BOOST
 # include <boost/coroutine/all.hpp>
@@ -333,21 +334,6 @@ struct handler_type<basic_yield_context<_Executor>, _R(_Args...)>
   typedef __yield_context_handler<_Executor, typename decay<_Args>::type...> type;
 };
 
-template <size_t... _I> struct _Index_sequence
-{
-  typedef _Index_sequence<_I..., sizeof...(_I)> _Next;
-};
-
-template <size_t _I> struct _Make_index_sequence
-{
-  typedef typename _Make_index_sequence<_I - 1>::_Type::_Next _Type;
-};
-
-template <> struct _Make_index_sequence<0>
-{
-  typedef _Index_sequence<> _Type;
-};
-
 template <class _Executor, class _Func, class... _Args>
 struct __yield_context_entry_point
 {
@@ -367,15 +353,9 @@ struct __yield_context_entry_point
     __ctx._M_callee = std::move(_M_callee);
     __ctx._M_caller = &__caller;
 
-    _Invoke_with_args(__ctx, typename _Make_index_sequence<sizeof...(_Args)>::_Type());
-  }
-
-  template <size_t... _I>
-  void _Invoke_with_args(const basic_yield_context<_Executor>& __ctx, _Index_sequence<_I...>)
-  {
     _Func __f(std::move(_M_func));
     tuple<_Args...> __args(std::move(_M_args));
-    __f(get<_I>(__args)..., __ctx);
+    _Tuple_invoke(__f, __args, const_cast<const basic_yield_context<_Executor>&>(__ctx));
   }
 };
 

@@ -1,4 +1,5 @@
 nobase_include_HEADERS = \
+	experimental/await \
 	experimental/channel \
 	experimental/executor \
 	experimental/future \
@@ -8,6 +9,7 @@ nobase_include_HEADERS = \
 	experimental/type_traits \
 	experimental/thread_pool \
 	experimental/yield \
+	experimental/bits/await_context.h \
 	experimental/bits/call_stack.h \
 	experimental/bits/channel.h \
 	experimental/bits/channel_void.h \
@@ -37,6 +39,7 @@ nobase_include_HEADERS = \
 	experimental/bits/timed_invoker.h \
 	experimental/bits/timer.h \
 	experimental/bits/timer_queue.h \
+	experimental/bits/tuple_utils.h \
 	experimental/bits/wait_op.h \
 	experimental/bits/yield_context.h
 
