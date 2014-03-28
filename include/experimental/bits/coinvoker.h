@@ -176,7 +176,7 @@ public:
     this->_Complete();
   }
 
-  auto _Get_executor() const
+  decltype(make_executor(declval<_Handler>())) _Get_executor() const
   {
     return make_executor(_M_handler->_M_handler);
   }
