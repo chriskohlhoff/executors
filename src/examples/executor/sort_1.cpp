@@ -7,7 +7,7 @@
 #include <random>
 #include <string>
 
-using std::experimental::codispatch;
+using std::experimental::copost;
 using std::experimental::use_future;
 using std::experimental::await_context;
 
