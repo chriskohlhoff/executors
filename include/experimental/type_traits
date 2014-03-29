@@ -135,11 +135,9 @@ struct async_completion
 // +--------------------------------------------------------------------------+
 // | Expression       Return type         Note                                |
 // +--------------------------------------------------------------------------+
-// | C::result_type                       The type of the function's result.  |
-// |                                      to be passed to the continuation.   |
-// |                                      Note: with resumable functions, the |
-// |                                      result_type may differ from the     |
-// |                                      return type of function.            |
+// | C::signature                         The required signature for a        |
+// |                                      function object that receives the   |
+// |                                      result of a function of type _Func. |
 // +--------------------------------------------------------------------------+
 // | C::chain(f, c)   Function object                                         |
 // |                  type meeting                                            |
@@ -153,7 +151,7 @@ struct async_completion
 template <class _Func, class = void>
 struct continuation_traits
 {
-  // Type:
+  // Type: void(R), where R is determined as follows:
   //
   // - if _Func and decay<_Func>::type are different types,
   //   continuation_traits<typename decay<_Func>::type>::type;
@@ -166,9 +164,9 @@ struct continuation_traits
   // - otherwise, the program is ill-formed.
   typedef typename conditional<
     is_same<_Func, typename decay<_Func>::type>::value,
-    __function_traits<_Func>,
+    __function_continuation_traits<_Func>,
     continuation_traits<typename decay<_Func>::type>
-  >::type::result_type result_type;
+  >::type::signature signature;
 
   // If _Func and decay<_Func>::type are different types, returns
   // continuation_traits<typename decay<_Func>::type>::chain(forward<_F>(__f),

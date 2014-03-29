@@ -141,6 +141,26 @@ struct __make_signature<_R, __signature_arg_pack<_Args...>>
 template <class _R, class... _Args>
 using __make_signature_t = typename __make_signature<_R, _Args...>::type;
 
+// __signature_cat: Combines multiple signatures into one.
+
+template <class... _Signatures>
+struct __signature_cat;
+
+template <class _R, class... _Args>
+struct __signature_cat<_R(_Args...)>
+  : __signature_base<_R(_Args...)> {};
+
+template <class _R1, class... _Args1, class _R2, class... _Args2>
+struct __signature_cat<_R1(_Args1...), _R2(_Args2...)>
+  : __signature_base<_R1(_Args1..., _Args2...)> {};
+
+template <class _R, class... _Args, class _Signature, class... _Signatures>
+struct __signature_cat<_R(_Args...), _Signature, _Signatures...>
+  : __signature_cat<typename __signature_cat<_R(_Args...), _Signature>::type, _Signatures...> {};
+
+template <class... _Signatures>
+using __signature_cat_t = typename __signature_cat<_Signatures...>::type;
+
 // __result: Gets the result type of a signature.
 
 template <class _Signature>
@@ -176,13 +196,12 @@ struct __last_argument<_R(_Args...)> : __last_argument_in_pack<_Args...> {};
 template <class _Signature>
 using __last_argument_t = typename __last_argument<_Signature>::type;
 
-// __function_traits: Helper template for determining signature and result.
+// __function_continuation_traits: Helper for determining the signature of a continuation.
 
 template <class _T>
-struct __function_traits
+struct __function_continuation_traits
 {
-  typedef __signature_t<_T> signature;
-  typedef __result_t<signature> result_type;
+  typedef __make_signature_t<void, __result_t<__signature_t<_T>>> signature;
 };
 
 // __chain: Chains a normal function to a continuation.

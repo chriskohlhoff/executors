@@ -511,7 +511,8 @@ struct continuation_traits<_Func,
   typename enable_if<__is_awaitable<typename decay<_Func>::type>::value>::type>
 {
   typedef typename decay<_Func>::type _DecayFunc;
-  typedef __result_t<__signature_t<_DecayFunc>> result_type;
+  typedef __result_t<__signature_t<_DecayFunc>> _Result;
+  typedef __make_signature_t<void, _Result> signature;
 
   template <class _F, class _Continuation>
   static auto chain(_F&& __f, _Continuation&& __c)

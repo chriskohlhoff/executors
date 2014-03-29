@@ -20,26 +20,22 @@ namespace experimental {
 template <class _Func1, class _Func2, class _CompletionToken>
 auto codispatch(_Func1&& __f1, _Func2&& __f2, _CompletionToken&& __token)
 {
-  typedef typename decay<_Func1>::type _DecayFunc1;
-  typedef __signature_t<_DecayFunc1> _Func1Signature;
-  typedef continuation_traits<_DecayFunc1> _Traits1;
-  typedef typename _Traits1::result_type _Result1;
+  typedef continuation_traits<_Func1> _Traits1;
+  typedef typename _Traits1::signature _Signature1;
 
-  typedef typename decay<_Func2>::type _DecayFunc2;
-  typedef __signature_t<_DecayFunc2> _Func2Signature;
-  typedef continuation_traits<_DecayFunc2> _Traits2;
-  typedef typename _Traits2::result_type _Result2;
+  typedef continuation_traits<_Func2> _Traits2;
+  typedef typename _Traits2::signature _Signature2;
 
-  typedef __make_signature_t<void, _Result1, _Result2> _HandlerSignature;
+  typedef __signature_cat_t<_Signature1, _Signature2> _HandlerSignature;
   typedef handler_type_t<_CompletionToken, _HandlerSignature> _Handler;
 
   async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
 
-  unique_ptr<__coinvoker_handler<_Result1, _Result2, _Handler>> __h(
-    new __coinvoker_handler<_Result1, _Result2, _Handler>(std::move(__completion.handler)));
+  unique_ptr<__coinvoker_handler<_Handler, _Signature1, _Signature2>> __h(
+    new __coinvoker_handler<_Handler, _Signature1, _Signature2>(std::move(__completion.handler)));
 
-  auto __i1(_Traits1::chain(forward<_Func1>(__f1), __coinvoker<1, _Result1, _Result2, _Handler>(__h.get())));
-  auto __i2(_Traits2::chain(forward<_Func2>(__f2), __coinvoker<2, _Result1, _Result2, _Handler>(__h.get())));
+  auto __i1(_Traits1::chain(forward<_Func1>(__f1), __coinvoker<0, _Handler, _Signature1, _Signature2>(__h.get())));
+  auto __i2(_Traits2::chain(forward<_Func2>(__f2), __coinvoker<1, _Handler, _Signature1, _Signature2>(__h.get())));
 
   __h->_Prime();
   __h.release();

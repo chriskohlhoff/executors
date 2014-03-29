@@ -38,8 +38,7 @@ auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
   _Func&& __f, _CompletionToken&& __token)
 {
   typedef continuation_traits<_Func> _Traits;
-  typedef typename _Traits::result_type _Result;
-  typedef __make_signature_t<void, _Result> _HandlerSignature;
+  typedef typename _Traits::signature _HandlerSignature;
   typedef handler_type_t<_CompletionToken, _HandlerSignature> _Handler;
 
   async_completion<_CompletionToken, _HandlerSignature> __completion(__token);

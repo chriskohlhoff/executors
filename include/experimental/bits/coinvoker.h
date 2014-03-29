@@ -17,14 +17,17 @@
 #include <memory>
 #include <type_traits>
 #include <experimental/bits/coinvoker.h>
+#include <experimental/bits/tuple_utils.h>
 
 namespace std {
 namespace experimental {
 
-template <class _Result>
+template <class _Signature>
 class __coinvoker_result
 {
 public:
+  typedef __args_tuple_t<_Signature> _Result;
+
   __coinvoker_result(const __coinvoker_result&) = delete;
   __coinvoker_result& operator=(const __coinvoker_result&) = delete;
 
@@ -42,10 +45,10 @@ public:
     }
   }
 
-  template <class _T> void _Set_value(_T&& __t)
+  template <class... _Args> void _Set_value(_Args&&... __args)
   {
     assert(!_M_has_value);
-    new (&_M_value) _Result(forward<_T>(__t));
+    new (&_M_value) _Result(forward<_Args>(__args)...);
     _M_has_value = true;
   }
 
@@ -60,19 +63,7 @@ private:
   bool _M_has_value;
 };
 
-template <>
-class __coinvoker_result<void>
-{
-public:
-  __coinvoker_result(const __coinvoker_result&) = delete;
-  __coinvoker_result& operator=(const __coinvoker_result&) = delete;
-  __coinvoker_result() {}
-  ~__coinvoker_result() {}
-  void _Set_value() {}
-  void _Get_value() {}
-};
-
-template <class _Result1, class _Result2, class _Handler>
+template <class _Handler, class... _Signatures>
 class __coinvoker_handler
 {
 public:
@@ -82,19 +73,14 @@ public:
   {
   }
 
-  template <class... _Args> void _Set_result(integral_constant<int, 1>, _Args&&... __args)
+  template <size_t _Index, class... _Args> void _Set_result(_Args&&... __args)
   {
-    _M_result1._Set_value(forward<_Args>(__args)...);
-  }
-
-  template <class... _Args> void _Set_result(integral_constant<int, 2>, _Args&&... __args)
-  {
-    _M_result2._Set_value(forward<_Args>(__args)...);
+    get<_Index>(_M_results)._Set_value(forward<_Args>(__args)...);
   }
 
   void _Prime()
   {
-    _M_pending = 2;
+    _M_pending = sizeof...(_Signatures);
   }
 
   void _Complete()
@@ -102,7 +88,7 @@ public:
     if (--_M_pending == 0)
     {
       unique_ptr<__coinvoker_handler> __p(this);
-      make_executor(_M_handler_work).dispatch(_Make_handler(_M_result1, _M_result2));
+      _Dispatch(typename _Make_index_sequence<sizeof...(_Signatures)>::_Type());
     }
   }
 
@@ -115,45 +101,27 @@ public:
 private:
   friend struct __coinvoker_handler_executor;
 
-  template <class _T, class _U>
-  auto _Make_handler(__coinvoker_result<_T>& __r1, __coinvoker_result<_U>& __r2)
+  template <size_t... _Index>
+  void _Dispatch(_Index_sequence<_Index...>)
   {
-    return __invoke_with_result_2<_T, _U, _Handler>{
-      __r1._Get_value(), __r2._Get_value(), std::move(_M_handler)};
+    make_executor(_M_handler_work).dispatch(_Make_tuple_invoker(
+      std::move(_M_handler), std::tuple_cat(get<_Index>(_M_results)._Get_value()...)));
   }
 
-  template <class _T>
-  auto _Make_handler(__coinvoker_result<_T>& __r1, __coinvoker_result<void>&)
-  {
-    return __invoke_with_result<_T, _Handler>{__r1._Get_value(), std::move(_M_handler)};
-  }
-
-  template <class _T>
-  auto _Make_handler(__coinvoker_result<void>&, __coinvoker_result<_T>& __r2)
-  {
-    return __invoke_with_result<_T, _Handler>{__r2._Get_value(), std::move(_M_handler)};
-  }
-
-  _Handler _Make_handler(__coinvoker_result<void>&, __coinvoker_result<void>&)
-  {
-    return std::move(_M_handler);
-  }
-
-  __coinvoker_result<_Result1> _M_result1;
-  __coinvoker_result<_Result2> _M_result2;
+  tuple<__coinvoker_result<_Signatures>...> _M_results;
   atomic<int> _M_pending;
   _Handler _M_handler;
   typename decltype(make_executor(declval<_Handler>()))::work _M_handler_work;
 };
 
-template <int _Tag, class _Result1, class _Result2, class _Handler>
+template <size_t _Index, class _Handler, class... _Signatures>
 class __coinvoker
 {
 public:
   __coinvoker(const __coinvoker&) = delete;
   __coinvoker& operator=(const __coinvoker&) = delete;
 
-  explicit __coinvoker(__coinvoker_handler<_Result1, _Result2, _Handler>* __h)
+  explicit __coinvoker(__coinvoker_handler<_Handler, _Signatures...>* __h)
     : _M_handler(__h)
   {
   }
@@ -172,7 +140,7 @@ public:
 
   template <class... _Args> void operator()(_Args&&... __args)
   {
-    _M_handler->_Set_result(integral_constant<int, _Tag>(), forward<_Args>(__args)...);
+    _M_handler->template _Set_result<_Index>(forward<_Args>(__args)...);
     this->_Complete();
   }
 
@@ -184,16 +152,16 @@ public:
 private:
   void _Complete()
   {
-    __coinvoker_handler<_Result1, _Result2, _Handler>* __h = _M_handler;
+    auto* __h = _M_handler;
     _M_handler = 0;
     __h->_Complete();
   }
 
-  __coinvoker_handler<_Result1, _Result2, _Handler>* _M_handler;
+  __coinvoker_handler<_Handler, _Signatures...>* _M_handler;
 };
 
-template <int _Tag, class _Result1, class _Result2, class _Handler>
-inline auto make_executor(const __coinvoker<_Tag, _Result1, _Result2, _Handler>& __i)
+template <size_t _Index, class _Handler, class... _Signatures>
+inline auto make_executor(const __coinvoker<_Index, _Handler, _Signatures...>& __i)
 {
   return __i._Get_executor();
 }
