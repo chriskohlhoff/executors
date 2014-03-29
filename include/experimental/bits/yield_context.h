@@ -77,65 +77,21 @@ struct __yield_context_callee
 template <class... _Values>
 struct __yield_context_result
 {
-  typedef tuple<_Values...> _Type;
-
   exception_ptr _M_exception;
-  _Type _M_value;
+  tuple<_Values...> _M_value;
   atomic_flag _M_ready = ATOMIC_FLAG_INIT;
 
   template <class... _Args>
-  void _Apply(_Args&&... __args)
+  void _Set_value(_Args&&... __args)
   {
     _M_value = std::make_tuple(forward<_Args>(__args)...);
   }
 
-  _Type _Get()
+  auto _Get()
   {
     if (_M_exception)
       rethrow_exception(_M_exception);
-    return std::move(_M_value);
-  }
-};
-
-template <class _Value>
-struct __yield_context_result<_Value>
-{
-  typedef _Value _Type;
-
-  exception_ptr _M_exception;
-  _Type _M_value;
-  atomic_flag _M_ready = ATOMIC_FLAG_INIT;
-
-  template <class _Arg>
-  void _Apply(_Arg&& __arg)
-  {
-    _M_value = forward<_Arg>(__arg);
-  }
-
-  _Type _Get()
-  {
-    if (_M_exception)
-      rethrow_exception(_M_exception);
-    return std::move(_M_value);
-  }
-};
-
-template <>
-struct __yield_context_result<>
-{
-  typedef void _Type;
-
-  exception_ptr _M_exception;
-  atomic_flag _M_ready = ATOMIC_FLAG_INIT;
-
-  void _Apply()
-  {
-  }
-
-  void _Get()
-  {
-    if (_M_exception)
-      rethrow_exception(_M_exception);
+    return _Tuple_get(std::move(_M_value));
   }
 };
 
@@ -152,7 +108,7 @@ struct __yield_context_handler
 
   template <class... _Args> void operator()(_Args&&... __args)
   {
-    _M_result->_Apply(forward<_Args>(__args)...);
+    _M_result->_Set_value(forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
     {
       typename __yield_context_callee::_Lock_guard __lock(*_M_callee);
@@ -183,7 +139,7 @@ struct __yield_context_handler<_Executor, error_code, _Values...>
       *_M_error_code = __e;
     else if (__e)
       _M_result->_M_exception = make_exception_ptr(system_error(__e));
-    _M_result->_Apply(forward<_Args>(__args)...);
+    _M_result->_Set_value(forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
     {
       typename __yield_context_callee::_Lock_guard __lock(*_M_callee);
@@ -212,7 +168,7 @@ struct __yield_context_handler<_Executor, exception_ptr, _Values...>
   template <class... _Args> void operator()(const exception_ptr& __e, _Args&&... __args)
   {
     _M_result->_M_exception = __e;
-    _M_result->_Apply(forward<_Args>(__args)...);
+    _M_result->_Set_value(forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
     {
       typename __yield_context_callee::_Lock_guard __lock(*_M_callee);
@@ -305,7 +261,7 @@ class async_result<__yield_context_handler<_Executor, _Values...>>
 public:
   typedef __yield_context_handler<_Executor, _Values...> _Handler;
   typedef typename _Handler::_Result _Result;
-  typedef typename _Result::_Type type;
+  typedef decltype(declval<_Result>()._Get()) type;
 
   async_result(_Handler& __h)
     : _M_caller(__h._M_caller)

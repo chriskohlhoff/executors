@@ -192,24 +192,12 @@ private:
 template <class... _Values>
 struct __await_context_result
 {
-  typedef tuple<_Values...> _Type;
+  typedef decltype(_Tuple_get(declval<tuple<_Values...>>())) _Type;
 
   template <class... _Args>
-  static void _Apply(void* __r, _Args&&... __args)
+  static void _Set_value(void* __r, _Args&&... __args)
   {
-    *static_cast<_Type*>(__r) = std::make_tuple(forward<_Args>(__args)...);
-  }
-};
-
-template <class _Value>
-struct __await_context_result<_Value>
-{
-  typedef _Value _Type;
-
-  template <class _Arg>
-  static void _Apply(void* __r, _Arg&& __arg)
-  {
-    *static_cast<_Type*>(__r) = forward<_Arg>(__arg);
+    *static_cast<_Type*>(__r) = _Tuple_get(std::make_tuple(forward<_Args>(__args)...));
   }
 };
 
@@ -218,7 +206,7 @@ struct __await_context_result<>
 {
   typedef void _Type;
 
-  static void _Apply(void*)
+  static void _Set_value(void*)
   {
   }
 };
@@ -235,7 +223,7 @@ struct __await_context_handler
 
   template <class... _Args> void operator()(_Args&&... __args)
   {
-    _Result::_Apply(_M_impl->_M_result_value, forward<_Args>(__args)...);
+    _Result::_Set_value(_M_impl->_M_result_value, forward<_Args>(__args)...);
     _M_impl->_Resume();
   }
 
@@ -259,7 +247,7 @@ struct __await_context_handler<_Executor, error_code, _Values...>
       *_M_impl->_M_result_ec = __e;
     else if (__e)
       _M_impl->_M_ex = make_exception_ptr(system_error(__e));
-    _Result::_Apply(_M_impl->_M_result_value, forward<_Args>(__args)...);
+    _Result::_Set_value(_M_impl->_M_result_value, forward<_Args>(__args)...);
     _M_impl->_Resume();
   }
 
@@ -281,7 +269,7 @@ struct __await_context_handler<_Executor, exception_ptr, _Values...>
   {
     if (__e)
       _M_impl->_M_ex = make_exception_ptr(__e);
-    _Result::_Apply(_M_impl->_M_result_value, forward<_Args>(__args)...);
+    _Result::_Set_value(_M_impl->_M_result_value, forward<_Args>(__args)...);
     _M_impl->_Resume();
   }
 

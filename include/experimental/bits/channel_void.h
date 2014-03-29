@@ -12,7 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_VOID_H
 #define EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_VOID_H
 
-#include <experimental/bits/invoker.h>
+#include <experimental/bits/tuple_utils.h>
 
 namespace std {
 namespace experimental {
@@ -40,7 +40,7 @@ public:
 
     typename decltype(make_executor(declval<_Handler>()))::work __work(std::move(_M_work));
     auto __executor(make_executor(__work));
-    __invoke_with_result<error_code, _Handler> __i{__ec, std::move(_M_handler)};
+    auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec));
     __op.reset();
     __executor.post(std::move(__i));
   }

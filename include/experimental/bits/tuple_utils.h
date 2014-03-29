@@ -121,6 +121,24 @@ struct __args_tuple<_R(_Args...)>
 template <class _Signature>
 using __args_tuple_t = typename __args_tuple<_Signature>::type;
 
+// _Tuple_get: Gets a return value out of a tuple.
+
+template <class... _Values>
+inline tuple<_Values...> _Tuple_get(tuple<_Values...>&& __t)
+{
+  return std::move(__t);
+}
+
+template <class _Value>
+inline _Value _Tuple_get(tuple<_Value>&& __t)
+{
+  return get<0>(std::move(__t));
+}
+
+inline void _Tuple_get(tuple<>&&)
+{
+}
+
 } // namespace experimental
 } // namespace std
 

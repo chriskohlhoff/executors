@@ -15,8 +15,8 @@
 #include <memory>
 #include <system_error>
 #include <experimental/executor>
-#include <experimental/bits/invoker.h>
 #include <experimental/bits/operation.h>
+#include <experimental/bits/tuple_utils.h>
 
 namespace std {
 namespace experimental {
@@ -44,7 +44,7 @@ public:
     __small_block_recycler<>::_Unique_ptr<__wait_op> __op(this);
     typename decltype(make_executor(declval<_Func>()))::work __work(std::move(_M_work));
     auto __executor(make_executor(__work));
-    __invoke_with_result<const error_code, _Func> __i{_M_ec, std::move(_M_func)};
+    auto __i(_Make_tuple_invoker(std::move(_M_func), _M_ec));
     __op.reset();
     __executor.post(std::move(__i));
   }

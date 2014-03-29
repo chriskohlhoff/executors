@@ -12,35 +12,10 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_INVOKER_H
 #define EXECUTORS_EXPERIMENTAL_BITS_INVOKER_H
 
+#include <experimental/bits/tuple_utils.h>
+
 namespace std {
 namespace experimental {
-
-struct __empty_function_void0 { void operator()() {} };
-
-template <class _Result, class _Handler>
-struct __invoke_with_result
-{
-  _Result _M_result;
-  _Handler _M_handler;
-
-  void operator()()
-  {
-    _M_handler(std::move(_M_result));
-  }
-};
-
-template <class _Result1, class _Result2, class _Handler>
-struct __invoke_with_result_2
-{
-  _Result1 _M_result1;
-  _Result2 _M_result2;
-  _Handler _M_handler;
-
-  void operator()()
-  {
-    _M_handler(std::move(_M_result1), std::move(_M_result2));
-  }
-};
 
 template <class _Handler>
 class __invoker
@@ -52,16 +27,10 @@ public:
   {
   }
 
-  void operator()()
-  {
-    make_executor(_M_handler_work).dispatch(std::move(_M_handler));
-  }
-
-  template <class _T> void operator()(_T&& __t)
+  template <class... _Args> void operator()(_Args&&... __args)
   {
     make_executor(_M_handler_work).dispatch(
-      __invoke_with_result<typename decay<_T>::type, _Handler>{
-        forward<_T>(__t), std::move(_M_handler)});
+      _Make_tuple_invoker(std::move(_M_handler), forward<_Args>(__args)...));
   }
 
 private:
