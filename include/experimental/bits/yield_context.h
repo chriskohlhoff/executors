@@ -87,7 +87,7 @@ struct __yield_context_result
     _M_value = std::make_tuple(forward<_Args>(__args)...);
   }
 
-  auto _Get()
+  decltype(_Tuple_get(declval<tuple<_Values...>>())) _Get()
   {
     if (_M_exception)
       rethrow_exception(_M_exception);
