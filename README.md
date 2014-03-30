@@ -177,7 +177,7 @@ Similarly, when using a callback, the function's result is passed as an argument
 Clearly, having a private thread for each `bank_account` is not going to scale well to thousands or millions of objects. We may instead want all bank accounts to share a thread pool. The `system_executor` object provides access to a system thread pool which we can use for this purpose:
 
     std::experimental::system_executor ex;
-    ex.post([]{ std::cout << "Hello, world!\n"; });
+    post(ex, []{ std::cout << "Hello, world!\n"; });
 
 However, the system thread pool uses an unspecified number of threads, and the posted function could run on any of them. The original reason for using the Active Object pattern was to limit the `bank_account` object's internal logic to run on a single thread. Fortunately, we can also limit concurrency by using the `strand<>` template.
 
