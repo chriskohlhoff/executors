@@ -12,47 +12,41 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_TIMED_INVOKER_H
 #define EXECUTORS_EXPERIMENTAL_BITS_TIMED_INVOKER_H
 
+#include <experimental/bits/invoker.h>
+
 namespace std {
 namespace experimental {
 
-template <class _Clock, class _Handler>
+template <class _Clock, class... _CompletionTokens>
 class __timed_invoker
 {
 public:
-  template <class _H>
-  __timed_invoker(execution_context& __context,
-      const typename _Clock::time_point& __abs_time, _H&& __h)
-    : _M_timer(new basic_timer<_Clock>(__context, __abs_time)),
-      _M_handler(forward<_H>(__h)),
-      _M_handler_work(make_executor(_M_handler).make_work())
+  __timed_invoker(typename remove_reference<_CompletionTokens>::type&... __tokens)
+    : _M_tail(__tokens...)
   {
   }
 
-  template <class _H>
-  __timed_invoker(execution_context& __context,
-      const typename _Clock::duration& __rel_time, _H&& __h)
-    : _M_timer(new basic_timer<_Clock>(__context, __rel_time)),
-      _M_handler(forward<_H>(__h)),
-      _M_handler_work(make_executor(_M_handler).make_work())
+  template <class _Executor, class _Time>
+  void _Start(_Executor& __e, const _Time& __t)
   {
-  }
-
-  template <class _Executor>
-  void _Start(_Executor& __e)
-  {
+    _M_timer.reset(new basic_timer<_Clock>(__e.context(), __t));
     basic_timer<_Clock>* __timer = _M_timer.get();
     __timer->wait(__e.wrap(std::move(*this)));
   }
 
   void operator()(const error_code&)
   {
-    _M_handler();
+    _M_tail();
+  }
+
+  __invoker_tail<void(), _CompletionTokens...>& _Get_tail()
+  {
+    return _M_tail;
   }
 
 private:
   unique_ptr<basic_timer<_Clock>> _M_timer;
-  _Handler _M_handler;
-  typename decltype(make_executor(declval<_Handler>()))::work _M_handler_work;
+  __invoker_tail<void(), _CompletionTokens...> _M_tail;
 };
 
 } // namespace experimental

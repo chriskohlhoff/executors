@@ -18,43 +18,37 @@
 namespace std {
 namespace experimental {
 
-template <class _Clock, class _Duration, class _CompletionToken>
-auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-  _CompletionToken&& __token)
+template <class _Clock, class _Duration, class... _CompletionTokens>
+typename __invoke_without_executor<_CompletionTokens...>::_Result
+  post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    _CompletionTokens&&... __tokens)
 {
-  typedef handler_type_t<_CompletionToken, void()> _Handler;
-  async_completion<_CompletionToken, void()> __completion(__token);
+  static_assert(sizeof...(_CompletionTokens) > 0,
+    "post_at() must be called with one or more completion tokens");
 
-  auto __completion_executor(make_executor(__completion.handler));
+  __timed_invoker<_Clock, _CompletionTokens...> __head(__tokens...);
+  async_result<__invoker_tail<void(), _CompletionTokens...>> __result(__head._Get_tail());
 
-  __timed_invoker<_Clock, _Handler>(__completion_executor.context(), __abs_time,
-    std::move(__completion.handler))._Start(__completion_executor);
+  auto __completion_executor(__head._Get_tail()._Make_executor());
+  __head._Start(__completion_executor, __abs_time);
 
-  return __completion.result.get();
+  return __result.get();
 }
 
-template <class _Clock, class _Duration, class _Func, class _CompletionToken>
-auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-  _Func&& __f, _CompletionToken&& __token)
+template <class _Clock, class _Duration, class _Executor, class... _CompletionTokens>
+typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
+  post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    _Executor&& __e, _CompletionTokens&&... __tokens)
 {
-  typedef continuation_traits<_Func> _Traits;
-  typedef typename _Traits::signature _HandlerSignature;
-  typedef handler_type_t<_CompletionToken, _HandlerSignature> _Handler;
+  static_assert(sizeof...(_CompletionTokens) > 0,
+    "post_at() must be called with one or more completion tokens");
 
-  async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
+  __timed_invoker<_Clock, _CompletionTokens...> __head(__tokens...);
+  async_result<__invoker_tail<void(), _CompletionTokens...>> __result(__head._Get_tail());
 
-  auto __executor(__make_invoker_executor(__f, __completion.handler));
-  (post_at)(__abs_time, __executor.wrap(_Traits::chain(forward<_Func>(__f),
-    __invoker<_Handler>(std::move(__completion.handler)))));
+  __head._Start(__e, __abs_time);
 
-  return __completion.result.get();
-}
-
-template <class _Clock, class _Duration, class _Executor, class _Func, class _CompletionToken>
-auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-  _Executor&& __e, _Func&& __f, _CompletionToken&& __token)
-{
-  return (post_at)(__abs_time, __e.wrap(forward<_Func>(__f)), forward<_CompletionToken>(__token));
+  return __result.get();
 }
 
 } // namespace experimental

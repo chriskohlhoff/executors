@@ -83,49 +83,41 @@ typedef basic_timer<chrono::system_clock> system_timer;
 typedef basic_timer<chrono::steady_clock> steady_timer;
 typedef basic_timer<chrono::high_resolution_clock> high_resolution_timer;
 
-template <class _Clock, class _Duration, class _CompletionToken>
-  auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-    _CompletionToken&& __token);
-template <class _Clock, class _Duration, class _Func, class _CompletionToken>
-  auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-    _Func&& __f, _CompletionToken&& __token);
-template <class _Clock, class _Duration, class _Executor,
-  class _Func, class _CompletionToken>
-    auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      _Executor&& __e, _Func&& __f, _CompletionToken&& __token);
+template <class _Clock, class _Duration, class... _CompletionTokens>
+  typename __invoke_without_executor<_CompletionTokens...>::_Result
+    post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+      _CompletionTokens&&... __tokens);
+template <class _Clock, class _Duration, class _Executor, class... _CompletionTokens>
+  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
+    post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+      _Executor&& __e, _CompletionTokens&&... __tokens);
 
-template <class _Clock, class _Duration, class _CompletionToken>
-  auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-    _CompletionToken&& __token);
-template <class _Clock, class _Duration, class _Func, class _CompletionToken>
-  auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-    _Func&& __f, _CompletionToken&& __token);
-template <class _Clock, class _Duration, class _Executor,
-  class _Func, class _CompletionToken>
-    auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      _Executor&& __e, _Func&& __f, _CompletionToken&& __token);
+template <class _Clock, class _Duration, class... _CompletionTokens>
+  typename __invoke_without_executor<_CompletionTokens...>::_Result
+    dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+      _CompletionTokens&&... __tokens);
+template <class _Clock, class _Duration, class _Executor, class... _CompletionTokens>
+  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
+    dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+      _Executor&& __e, _CompletionTokens&&... __tokens);
 
-template <class _Rep, class _Period, class _CompletionToken>
-  auto post_after(const chrono::duration<_Rep, _Period>& __rel_time,
-    _CompletionToken&& __token);
-template <class _Rep, class _Period, class _Func, class _CompletionToken>
-  auto post_after(const chrono::duration<_Rep, _Period>& __rel_time,
-    _Func&& __f, _CompletionToken&& __token);
-template <class _Rep, class _Period, class _Executor,
-  class _Func, class _CompletionToken>
-    auto post_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      _Executor&& __e, _Func&& __f, _CompletionToken&& __token);
+template <class _Rep, class _Period, class... _CompletionTokens>
+  typename __invoke_without_executor<_CompletionTokens...>::_Result
+    post_after(const chrono::duration<_Rep, _Period>& __rel_time,
+      _CompletionTokens&&... __token);
+template <class _Rep, class _Period, class _Executor, class... _CompletionTokens>
+  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
+    post_after(const chrono::duration<_Rep, _Period>& __rel_time,
+      _Executor&& __e, _CompletionTokens&&... __tokens);
 
-template <class _Rep, class _Period, class _CompletionToken>
-  auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
-    _CompletionToken&& __token);
-template <class _Rep, class _Period, class _Func, class _CompletionToken>
-  auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
-    _Func&& __f, _CompletionToken&& __token);
-template <class _Rep, class _Period, class _Executor,
-  class _Func, class _CompletionToken>
-    auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      _Executor&& __e, _Func&& __f, _CompletionToken&& __token);
+template <class _Rep, class _Period, class... _CompletionTokens>
+  typename __invoke_without_executor<_CompletionTokens...>::_Result
+    dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
+      _CompletionTokens&&... __token);
+template <class _Rep, class _Period, class _Executor, class... _CompletionTokens>
+  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
+    dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
+      _Executor&& __e, _CompletionTokens&&... __tokens);
 
 } // namespace experimental
 } // namespace std

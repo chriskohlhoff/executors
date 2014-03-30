@@ -188,12 +188,29 @@ private:
 };
 
 template <class _Signature, class... _CompletionTokens>
+inline typename __invoker_head<_Signature, _CompletionTokens...>::_Executor
+  make_executor(const __invoker_head<_Signature, _CompletionTokens...>& __i)
+{
+  return __i._Make_executor();
+}
+
+template <class _Signature, class... _CompletionTokens>
 class async_result<__invoker_head<_Signature, _CompletionTokens...>>
   : public async_result<typename __invoker_head<_Signature, _CompletionTokens...>::_Handler>
 {
 public:
   async_result(__invoker_head<_Signature, _CompletionTokens...>& __h)
     : async_result<typename __invoker_head<_Signature, _CompletionTokens...>::_Handler>(
+        __h._Get_handler()) {}
+};
+
+template <class _Signature, class... _CompletionTokens>
+class async_result<__invoker_tail<_Signature, _CompletionTokens...>>
+  : public async_result<typename __invoker_tail<_Signature, _CompletionTokens...>::_Handler>
+{
+public:
+  async_result(__invoker_tail<_Signature, _CompletionTokens...>& __h)
+    : async_result<typename __invoker_tail<_Signature, _CompletionTokens...>::_Handler>(
         __h._Get_handler()) {}
 };
 
