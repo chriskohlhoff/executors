@@ -77,6 +77,8 @@ private:
   thread_pool* _M_pool;
 };
 
+template <> struct is_executor<thread_pool::executor> : true_type {};
+
 class thread_pool::executor::work
 {
 public:

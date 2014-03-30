@@ -344,6 +344,9 @@ struct __await_context_executor
   }
 };
 
+template <class _Executor>
+struct is_executor<__await_context_executor<_Executor>> : true_type {};
+
 template <class _Executor, class... _Values>
 inline auto make_executor(const __await_context_handler<_Executor, _Values...>& __h)
 {

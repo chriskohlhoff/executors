@@ -16,7 +16,7 @@ public:
 
   void deposit(int amount)
   {
-    ex_.dispatch([=]
+    dispatch(ex_, [=]
       {
         balance_ += amount;
       });
@@ -24,7 +24,7 @@ public:
 
   void withdraw(int amount)
   {
-    ex_.dispatch([=]
+    dispatch(ex_, [=]
       {
         if (balance_ >= amount)
           balance_ -= amount;
@@ -33,7 +33,7 @@ public:
 
   void print()
   {
-    ex_.dispatch([=]
+    dispatch(ex_, [=]
       {
         std::cout << "Account " << id_ << " balance is " << balance_ << "\n";
       });

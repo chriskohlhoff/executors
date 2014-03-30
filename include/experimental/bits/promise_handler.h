@@ -187,6 +187,9 @@ struct __promise_executor
 };
 
 template <class... _Values>
+struct is_executor<__promise_executor<_Values...>> : true_type {};
+
+template <class... _Values>
 inline auto make_executor(const __promise_handler<_Values...>& __h)
 {
   return __promise_executor<_Values...>{__h._M_promise};

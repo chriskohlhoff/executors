@@ -71,7 +71,7 @@ As a simple example, let us consider how to implement the Active Object design p
     public:
       void deposit(int amount)
       {
-        ex_.post([=]
+        post(ex_, [=]
           {
             balance_ += amount;
           });
@@ -79,7 +79,7 @@ As a simple example, let us consider how to implement the Active Object design p
 
       void withdraw(int amount)
       {
-        ex_.post([=]
+        post(ex_, [=]
           {
             if (balance_ >= amount)
               balance_ -= amount;
@@ -99,7 +99,7 @@ Therefore, to inject function objects into thread pool, we must create an execut
 
 To add the function to the queue, we then use a post operation:
 
-    ex_.post([=]
+    post(ex_, [=]
       {
         if (balance_ >= amount)
           balance_ -= amount;
@@ -107,7 +107,7 @@ To add the function to the queue, we then use a post operation:
 
 ### Waiting for function completion
 
-When implementing the Active Object pattern, we will normally want to wait for the operation to complete. To do this we can reimplement our `bank_account` member functions using the free function `post()`. This function allows us to pass a **completion token**. A completion token specifies how we want to be notified when the function finishes. For example:
+When implementing the Active Object pattern, we will normally want to wait for the operation to complete. To do this we can reimplement our `bank_account` member functions to pass an additional **completion token** to the free function `post()`. A completion token specifies how we want to be notified when the function finishes. For example:
 
     void withdraw(int amount)
     {

@@ -29,6 +29,9 @@ template <class> class __executor_impl;
 class __work_impl_base;
 template <class> class __work_impl;
 
+template <class...> struct __invoke_without_executor;
+template <class, class...> struct __invoke_with_executor;
+
 // Execution context.
 
 class execution_context
@@ -93,6 +96,14 @@ template <class _Service> _Service& use_service(execution_context& __c);
 template <class _Service, class... _Args> _Service&
   make_service(execution_context& __c, _Args&&... __args);
 template <class _Service> bool has_service(execution_context& __c) noexcept;
+
+// The is_executor trait detects whether _T meets the Executor type
+// requirements. Meets the UnaryTypeTrait requirements. The implementation
+// shall provide a definition that is derived from false_type. A program may
+// specialize this template to derive from true_type for a user-defined type _T
+// the meets the Executor requirements.
+
+template <class _T> struct is_executor : false_type {};
 
 // The executor_arg_t struct is an empty structure type used as a unique type
 // to disambiguate constructor and function overloading. Specifically, some
@@ -186,6 +197,8 @@ public:
   execution_context& context();
 };
 
+template <> struct is_executor<system_executor> : true_type {};
+
 // Obtain associated executor.
 
 template <class _T> system_executor make_executor(const _T&,
@@ -251,6 +264,8 @@ private:
   __executor_impl_base* _M_impl;
 };
 
+template <> struct is_executor<executor> : true_type {};
+
 executor make_executor(const executor& __e);
 executor make_executor(executor&& __e);
 
@@ -305,19 +320,21 @@ bool operator!=(nullptr_t, const executor::work& __w) noexcept;
 
 // Schedule a function to run later.
 
-template <class _CompletionToken> auto post(_CompletionToken&& __token);
-template <class _Func, class _CompletionToken>
-  auto post(_Func&& __f, _CompletionToken&& __token);
-template <class _Executor, class _Func, class _CompletionToken>
-  auto post(_Executor&& __e, _Func&& __f, _CompletionToken&& __token);
+template <class... _CompletionTokens>
+  typename __invoke_without_executor<_CompletionTokens...>::_Result
+    post(_CompletionTokens&&... __tokens);
+template <class _Executor, class... _CompletionTokens>
+  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
+    post(_Executor&& __e, _CompletionTokens&&... __tokens);
 
 // Schedule a function to run now if possible, later otherwise.
 
-template <class _CompletionToken> auto dispatch(_CompletionToken&& __token);
-template <class _Func, class _CompletionToken>
-  auto dispatch(_Func&& __f, _CompletionToken&& __token);
-template <class _Executor, class _Func, class _CompletionToken>
-  auto dispatch(_Executor&& __e, _Func&& __f, _CompletionToken&& __token);
+template <class... _CompletionTokens>
+  typename __invoke_without_executor<_CompletionTokens...>::_Result
+    dispatch(_CompletionTokens&&... __tokens);
+template <class _Executor, class... _CompletionTokens>
+  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
+    dispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
 
 // Schedule two functions to run concurrently later.
 

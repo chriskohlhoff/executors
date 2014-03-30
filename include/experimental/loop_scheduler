@@ -85,6 +85,8 @@ private:
   loop_scheduler* _M_scheduler;
 };
 
+template <> struct is_executor<loop_scheduler::executor> : true_type {};
+
 class loop_scheduler::executor::work
 {
 public:

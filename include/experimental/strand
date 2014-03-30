@@ -59,6 +59,8 @@ private:
   shared_ptr<__strand_impl> _M_impl;
 };
 
+template <class _Executor> struct is_executor<strand<_Executor>> : true_type {};
+
 template <class _Executor>
 class strand<_Executor>::work
 {

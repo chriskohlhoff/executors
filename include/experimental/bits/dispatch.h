@@ -17,37 +17,35 @@
 namespace std {
 namespace experimental {
 
-template <class _CompletionToken>
-auto dispatch(_CompletionToken&& __token)
+template <class... _CompletionTokens>
+typename __invoke_without_executor<_CompletionTokens...>::_Result
+  dispatch(_CompletionTokens&&... __tokens)
 {
-  async_completion<_CompletionToken, void()> __completion(__token);
+  static_assert(sizeof...(_CompletionTokens) > 0,
+    "dispatch() must be called with one or more completion tokens");
 
-  auto __completion_executor(make_executor(__completion.handler));
-  __completion_executor.dispatch(std::move(__completion.handler));
+  __invoker_head<void(), _CompletionTokens...> __head(__tokens...);
+  async_result<__invoker_head<void(), _CompletionTokens...>> __result(__head);
 
-  return __completion.result.get();
+  auto __completion_executor(__head._Make_executor());
+  __completion_executor.dispatch(std::move(__head));
+
+  return __result.get();
 }
 
-template <class _Func, class _CompletionToken>
-auto dispatch(_Func&& __f, _CompletionToken&& __token)
+template <class _Executor, class... _CompletionTokens>
+typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
+  dispatch(_Executor&& __e, _CompletionTokens&&... __tokens)
 {
-  typedef continuation_traits<_Func> _Traits;
-  typedef typename _Traits::signature _HandlerSignature;
-  typedef handler_type_t<_CompletionToken, _HandlerSignature> _Handler;
+  static_assert(sizeof...(_CompletionTokens) > 0,
+    "dispatch() must be called with one or more completion tokens");
 
-  async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
+  __invoker_head<void(), _CompletionTokens...> __head(__tokens...);
+  async_result<__invoker_head<void(), _CompletionTokens...>> __result(__head);
 
-  auto __executor(__make_invoker_executor(__f, __completion.handler));
-  (dispatch)(__executor.wrap(_Traits::chain(forward<_Func>(__f),
-    __invoker<_Handler>(std::move(__completion.handler)))));
+  __e.dispatch(std::move(__head));
 
-  return __completion.result.get();
-}
-
-template <class _Executor, class _Func, class _CompletionToken>
-auto dispatch(_Executor&& __e, _Func&& __f, _CompletionToken&& __token)
-{
-  return (dispatch)(__e.wrap(forward<_Func>(__f)), forward<_CompletionToken>(__token));
+  return __result.get();
 }
 
 } // namespace experimental

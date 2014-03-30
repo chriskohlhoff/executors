@@ -249,6 +249,9 @@ struct __yield_context_executor
   }
 };
 
+template <class _Executor>
+struct is_executor<__yield_context_executor<_Executor>> : true_type {};
+
 template <class _Executor, class... _Values>
 inline auto make_executor(const __yield_context_handler<_Executor, _Values...>& __h)
 {
