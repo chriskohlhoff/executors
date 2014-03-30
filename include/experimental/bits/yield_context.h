@@ -293,10 +293,11 @@ struct handler_type<basic_yield_context<_Executor>, _R(_Args...)>
   typedef __yield_context_handler<_Executor, typename decay<_Args>::type...> type;
 };
 
-template <class _Executor, class _Func, class... _Args>
+template <class _Executor, class _Func, class _Continuation, class... _Args>
 struct __yield_context_entry_point
 {
   _Func _M_func;
+  _Continuation _M_continuation;
   tuple<_Args...> _M_args;
   typename _Executor::work _M_work;
   weak_ptr<__yield_context_callee> _M_callee;
@@ -312,16 +313,38 @@ struct __yield_context_entry_point
     __ctx._M_callee = std::move(_M_callee);
     __ctx._M_caller = &__caller;
 
+    typedef decltype(_Tuple_invoke(_M_func, _M_args, __ctx)) _Result;
+    this->_Invoke(is_same<_Result, void>(), __ctx);
+  }
+
+  void _Invoke(true_type, const basic_yield_context<_Executor>& __ctx)
+  {
     _Func __f(std::move(_M_func));
+    _Continuation __c(std::move(_M_continuation));
     tuple<_Args...> __args(std::move(_M_args));
-    _Tuple_invoke(__f, __args, const_cast<const basic_yield_context<_Executor>&>(__ctx));
+    _Tuple_invoke(__f, __args, __ctx);
+    __c();
+  }
+
+  void _Invoke(false_type, const basic_yield_context<_Executor>& __ctx)
+  {
+    _Func __f(std::move(_M_func));
+    _Continuation __c(std::move(_M_continuation));
+    tuple<_Args...> __args(std::move(_M_args));
+    __c(_Tuple_invoke(__f, __args, __ctx));
   }
 };
 
-template <class _Executor, class _Func>
+struct __yield_null_continuation
+{
+  template <class... _T> void operator()(_T&&...) {}
+};
+
+template <class _Executor, class _Func, class _Continuation = __yield_null_continuation>
 struct __yield_context_launcher
 {
   _Func _M_func;
+  _Continuation _M_continuation;
   typename  _Executor::work _M_work;
 
   template <class _F> __yield_context_launcher(_F&& __f)
@@ -335,12 +358,19 @@ struct __yield_context_launcher
   {
   }
 
+  template <class _F, class _C> __yield_context_launcher(
+    true_type, const typename _Executor::work& __w, _F&& __f, _C&& __c)
+      : _M_func(forward<_F>(__f)), _M_continuation(forward<_C>(__c)), _M_work(__w)
+  {
+  }
+
   template <class... _Args> void operator()(_Args&&... __args)
   {
     auto __callee = make_shared<__yield_context_callee>();
 
-    __yield_context_entry_point<_Executor, _Func, typename decay<_Args>::type...>
-      __ep{std::move(_M_func), std::tie(forward<_Args>(__args)...), std::move(_M_work), __callee};
+    __yield_context_entry_point<_Executor, _Func, _Continuation, typename decay<_Args>::type...>
+      __ep{std::move(_M_func), std::move(_M_continuation),
+        std::tie(forward<_Args>(__args)...), std::move(_M_work), __callee};
 
     __callee->_M_coro = boost::coroutines::push_coroutine<void>(std::move(__ep));
 
@@ -370,6 +400,22 @@ struct handler_type<_Func, _R(_Args...),
   typedef __last_argument_t<__signature_t<_DecayFunc>> _YieldContext;
   typedef decltype(make_executor(declval<_YieldContext>())) _Executor;
   typedef __yield_context_launcher<_Executor, _DecayFunc> type;
+};
+
+template <class _Executor, class _Func>
+struct continuation_traits<__yield_context_launcher<_Executor, _Func>>
+{
+  typedef typename decay<_Func>::type _DecayFunc;
+  typedef __result_t<__signature_t<_DecayFunc>> _Result;
+  typedef __make_signature_t<void, _Result> signature;
+
+  template <class _F, class _Continuation>
+  static auto chain(_F&& __f, _Continuation&& __c)
+  {
+    return __yield_context_launcher<_Executor, _Func,
+      typename decay<_Continuation>::type>(true_type(), std::move(__f._M_work),
+        std::move(__f._M_func), forward<_Continuation>(__c));
+  }
 };
 
 } // namespace experimental

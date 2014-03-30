@@ -165,27 +165,44 @@ private:
   void* _M_result_value = nullptr;
 };
 
-template <class _Executor, class _Func, class... _Args>
+template <class _Executor, class _Func, class _Continuation, class... _Args>
 class __await_context_impl
   : public __await_context_impl_base,
-    public enable_shared_from_this<__await_context_impl<_Executor, _Func, _Args...>>
+    public enable_shared_from_this<__await_context_impl<_Executor, _Func, _Continuation, _Args...>>
 {
 public:
-  template <class _F, class... _A>
-  __await_context_impl(const typename _Executor::work& __w, _F&& __f, _A&&... __args)
-    : _M_work(__w), _M_function(forward<_F>(__f)), _M_args(forward<_A>(__args)...)
+  template <class _F, class _C, class... _A>
+  __await_context_impl(const typename _Executor::work& __w, _F&& __f, _C&& __c, _A&&... __args)
+    : _M_work(__w), _M_function(forward<_F>(__f)),
+      _M_continuation(forward<_C>(__c)), _M_args(forward<_A>(__args)...)
   {
   }
 
   virtual void _Resume()
   {
     const basic_await_context<_Executor> __ctx(_M_work, this->shared_from_this());
-    _Tuple_invoke(_M_function, _M_args, __ctx);
+    typedef decltype(_Tuple_invoke(_M_function, _M_args, __ctx)) _Result;
+    this->_Invoke(is_same<_Result, void>(), __ctx);
   }
 
 private:
+  void _Invoke(true_type, const basic_await_context<_Executor>& __ctx)
+  {
+    _Tuple_invoke(_M_function, _M_args, __ctx);
+    if (_Get_coroutine(__ctx)._Is_complete())
+      _M_continuation();
+  }
+
+  void _Invoke(false_type, const basic_await_context<_Executor>& __ctx)
+  {
+    auto __r = _Tuple_invoke(_M_function, _M_args, __ctx);
+    if (_Get_coroutine(__ctx)._Is_complete())
+      _M_continuation(std::move(__r));
+  }
+
   typename _Executor::work _M_work;
   _Func _M_function;
+  _Continuation _M_continuation;
   tuple<_Args...> _M_args;
 };
 
@@ -380,11 +397,17 @@ struct handler_type<basic_await_context<_Executor>, _R(_Args...)>
   typedef __await_context_handler<_Executor, typename decay<_Args>::type...> type;
 };
 
-template <class _Executor, class _Func>
+struct __await_null_continuation
+{
+  template <class... _T> void operator()(_T&&...) {}
+};
+
+template <class _Executor, class _Func, class _Continuation = __await_null_continuation>
 struct __await_context_launcher
 {
   typename _Executor::work _M_work;
   _Func _M_func;
+  _Continuation _M_continuation;
 
   template <class _F> __await_context_launcher(_F&& __f)
     : _M_work(make_executor(__f).make_work()), _M_func(forward<_F>(__f))
@@ -397,11 +420,17 @@ struct __await_context_launcher
   {
   }
 
+  template <class _F, class _C> __await_context_launcher(
+    true_type, const typename _Executor::work& __w, _F&& __f, _C&& __c)
+      : _M_work(__w), _M_func(forward<_F>(__f)), _M_continuation(forward<_C>(__c))
+  {
+  }
+
   template <class... _Args> void operator()(_Args&&... __args)
   {
     auto __impl = make_shared<__await_context_impl<
-      _Executor, _Func, typename decay<_Args>::type...>>(
-        _M_work, std::move(_M_func), forward<_Args>(__args)...);
+      _Executor, _Func, _Continuation, typename decay<_Args>::type...>>(_M_work,
+        std::move(_M_func), std::move(_M_continuation), forward<_Args>(__args)...);
     __impl->_Resume();
   }
 };
@@ -429,77 +458,8 @@ struct handler_type<_Func, _R(_Args...),
   typedef __await_context_launcher<_Executor, _DecayFunc> type;
 };
 
-template <class _Func, class _FuncSignature, class _Continuation>
-class __awaitable_chain;
-
-template <class _Func, class _FuncResult, class... _FuncArgs, class _Continuation>
-class __awaitable_chain<_Func, _FuncResult(_FuncArgs...), _Continuation>
-{
-public:
-  template <class _F, class _C> __awaitable_chain(_F&& __f, _C&& __c)
-    : _M_func(forward<_F>(__f)), _M_continuation(forward<_C>(__c))
-  {
-  }
-
-  void operator()(_FuncArgs... __args)
-  {
-    this->_Invoke(is_same<void, _FuncResult>(), forward<_FuncArgs>(__args)...);
-  }
-
-  friend auto make_executor(const __awaitable_chain& __c)
-    -> decltype(make_executor(declval<_Func>()))
-  {
-    return make_executor(__c._M_func);
-  }
-
-private:
-  void _Invoke(true_type, _FuncArgs... __args)
-  {
-    auto __ctx(this->_Get_context(forward<_FuncArgs>(__args)...));
-    _M_func(forward<_FuncArgs>(__args)...);
-    if (_Get_coroutine(__ctx)._Is_complete())
-      _M_continuation();
-  }
-
-  void _Invoke(false_type, _FuncArgs... __args)
-  {
-    auto __ctx(this->_Get_context(forward<_FuncArgs>(__args)...));
-    auto __r = _M_func(forward<_FuncArgs>(__args)...);
-    if (_Get_coroutine(__ctx)._Is_complete())
-      _M_continuation(std::move(__r));
-  }
-
-  template <class _Arg, class... _Args>
-  auto _Get_context(_Arg&&, _Args&& ...__args)
-  {
-    return this->_Get_impl(forward<_Args>(__args)...);
-  }
-
-  template <class _Executor>
-  auto _Get_context(const basic_await_context<_Executor>& __ctx)
-  {
-    return __ctx;
-  }
-
-  template <class _Executor>
-  auto _Get_context(basic_await_context<_Executor>& __ctx)
-  {
-    return __ctx;
-  }
-
-  template <class _Executor>
-  auto _Get_context(basic_await_context<_Executor>&& __ctx)
-  {
-    return __ctx;
-  }
-
-  _Func _M_func;
-  _Continuation _M_continuation;
-};
-
-template <class _Func>
-struct continuation_traits<_Func,
-  typename enable_if<__is_awaitable<typename decay<_Func>::type>::value>::type>
+template <class _Executor, class _Func>
+struct continuation_traits<__await_context_launcher<_Executor, _Func>>
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef __result_t<__signature_t<_DecayFunc>> _Result;
@@ -508,9 +468,9 @@ struct continuation_traits<_Func,
   template <class _F, class _Continuation>
   static auto chain(_F&& __f, _Continuation&& __c)
   {
-    return __awaitable_chain<_DecayFunc, __signature_t<_DecayFunc>,
-      typename decay<_Continuation>::type>(
-        forward<_F>(__f), forward<_Continuation>(__c));
+    return __await_context_launcher<_Executor, _Func,
+      typename decay<_Continuation>::type>(true_type(), std::move(__f._M_work),
+        std::move(__f._M_func), forward<_Continuation>(__c));
   }
 };
 

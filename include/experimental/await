@@ -40,7 +40,7 @@ public:
 
 private:
   template <class> friend class basic_await_context;
-  template <class, class, class...> friend class __await_context_impl;
+  template <class, class, class, class...> friend class __await_context_impl;
   template <class, class...> friend struct __await_context_handler;
 
   basic_await_context(const typename _Executor::work& __w,

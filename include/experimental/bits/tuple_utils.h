@@ -69,13 +69,13 @@ inline auto _Tuple_invoke(_Func&& __f, tuple<_Values...>&& __values, _Args&&... 
 template <class _Func, class... _Args>
 inline auto _Tuple_invoke(_Func&& __f, tuple<>&, _Args&&... __args)
 {
-  __f(forward<_Args>(__args)...);
+  return __f(forward<_Args>(__args)...);
 }
 
 template <class _Func, class... _Args>
 inline auto _Tuple_invoke(_Func&& __f, tuple<>&&, _Args&&... __args)
 {
-  __f(forward<_Args>(__args)...);
+  return __f(forward<_Args>(__args)...);
 }
 
 // _Make_tuple_invoker: Creates a function object to call a function using
