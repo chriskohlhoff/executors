@@ -173,7 +173,7 @@ class __await_context_impl
 public:
   template <class _F, class _C, class... _A>
   __await_context_impl(const typename _Executor::work& __w, _F&& __f, _C&& __c, _A&&... __args)
-    : _M_work(__w), _M_function(forward<_F>(__f)),
+    : _M_work(__w), _M_function(forward<_F>(__f)), _M_invocations(0),
       _M_continuation(forward<_C>(__c)), _M_args(forward<_A>(__args)...)
   {
   }
@@ -188,20 +188,23 @@ public:
 private:
   void _Invoke(true_type, const basic_await_context<_Executor>& __ctx)
   {
+    ++_M_invocations;
     _Tuple_invoke(_M_function, _M_args, __ctx);
-    if (_Get_coroutine(__ctx)._Is_complete())
+    if (--_M_invocations == 0 && _Get_coroutine(__ctx)._Is_complete())
       _M_continuation();
   }
 
   void _Invoke(false_type, const basic_await_context<_Executor>& __ctx)
   {
+    ++_M_invocations;
     auto __r = _Tuple_invoke(_M_function, _M_args, __ctx);
-    if (_Get_coroutine(__ctx)._Is_complete())
+    if (--_M_invocations == 0 && _Get_coroutine(__ctx)._Is_complete())
       _M_continuation(std::move(__r));
   }
 
   typename _Executor::work _M_work;
   _Func _M_function;
+  atomic<size_t> _M_invocations;
   _Continuation _M_continuation;
   tuple<_Args...> _M_args;
 };
