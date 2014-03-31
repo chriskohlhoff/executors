@@ -188,18 +188,34 @@ public:
 private:
   void _Invoke(true_type, const basic_await_context<_Executor>& __ctx)
   {
-    ++_M_invocations;
-    _Tuple_invoke(_M_function, _M_args, __ctx);
-    if (--_M_invocations == 0 && _Get_coroutine(__ctx)._Is_complete())
-      _M_continuation();
+    if (++_M_invocations == 1)
+    {
+      for (;;)
+      {
+        _Tuple_invoke(_M_function, _M_args, __ctx);
+        if (_Get_coroutine(__ctx)._Is_complete())
+          _M_continuation();
+        else if (--_M_invocations != 0)
+          continue;
+        return;
+      }
+    }
   }
 
   void _Invoke(false_type, const basic_await_context<_Executor>& __ctx)
   {
-    ++_M_invocations;
-    auto __r = _Tuple_invoke(_M_function, _M_args, __ctx);
-    if (--_M_invocations == 0 && _Get_coroutine(__ctx)._Is_complete())
-      _M_continuation(std::move(__r));
+    if (++_M_invocations == 1)
+    {
+      for (;;)
+      {
+        auto __r = _Tuple_invoke(_M_function, _M_args, __ctx);
+        if (_Get_coroutine(__ctx)._Is_complete())
+          _M_continuation(std::move(__r));
+        else if (--_M_invocations != 0)
+          continue;
+        return;
+      }
+    }
   }
 
   typename _Executor::work _M_work;
