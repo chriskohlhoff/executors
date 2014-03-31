@@ -139,6 +139,31 @@ inline void _Tuple_get(tuple<>&&)
 {
 }
 
+// __tuple_split: Splits a tuple into two types based on an index.
+
+template <class _Tuple1, class _Tuple2, size_t _M, size_t _N, class = void>
+struct __tuple_split_base;
+
+template <class... _T, class _Head, class... _Tail, size_t _M, size_t _N>
+struct __tuple_split_base<tuple<_T...>, tuple<_Head, _Tail...>, _M, _N, typename enable_if<(_M < _N)>::type>
+  : __tuple_split_base<tuple<_T..., _Head>, tuple<_Tail...>, _M + 1, _N> {};
+
+template <class... _T, class... _U, size_t _N>
+struct __tuple_split_base<tuple<_T...>, tuple<_U...>, _N, _N>
+{
+  typedef tuple<_T...> first;
+  typedef tuple<_U...> second;
+};
+
+template <class _Tuple, size_t _N>
+struct __tuple_split : __tuple_split_base<tuple<>, _Tuple, 0, _N> {};
+
+template <class _Tuple, size_t _N>
+using __tuple_split_first = typename __tuple_split<_Tuple, _N>::first;
+
+template <class _Tuple, size_t _N>
+using __tuple_split_second = typename __tuple_split<_Tuple, _N>::second;
+
 } // namespace experimental
 } // namespace std
 

@@ -17,44 +17,43 @@
 namespace std {
 namespace experimental {
 
-template <class _Func1, class _Func2, class _CompletionToken>
-auto copost(_Func1&& __f1, _Func2&& __f2, _CompletionToken&& __token)
+struct __coinvoke_post
 {
-  typedef handler_type_t<_Func1, void()> _Handler1;
-  typedef continuation_traits<_Handler1> _Traits1;
-  typedef typename _Traits1::signature _Signature1;
-  _Handler1 __h1(forward<_Func1>(__f1));
+  template <class _F> void operator()(_F&& __f)
+  {
+    (post)(forward<_F>(__f));
+  }
+};
 
-  typedef handler_type_t<_Func2, void()> _Handler2;
-  typedef continuation_traits<_Handler2> _Traits2;
-  typedef typename _Traits2::signature _Signature2;
-  _Handler2 __h2(forward<_Func2>(__f2));
-
-  typedef __signature_cat_t<_Signature1, _Signature2> _HandlerSignature;
-  typedef handler_type_t<_CompletionToken, _HandlerSignature> _Handler;
-
-  async_completion<_CompletionToken, _HandlerSignature> __completion(__token);
-
-  unique_ptr<__coinvoker_handler<_Handler, _Signature1, _Signature2>> __h(
-    new __coinvoker_handler<_Handler, _Signature1, _Signature2>(std::move(__completion.handler)));
-
-  auto __i1(_Traits1::chain(forward<_Handler1>(__h1), __coinvoker<0, _Handler, _Signature1, _Signature2>(__h.get())));
-  auto __i2(_Traits2::chain(forward<_Handler2>(__h2), __coinvoker<1, _Handler, _Signature1, _Signature2>(__h.get())));
-
-  __h->_Prime();
-  __h.release();
-
-  (post)(std::move(__i1));
-  (post)(std::move(__i2));
-
-  return __completion.result.get();
+template <class... _CompletionTokens>
+typename __coinvoke_without_executor<_CompletionTokens...>::_Result
+  copost(_CompletionTokens&&... __tokens)
+{
+  constexpr size_t _HeadSize = sizeof...(_CompletionTokens) - 1;
+  typedef __tuple_split_first<tuple<_CompletionTokens...>, _HeadSize> _Head;
+  typedef __tuple_split_second<tuple<_CompletionTokens...>, _HeadSize> _Tail;
+  return __coinvoker_launcher<_Head, _Tail>(__tokens...)._Go(__coinvoke_post(), __tokens...);
 }
 
-template <class _Executor, class _Func1, class _Func2, class _CompletionToken>
-auto copost(_Executor&& __e, _Func1&& __f1, _Func2&& __f2, _CompletionToken&& __token)
+template <class _Executor>
+struct __coinvoke_post_ex
 {
-  return (copost)(__e.wrap(forward<_Func1>(__f1)),
-    __e.wrap(forward<_Func2>(__f2)), forward<_CompletionToken>(__token));
+  typename remove_reference<_Executor>::type& __e;
+
+  template <class _F> void operator()(_F&& __f)
+  {
+    (post)(__e, forward<_F>(__f));
+  }
+};
+
+template <class _Executor, class... _CompletionTokens>
+typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
+  copost(_Executor&& __e, _CompletionTokens&&... __tokens)
+{
+  constexpr size_t _HeadSize = sizeof...(_CompletionTokens) - 1;
+  typedef __tuple_split_first<tuple<_CompletionTokens...>, _HeadSize> _Head;
+  typedef __tuple_split_second<tuple<_CompletionTokens...>, _HeadSize> _Tail;
+  return __coinvoker_launcher<_Head, _Tail>(__tokens...)._Go(__coinvoke_post_ex<_Executor>{__e}, __tokens...);
 }
 
 } // namespace experimental
