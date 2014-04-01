@@ -64,26 +64,21 @@ private:
 };
 
 template <class _Head, class _Tail>
-class __coinvoker_handler;
+class __coinvoker_tail;
 
 template <class... _Head, class _Tail>
-class __coinvoker_handler<tuple<_Head...>, tuple<_Tail>>
+class __coinvoker_tail<tuple<_Head...>, tuple<_Tail>>
 {
 public:
   typedef __signature_cat_t<typename continuation_traits<
     handler_type_t<_Head, void()>>::signature...> _HandlerSignature;
   typedef handler_type_t<_Tail, _HandlerSignature> _Handler;
+  typedef decltype(make_executor(declval<_Handler>())) _Executor;
 
-  explicit __coinvoker_handler(typename remove_reference<_Head>::type&...,
-    typename remove_reference<_Tail>::type& __tail)
-      : _M_pending(0), _M_handler(static_cast<_Tail&&>(__tail)),
+  explicit __coinvoker_tail(typename remove_reference<_Tail>::type& __token)
+      : _M_pending(0), _M_handler(static_cast<_Tail&&>(__token)),
         _M_handler_work(make_executor(_M_handler).make_work())
   {
-  }
-
-  template <size_t _Index, class... _Args> void _Set_result(_Args&&... __args)
-  {
-    get<_Index>(_M_results)._Set_value(forward<_Args>(__args)...);
   }
 
   void _Prime()
@@ -94,16 +89,21 @@ public:
     }
     else
     {
-      unique_ptr<__coinvoker_handler> __p(this);
+      unique_ptr<__coinvoker_tail> __p(this);
       _Dispatch(typename _Make_index_sequence<sizeof...(_Head)>::_Type());
     }
+  }
+
+  template <size_t _Index, class... _Args> void _Set_result(_Args&&... __args)
+  {
+    get<_Index>(_M_results)._Set_value(forward<_Args>(__args)...);
   }
 
   void _Complete()
   {
     if (--_M_pending == 0)
     {
-      unique_ptr<__coinvoker_handler> __p(this);
+      unique_ptr<__coinvoker_tail> __p(this);
       _Dispatch(typename _Make_index_sequence<sizeof...(_Head)>::_Type());
     }
   }
@@ -119,9 +119,12 @@ public:
     return _M_handler;
   }
 
-private:
-  friend struct __coinvoker_handler_executor;
+  _Executor _Make_executor() const
+  {
+    return make_executor(_M_handler_work);
+  }
 
+private:
   template <size_t... _Index>
   void _Dispatch(_Index_sequence<_Index...>)
   {
@@ -131,64 +134,97 @@ private:
 
   tuple<__coinvoker_result<typename continuation_traits<
     handler_type_t<_Head, void()>>::signature>...> _M_results;
-  atomic<int> _M_pending;
+  atomic<size_t> _M_pending;
   _Handler _M_handler;
   typename decltype(make_executor(declval<_Handler>()))::work _M_handler_work;
 };
 
 template <size_t _Index, class _Head, class _Tail>
-class __coinvoker
+class __coinvoker_tail_ptr
 {
 public:
-  typedef typename __coinvoker_handler<_Head, _Tail>::_Handler _Handler;
+  __coinvoker_tail_ptr(const __coinvoker_tail_ptr&) = delete;
+  __coinvoker_tail_ptr& operator=(const __coinvoker_tail_ptr&) = delete;
 
-  __coinvoker(const __coinvoker&) = delete;
-  __coinvoker& operator=(const __coinvoker&) = delete;
-
-  explicit __coinvoker(__coinvoker_handler<_Head, _Tail>* __h)
-    : _M_handler(__h)
+  explicit __coinvoker_tail_ptr(__coinvoker_tail<_Head, _Tail>* __t)
+    : _M_tail(__t)
   {
   }
 
-  __coinvoker(__coinvoker&& __f)
-    : _M_handler(__f._M_handler)
+  __coinvoker_tail_ptr(__coinvoker_tail_ptr&& __p)
+    : _M_tail(__p._M_tail)
   {
-    __f._M_handler = 0;
+    __p._M_tail = 0;
   }
 
-  ~__coinvoker()
+  ~__coinvoker_tail_ptr()
   {
-    if (_M_handler)
-      _M_handler->_Release();
+    if (_M_tail)
+      _M_tail->_Release();
   }
 
   template <class... _Args> void operator()(_Args&&... __args)
   {
-    _M_handler->template _Set_result<_Index>(forward<_Args>(__args)...);
-    this->_Complete();
+    _M_tail->template _Set_result<_Index>(forward<_Args>(__args)...);
+    auto* __t = _M_tail;
+    _M_tail = 0;
+    __t->_Complete();
   }
 
-  decltype(make_executor(declval<_Handler>())) _Get_executor() const
+  typename __coinvoker_tail<_Head, _Tail>::_Executor _Make_executor() const
   {
-    return make_executor(_M_handler->_M_handler);
+    return _M_tail->_Make_executor();
   }
 
 private:
-  void _Complete()
-  {
-    auto* __h = _M_handler;
-    _M_handler = 0;
-    __h->_Complete();
-  }
-
-  __coinvoker_handler<_Head, _Tail>* _M_handler;
+  __coinvoker_tail<_Head, _Tail>* _M_tail;
 };
 
 template <size_t _Index, class _Head, class _Tail>
-inline auto make_executor(const __coinvoker<_Index, _Head, _Tail>& __i)
+class __coinvoker_head
 {
-  return __i._Get_executor();
-}
+public:
+  typedef typename tuple_element<_Index, _Head>::type _HeadToken;
+  typedef handler_type_t<_HeadToken, void()> _HeadFunc;
+  typedef continuation_traits<_HeadFunc> _HeadTraits;
+
+  typedef decltype(make_executor(declval<_HeadFunc>())) _HeadExecutor;
+  typedef typename __coinvoker_tail<_Head, _Tail>::_Executor _TailExecutor;
+
+  typedef typename conditional<
+    is_same<_HeadExecutor, system_executor>::value,
+      _TailExecutor, _HeadExecutor>::type _Executor;
+
+  __coinvoker_head(typename remove_reference<_HeadToken>::type& __token,
+    __coinvoker_tail<_Head, _Tail>* __tail)
+      : _M_head(static_cast<_HeadToken&&>(__token)), _M_tail(__tail)
+  {
+  }
+
+  void operator()()
+  {
+    _HeadTraits::chain(std::move(_M_head), std::move(_M_tail))();
+  }
+
+  _Executor _Make_executor() const
+  {
+    return _Make_executor(is_same<_HeadExecutor, system_executor>());
+  }
+
+private:
+  _Executor _Make_executor(true_type) const
+  {
+    return _M_tail._Make_executor();
+  }
+
+  _Executor _Make_executor(false_type) const
+  {
+    return make_executor(_M_head);
+  }
+
+  _HeadFunc _M_head;
+  __coinvoker_tail_ptr<_Index, _Head, _Tail> _M_tail;
+};
 
 template <class _Head, class _Tail>
 class __coinvoker_launcher;
@@ -197,9 +233,9 @@ template <class... _Head, class _Tail>
 class __coinvoker_launcher<tuple<_Head...>, tuple<_Tail>>
 {
 public:
-  __coinvoker_launcher(typename remove_reference<_Head>::type&... __head,
+  __coinvoker_launcher(typename remove_reference<_Head>::type&...,
     typename remove_reference<_Tail>::type& __tail)
-      : _M_handler(new __coinvoker_handler<tuple<_Head...>, tuple<_Tail>>(__head..., __tail))
+      : _M_tail(new __coinvoker_tail<tuple<_Head...>, tuple<_Tail>>(__tail))
   {
   }
 
@@ -207,8 +243,8 @@ public:
   auto _Go(_Action __a, typename remove_reference<_Head>::type&... __head,
     typename remove_reference<_Tail>::type&)
   {
-    typedef typename __coinvoker_handler<tuple<_Head...>, tuple<_Tail>>::_Handler _Handler;
-    async_result<_Handler> __result(_M_handler->_Get_handler());
+    typedef typename __coinvoker_tail<tuple<_Head...>, tuple<_Tail>>::_Handler _Handler;
+    async_result<_Handler> __result(_M_tail->_Get_handler());
     this->_Go_0(__a, typename _Make_index_sequence<sizeof...(_Head)>::_Type(), __head...);
     return __result.get();
   }
@@ -218,16 +254,16 @@ private:
   void _Go_0(_Action __a, _Index_sequence<_Indexes...>,
     typename remove_reference<_Head>::type&... __head)
   {
-    this->_Go_1(__a, continuation_traits<handler_type_t<_Head, void()>>::chain(
-      handler_type_t<_Head, void()>(__head),
-        __coinvoker<_Indexes, tuple<_Head...>, tuple<_Tail>>(_M_handler.get()))...);
+    this->_Go_1(__a,
+      __coinvoker_head<_Indexes, tuple<_Head...>, tuple<_Tail>>(
+        __head, _M_tail.get())...);
   }
 
   template <class _Action, class... _Invokers>
   void _Go_1(_Action __a, _Invokers&&... __i)
   {
-    _M_handler->_Prime();
-    _M_handler.release();
+    _M_tail->_Prime();
+    _M_tail.release();
     (_Go_2)(__a, forward<_Invokers>(__i)...);
   }
 
@@ -236,11 +272,12 @@ private:
   template <class _Action, class _Invoker, class... _Invokers>
   static void _Go_2(_Action __a, _Invoker&& __i, _Invokers&&... __j)
   {
-    __a(std::move(__i));
+    auto __e(__i._Make_executor());
+    __a(__e, std::move(__i));
     (_Go_2)(__a, forward<_Invokers>(__j)...);
   }
 
-  unique_ptr<__coinvoker_handler<tuple<_Head...>, tuple<_Tail>>> _M_handler;
+  unique_ptr<__coinvoker_tail<tuple<_Head...>, tuple<_Tail>>> _M_tail;
 };
 
 template <class... _CompletionTokens>
@@ -249,7 +286,7 @@ struct __coinvoke_result
   static constexpr size_t _HeadSize = sizeof...(_CompletionTokens) - 1;
   typedef __tuple_split_first<tuple<_CompletionTokens...>, _HeadSize> _Head;
   typedef __tuple_split_second<tuple<_CompletionTokens...>, _HeadSize> _Tail;
-  typedef typename __coinvoker_handler<_Head, _Tail>::_Handler _Handler;
+  typedef typename __coinvoker_tail<_Head, _Tail>::_Handler _Handler;
   typedef typename async_result<_Handler>::type _Result;
 };
 

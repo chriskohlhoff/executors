@@ -19,9 +19,9 @@ namespace experimental {
 
 struct __coinvoke_post
 {
-  template <class _F> void operator()(_F&& __f)
+  template <class _E, class _F> void operator()(_E& __e, _F&& __f)
   {
-    (post)(forward<_F>(__f));
+    __e.post(forward<_F>(__f));
   }
 };
 
@@ -40,9 +40,9 @@ struct __coinvoke_post_ex
 {
   typename remove_reference<_Executor>::type& __e;
 
-  template <class _F> void operator()(_F&& __f)
+  template <class _E, class _F> void operator()(_E&, _F&& __f)
   {
-    (post)(__e, forward<_F>(__f));
+    __e.post(forward<_F>(__f));
   }
 };
 
