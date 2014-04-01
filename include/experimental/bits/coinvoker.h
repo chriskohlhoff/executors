@@ -192,7 +192,7 @@ public:
   typedef typename __coinvoker_tail<_Head, _Tail>::_Executor _TailExecutor;
 
   typedef typename conditional<
-    is_same<_HeadExecutor, system_executor>::value,
+    is_same<_HeadExecutor, unspecified_executor>::value,
       _TailExecutor, _HeadExecutor>::type _Executor;
 
   __coinvoker_head(typename remove_reference<_HeadToken>::type& __token,
@@ -208,7 +208,7 @@ public:
 
   _Executor _Make_executor() const
   {
-    return _Make_executor(is_same<_HeadExecutor, system_executor>());
+    return _Make_executor(is_same<_HeadExecutor, unspecified_executor>());
   }
 
 private:

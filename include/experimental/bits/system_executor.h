@@ -87,13 +87,6 @@ inline execution_context& system_executor::context()
   return __system_executor_impl::_Instance();
 }
 
-template <class _T>
-inline system_executor make_executor(const _T&,
-  typename enable_if<__is_callable<_T>::value>::type*)
-{
-  return system_executor();
-}
-
 inline system_executor make_executor(const system_executor&)
 {
   return system_executor();

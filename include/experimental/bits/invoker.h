@@ -99,7 +99,7 @@ public:
   typedef typename _TailInvoker::_Executor _TailExecutor;
 
   typedef typename conditional<
-    is_same<_HeadExecutor, system_executor>::value,
+    is_same<_HeadExecutor, unspecified_executor>::value,
     _TailExecutor, _HeadExecutor>::type _Executor;
 
   typedef typename _TailInvoker::_Handler _Handler;
@@ -122,7 +122,7 @@ public:
 
   _Executor _Make_executor() const
   {
-    return _Make_executor(is_same<_HeadExecutor, system_executor>());
+    return _Make_executor(is_same<_HeadExecutor, unspecified_executor>());
   }
 
 private:

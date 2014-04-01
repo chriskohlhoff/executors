@@ -274,7 +274,7 @@ public:
     return &_M_executor;
   }
 
-private:
+protected:
   __executor_impl() {}
   ~__executor_impl() {}
   system_executor _M_executor;
@@ -283,6 +283,109 @@ private:
 inline __executor_impl_base* __work_impl<system_executor::work>::_Get_executor() const
 {
   return __executor_impl<system_executor>::_Create();
+}
+
+template <>
+class __work_impl<unspecified_executor::work>
+  : public __work_impl_base
+{
+public:
+  static __work_impl_base* _Create()
+  {
+    static __work_impl* __w = new __work_impl;
+    return __w;
+  }
+
+  static __work_impl_base* _Create(unspecified_executor::work)
+  {
+    return _Create();
+  }
+
+  virtual __work_impl_base* _Clone() const
+  {
+    return const_cast<__work_impl*>(this);
+  }
+
+  virtual void _Destroy()
+  {
+  }
+
+  virtual __executor_impl_base* _Get_executor() const;
+
+private:
+  __work_impl() {}
+  ~__work_impl() {}
+};
+
+template <>
+class __executor_impl<unspecified_executor>
+  : public __executor_impl_base
+{
+public:
+  static __executor_impl_base* _Create()
+  {
+    static __executor_impl* __e = new __executor_impl;
+    return __e;
+  }
+
+  static __executor_impl_base* _Create(const unspecified_executor&)
+  {
+    return _Create();
+  }
+
+  virtual __executor_impl_base* _Clone() const
+  {
+    return const_cast<__executor_impl*>(this);
+  }
+
+  virtual void _Destroy()
+  {
+  }
+
+  virtual void _Post(__function_ptr&& __f)
+  {
+    _M_executor.post(std::move(__f));
+  }
+
+  virtual void _Dispatch(__function_ptr&& __f)
+  {
+    _M_executor.dispatch(std::move(__f));
+  }
+
+  virtual __work_impl_base* _Make_work()
+  {
+    return __work_impl<unspecified_executor::work>::_Create();
+  }
+
+  virtual execution_context& _Context()
+  {
+    return _M_executor.context();
+  }
+
+  virtual const type_info& _Target_type()
+  {
+    return typeid(unspecified_executor);
+  }
+
+  virtual void* _Target()
+  {
+    return &_M_executor;
+  }
+
+  virtual const void* _Target() const
+  {
+    return &_M_executor;
+  }
+
+protected:
+  __executor_impl() {}
+  ~__executor_impl() {}
+  unspecified_executor _M_executor;
+};
+
+inline __executor_impl_base* __work_impl<unspecified_executor::work>::_Get_executor() const
+{
+  return __executor_impl<unspecified_executor>::_Create();
 }
 
 class bad_executor
@@ -493,7 +596,8 @@ inline void executor::post(_Func&& __f)
 template <class _Func>
 void executor::dispatch(_Func&& __f)
 {
-  if (static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<system_executor>::_Create()))
+  if (static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<system_executor>::_Create())
+     || static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<unspecified_executor>::_Create()))
     system_executor().dispatch(forward<_Func>(__f));
   else
     _M_impl->_Dispatch(__function_ptr(forward<_Func>(__f)));

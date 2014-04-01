@@ -201,15 +201,38 @@ public:
 
 template <> struct is_executor<system_executor> : true_type {};
 
-// Obtain associated executor.
-
-template <class _T> system_executor make_executor(const _T&,
-  typename enable_if<__is_callable<_T>::value>::type* = 0);
-
 system_executor make_executor(const system_executor&);
 system_executor make_executor(system_executor&&);
 system_executor make_executor(const system_executor::work&);
 system_executor make_executor(system_executor::work&&);
+
+// The unspecified executor is used for function objects that do not explicitly
+// specify an associated executor. It is implemented in terms of the system
+// executor.
+
+class unspecified_executor
+{
+public:
+  class work {};
+
+  // executor operations:
+
+  template <class _Func> void post(_Func&& __f);
+  template <class _Func> void dispatch(_Func&& __f);
+  work make_work();
+  template <class _Func> auto wrap(_Func&& __f);
+  execution_context& context();
+};
+
+template <> struct is_executor<unspecified_executor> : true_type {};
+
+template <class _T> unspecified_executor make_executor(const _T&,
+  typename enable_if<__is_callable<_T>::value>::type* = 0);
+
+unspecified_executor make_executor(const unspecified_executor&);
+unspecified_executor make_executor(unspecified_executor&&);
+unspecified_executor make_executor(const unspecified_executor::work&);
+unspecified_executor make_executor(unspecified_executor::work&&);
 
 class bad_executor;
 
@@ -370,6 +393,7 @@ template<class _Alloc>
 
 #include <experimental/bits/execution_context.h>
 #include <experimental/bits/system_executor.h>
+#include <experimental/bits/unspecified_executor.h>
 #include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/executor.h>
 #include <experimental/bits/post.h>
