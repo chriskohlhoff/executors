@@ -262,7 +262,7 @@ A first attempt at solving this might use a `std::future`:
 
 While correct, this approach has the side effect of blocking the thread until the future is ready. If the `to_acct` object's strand is busy running other function objects, this might take some time.
 
-In the examples so far, you might have noticed that sometimes we call `post()` or `dispatch()` with just one function object, and sometimes we call them with both a function object ad a completion token.
+In the examples so far, you might have noticed that sometimes we call `post()` or `dispatch()` with just one function object, and sometimes we call them with both a function object and a completion token.
 
 Both `post()` and `dispatch()` are variadic template functions that can accept a number of completion tokens. For example, the library defines `dispatch()` as:
 
