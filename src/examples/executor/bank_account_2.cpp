@@ -1,64 +1,55 @@
 #include <experimental/future>
-#include <experimental/strand>
+#include <experimental/thread_pool>
 #include <iostream>
 
-using std::experimental::dispatch;
-using std::experimental::strand;
-using std::experimental::system_executor;
+using std::experimental::make_executor;
+using std::experimental::post;
+using std::experimental::thread_pool;
 using std::experimental::use_future;
 
-// Active object sharing a system-wide pool of threads.
-// The caller gets to wait for the operation to finish.
+// Traditional active object pattern.
+// Member functions block until operation is finished.
 
 class bank_account
 {
-public:
-  explicit bank_account(int i)
-    : id_(i)
-  {
-  }
+  int balance_ = 0;
+  thread_pool pool_{1};
+  mutable thread_pool::executor ex_ = make_executor(pool_);
 
-  template <class CompletionToken>
-  auto deposit(int amount, CompletionToken&& token)
+public:
+  void deposit(int amount)
   {
-    return dispatch(ex_, [=]
+    post(ex_, [=]
       {
         balance_ += amount;
       },
-      std::forward<CompletionToken>(token));
+      use_future).get();
   }
 
-  template <class CompletionToken>
-  auto withdraw(int amount, CompletionToken&& token)
+  void withdraw(int amount)
   {
-    return dispatch(ex_, [=]
+    post(ex_, [=]
       {
         if (balance_ >= amount)
           balance_ -= amount;
       },
-      std::forward<CompletionToken>(token));
+      use_future).get();
   }
 
-  template <class CompletionToken>
-  auto print(CompletionToken&& token)
+  int balance() const
   {
-    return dispatch(ex_, [=]
+    return post(ex_, [=]
       {
-        std::cout << "Account " << id_ << " balance is " << balance_ << "\n";
+        return balance_;
       },
-      std::forward<CompletionToken>(token));
+      use_future).get();
   }
-
-private:
-  int id_;
-  int balance_ = 0;
-  strand<system_executor> ex_;
 };
 
 int main()
 {
-  bank_account a(123);
-  a.deposit(20, use_future).get();
-  a.withdraw(10, use_future).get();
-  a.print(use_future).get();
+  bank_account acct;
+  acct.deposit(20);
+  acct.withdraw(10);
+  std::cout << "balance = " << acct.balance() << "\n";
 }

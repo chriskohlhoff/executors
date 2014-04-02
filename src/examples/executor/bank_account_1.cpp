@@ -2,21 +2,22 @@
 #include <iostream>
 
 using std::experimental::make_executor;
+using std::experimental::post;
 using std::experimental::thread_pool;
 
 // Traditional active object pattern.
+// Member functions do not block.
 
 class bank_account
 {
-public:
-  explicit bank_account(int i)
-    : id_(i)
-  {
-  }
+  int balance_ = 0;
+  thread_pool pool_{1};
+  mutable thread_pool::executor ex_ = make_executor(pool_);
 
+public:
   void deposit(int amount)
   {
-    dispatch(ex_, [=]
+    post(ex_, [=]
       {
         balance_ += amount;
       });
@@ -24,32 +25,31 @@ public:
 
   void withdraw(int amount)
   {
-    dispatch(ex_, [=]
+    post(ex_, [=]
       {
         if (balance_ >= amount)
           balance_ -= amount;
       });
   }
 
-  void print()
+  void print_balance() const
   {
-    dispatch(ex_, [=]
+    post(ex_, [=]
       {
-        std::cout << "Account " << id_ << " balance is " << balance_ << "\n";
+        std::cout << "balance = " << balance_ << "\n";
       });
   }
 
-private:
-  int id_;
-  int balance_ = 0;
-  thread_pool pool_{1};
-  thread_pool::executor ex_ = make_executor(pool_);
+  ~bank_account()
+  {
+    pool_.join();
+  }
 };
 
 int main()
 {
-  bank_account a(123);
-  a.deposit(20);
-  a.withdraw(10);
-  a.print();
+  bank_account acct;
+  acct.deposit(20);
+  acct.withdraw(10);
+  acct.print_balance();
 }
