@@ -9,7 +9,6 @@ using std::experimental::await_context;
 using std::experimental::dispatch;
 using std::experimental::executor;
 using std::experimental::strand;
-using std::experimental::system_executor;
 using std::experimental::thread_pool;
 using std::experimental::use_future;
 
