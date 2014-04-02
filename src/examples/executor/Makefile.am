@@ -6,6 +6,8 @@ noinst_PROGRAMS = \
 	bank_account_5 \
 	bank_account_6 \
 	bank_account_7 \
+	bank_account_8 \
+	bank_account_9 \
 	sort_1 \
 	sort_2
 
@@ -18,6 +20,8 @@ bank_account_4_SOURCES = bank_account_4.cpp
 bank_account_5_SOURCES = bank_account_5.cpp
 bank_account_6_SOURCES = bank_account_6.cpp
 bank_account_7_SOURCES = bank_account_7.cpp
+bank_account_8_SOURCES = bank_account_8.cpp
+bank_account_9_SOURCES = bank_account_9.cpp
 sort_1_SOURCES = sort_1.cpp
 sort_2_SOURCES = sort_2.cpp
 

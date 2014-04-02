@@ -370,7 +370,7 @@ causes control to jump to the resume point that is saved in the `await_context` 
 
     await to_accts[i]->deposit(amount, ctx);
 
-Stores the resume point into `ctx` and suspends the coroutine. The `ctx` object is a completion token causes the coroutine to automatically resume when the `deposit()` operation completes.
+Stores the resume point into `ctx` and suspends the coroutine. The `ctx` object is a completion token that causes the coroutine to automatically resume when the `deposit()` operation completes.
 
 As the name suggests, stackless coroutines have no stack that persists across a resume point. As we cannot use any stack-based variables, we instead use a lambda capture `i` as our loop counter. The lambda object is guaranteed to exist until the coroutine completes.
 
@@ -425,6 +425,8 @@ Ultimately, executors are defined by a set of type requirements, and each of the
       // ...
     };
 
+*(Full example: [bank_account_8.cpp](src/examples/executor/bank_account_8.cpp))*
+
 On the other hand, in many situations runtime polymorphism will be preferred. To support this, the library provides the `executor` class, a polymorphic wrapper:
 
     class bank_account
@@ -440,6 +442,8 @@ On the other hand, in many situations runtime polymorphism will be preferred. To
 
       // ...
     };
+
+*(Full example: [bank_account_9.cpp](src/examples/executor/bank_account_9.cpp))*
 
 The `bank_account` class can then be constructed using an explicitly-specified thread pool:
 
