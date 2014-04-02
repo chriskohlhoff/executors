@@ -6,6 +6,7 @@ SUBDIRS = \
 	loop_scheduler \
 	thread_pool \
 	execution_context \
+	strand \
 	timer \
 	performance
 

@@ -116,8 +116,8 @@ __strand_impl::~__strand_impl()
     _M_next->_M_prev = _M_prev;
 }
 
-template <class _Executor>
-inline strand<_Executor>::strand(typename enable_if<is_default_constructible<_Executor>::value>::type*)
+template <class _Executor> template <class _Dummy>
+inline strand<_Executor>::strand(_Dummy, typename enable_if<is_default_constructible<_Executor>::value, _Dummy>::type*)
   : _M_executor(),
     _M_impl(make_shared<__strand_impl>(use_service<__strand_service>(_M_executor.context())))
 {

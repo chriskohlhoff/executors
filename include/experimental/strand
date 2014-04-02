@@ -29,7 +29,8 @@ public:
 
   // construct / copy / destroy:
 
-  strand(typename enable_if<is_default_constructible<_Executor>::value>::type* = 0);
+  template <class _Dummy = int> strand(_Dummy = 0,
+    typename enable_if<is_default_constructible<_Executor>::value, _Dummy>::type* = 0);
   explicit strand(_Executor __e);
   strand(const strand& __s);
   strand(strand&& __s);
