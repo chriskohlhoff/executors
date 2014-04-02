@@ -64,9 +64,9 @@ public:
           return 0;
         }),
       to_acct.ex_.wrap(
-        [&to_acct](int amount_transferred)
+        [&to_acct](int deducted)
         {
-          to_acct.balance_ += amount_transferred;
+          to_acct.balance_ += deducted;
         }),
       std::forward<CompletionToken>(token));
   }

@@ -87,13 +87,15 @@ As a simple example, let us consider how to implement the Active Object design p
       }
     };
 
+*(Full example: [bank_account_1.cpp](src/examples/executor/bank_account_1.cpp))*
+
 First, we create a private thread pool with a single thread:
 
     std::experimental::thread_pool pool_{1};
 
 A thread pool is an example of an **execution context**. An execution context represents a place where function objects will be executed. This is distinct from an executor which, as an embodiment of a set of rules, is intended to be a lightweight object that is cheap to copy and wrap for further adaptation.
 
-Therefore, to inject function objects into thread pool, we must create an executor for it using the library function `make_executor()`::
+Therefore, to inject function objects into thread pool, we must create an executor for it using the library function `make_executor()`:
 
     std::experimental::thread_pool::executor ex_ = std::experimental::make_executor(pool_);
 
@@ -120,6 +122,8 @@ When implementing the Active Object pattern, we will normally want to wait for t
       fut.get();
     }
 
+*(Full example: [bank_account_2.cpp](src/examples/executor/bank_account_2.cpp))*
+
 Here, the `use_future` completion token is specified. When passed the `use_future` token, the free function `post()` returns the result via a `std::future`.
 
 Other types of completion token include plain function objects (used as callbacks), resumable functions or coroutines, and even user-defined types. If we want our active object to accept any type of completion token, we simply change the member functions to accept the token as a template parameter:
@@ -134,6 +138,8 @@ Other types of completion token include plain function objects (used as callback
         },
         std::forward<CompletionToken>(token));
     }
+
+*(Full example: [bank_account_3.cpp](src/examples/executor/bank_account_3.cpp))*
 
 The caller of this function can now choose how to receive the result of the operation, as opposed to having a single strategy hard-coded in the `bank_account` implementation. For example, the caller could choose to receive the result via a `std::future`:
 
@@ -194,6 +200,8 @@ We can convert the `bank_account` class to use a strand very simply:
       // ...
     };
 
+*(Full example: [bank_account_4.cpp](src/examples/executor/bank_account_4.cpp))*
+
 ### Lightweight, immediate execution using dispatch
 
 As noted above, a post operation always submits a function object for later execution. This means that when we write:
@@ -222,9 +230,11 @@ we will always incur the cost of a context switch (plus an extra context switch 
         std::forward<CompletionToken>(token));
     }
 
+*(Full example: [bank_account_4.cpp](src/examples/executor/bank_account_4.cpp))*
+
 then the enclosed function object can be executed before `dispatch()` returns. The only condition where it will run later is when the strand is already busy on another thread. In this case, in order to meet the strand's non-concurrency guarantee, the function object must be added to the strand's work queue. In the common case there is no contention on the strand and the cost is minimised.
 
-### Composition using resumable functions
+### Composition using variadic dispatch
 
 Let us now add a function to transfer balance from one bank account to another. To implement this function we must coordinate code on two distinct executors: the strands that belong to each of the bank accounts.
 
@@ -252,22 +262,139 @@ A first attempt at solving this might use a `std::future`:
 
 While correct, this approach has the side effect of blocking the thread until the future is ready. If the `to_acct` object's strand is busy running other function objects, this might take some time.
 
-This executors library offers an alternative approach: resumable functions, or coroutines. These functions are identified by having a last argument of type `yield_context`:
+In the examples so far, you might have noticed that sometimes we call `post()` or `dispatch()` with just one function object, and sometimes we call them with both a function object ad a completion token.
 
-      template <class CompletionToken>
-      auto transfer(bank_account& to_acct, CompletionToken&& token)
-      {
-        return std::experimental::dispatch(ex_,
-          [=, &to_acct](std::experimental::yield_context yield)
+Both `post()` and `dispatch()` are variadic template functions that can accept a number of completion tokens. For example, the library defines `dispatch()` as:
+
+    auto dispatch(t0, t1, ..., tN);
+    auto dispatch(executor, t0, t1, ..., tN);
+
+where *t0* to *tN* are completion tokens. When we call `dispatch()`, the library turns each token into a function object and calls these functions in sequence. The return value of any given function is passed as an argument to the next one. For example:
+
+    std::future<std::string> fut = std::experimental::dispatch(ex_,
+      []{ return 1; },
+      [](int i) { return i + 1; },
+      [](int i) { return i * 2; },
+      [](int i) { return std::to_string(i); },
+      [](std::string s) { return "value is " + s; },
+      std::experimental::use_future);
+    std::cout << fut.get() << std::endl;
+
+will output the string `value is 4`.
+
+For our bank account example, what is more important is that the variadic `post()` and `dispatch()` functions let you run each function object on a different executor. We can then write our `transfer()` function as follows:
+
+    template <class CompletionToken>
+    auto transfer(int amount, bank_account& to_acct, CompletionToken&& token)
+    {
+      return std::experimental::dispatch(
+        ex_.wrap([=]
           {
             if (balance_ >= amount)
             {
               balance_ -= amount;
-              to_acct.deposit(amount, yield);
+              return amount;
             }
-          },
-          std::forward<CompletionToken>(token));
-      }
+
+            return 0;
+          }),
+        to_acct.ex_.wrap(
+          [&to_acct](int deducted)
+          {
+            to_acct.balance_ += deducted;
+          }),
+        std::forward<CompletionToken>(token));
+    }
+
+*(Full example: [bank_account_5.cpp](src/examples/executor/bank_account_5.cpp))*
+
+Here, the first function object:
+
+    ex_.wrap([=]
+      {
+        if (balance_ >= amount)
+        {
+          balance_ -= amount;
+          return amount;
+        }
+
+        return 0;
+      }),
+
+is run on the source account's strand `ex_`. We wrap the function object using `ex_.wrap(...)` to tell `dispatch()` which executor to use.
+
+The amount that is successfully deducted is then passed to the second function object:
+
+    to_acct.ex_.wrap(
+      [&to_acct](int deducted)
+      {
+        to_acct.balance_ += deducted;
+      }),
+
+which, again thanks to `wrap()`, is run on the `to_acct` object's strand. By running each function object on a specific executor, we ensure that both `bank_account` objects are updated in a thread-safe way.
+
+### Composition using resumable functions
+
+Variadic `post()` and `dispatch()` are useful for strictly sequential task flow, but for more complex control flow the executors library offers another approach: resumable functions, or coroutines. These coroutines come in two flavours, stackless and stackful, and to illustrate them we will now change our `transfer()` operation to accept multiple target accounts.
+
+Stackless coroutines are identified by having a last argument of type `await_context`:
+
+    template <class CompletionToken>
+    auto transfer(int amount, std::vector<bank_account*> to_accts, CompletionToken&& token)
+    {
+      return std::experimental::dispatch(ex_,
+        [=, i = std::size_t()](std::experimental::await_context ctx) mutable
+        {
+          reenter (ctx)
+          {
+            for (i = 0; i < to_accts.size(); ++i)
+            {
+              if (balance_ >= amount)
+              {
+                balance_ -= amount;
+                await to_accts[i]->deposit(amount, ctx);
+              }
+            }
+          }
+        },
+        std::forward<CompletionToken>(token));
+    }
+
+*(Full example: [bank_account_6.cpp](src/examples/executor/bank_account_6.cpp))*
+
+In this library, stackless coroutines are implemented using macros and a switch-based mechanism similar to Duff's Device. The `reenter` macro:
+
+    reenter (ctx)
+
+causes control to jump to the resume point that is saved in the `await_context` object named `ctx` (or the start of the block if this is the first time the coroutine has been entered). The `await` macro:
+
+    await to_accts[i]->deposit(amount, ctx);
+
+Stores the resume point into `ctx` and suspends the coroutine. The `ctx` object is a completion token causes the coroutine to automatically resume when the `deposit()` operation completes.
+
+As the name suggests, stackless coroutines have no stack that persists across a resume point. As we cannot use any stack-based variables, we instead use a lambda capture `i` as our loop counter. The lambda object is guaranteed to exist until the coroutine completes.
+
+Stackful coroutines are identified by having a last argument of type `yield_context`:
+
+    template <class CompletionToken>
+    auto transfer(int amount, std::vector<bank_account*> to_accts, CompletionToken&& token)
+    {
+      return std::experimental::dispatch(ex_,
+        [=](std::experimental::yield_context yield)
+        {
+          for (auto to_acct : to_accts)
+          {
+            if (balance_ >= amount)
+            {
+              balance_ -= amount;
+              to_acct->deposit(amount, yield);
+            }
+          }
+        },
+        std::forward<CompletionToken>(token));
+    }
+
+*(Full example: [bank_account_7.cpp](src/examples/executor/bank_account_7.cpp))*
 
 The `yield` object is a completion token that means that, when the call out to the `to_acct` object is reached:
 
@@ -275,25 +402,7 @@ The `yield` object is a completion token that means that, when the call out to t
 
 the library implementation automatically suspends the current function. The thread is not blocked and remains available to process other function objects. Once the `deposit()` operation completes, the `transfer()` function resumes execution at the following statement.
 
-These resumable functions are implemented entirely as a library construct, and require no alteration to the language. Consequently, they can utilise artbitrarily complex control flow constructs:
-
-      template <class CompletionToken>
-      auto transfer(std::vector<bank_account*> to_accts, CompletionToken&& token)
-      {
-        return std::experimental::dispatch(ex_,
-          [=](std::experimental::yield_context yield)
-          {
-            if (balance_ >= amount)
-            {
-              balance_ -= amount;
-              for (auto to_acct : to_accts)
-                to_acct->deposit(amount, yield);
-            }
-          },
-          std::forward<CompletionToken>(token));
-      }
-
-while still retaining concise, familiar C++ language use.
+These stackful resumable functions are implemented entirely as a library construct, and require no alteration to the language in the form of new keywords. Consequently, they can utilise artbitrarily complex control flow constructs, including stack-based variables, while still retaining concise, familiar C++ language use.
 
 ### Polymorphic executors
 
