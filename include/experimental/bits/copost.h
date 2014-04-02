@@ -26,12 +26,18 @@ struct __coinvoke_post
 };
 
 template <class... _CompletionTokens>
-typename __coinvoke_without_executor<_CompletionTokens...>::_Result
+inline typename __coinvoke_without_executor<_CompletionTokens...>::_Result
   copost(_CompletionTokens&&... __tokens)
 {
-  constexpr size_t _HeadSize = sizeof...(_CompletionTokens) - 1;
-  typedef __tuple_split_first<tuple<_CompletionTokens...>, _HeadSize> _Head;
-  typedef __tuple_split_second<tuple<_CompletionTokens...>, _HeadSize> _Tail;
+  return copost<sizeof...(_CompletionTokens) - 1>(forward<_CompletionTokens>(__tokens)...);
+}
+
+template <size_t _N, class... _CompletionTokens>
+typename __coinvoke_n_without_executor<_N, _CompletionTokens...>::_Result
+  copost(_CompletionTokens&&... __tokens)
+{
+  typedef __tuple_split_first<tuple<_CompletionTokens...>, _N> _Head;
+  typedef __tuple_split_second<tuple<_CompletionTokens...>, _N> _Tail;
   return __coinvoker_launcher<_Head, _Tail>(__tokens...)._Go(__coinvoke_post(), __tokens...);
 }
 
@@ -47,12 +53,18 @@ struct __coinvoke_post_ex
 };
 
 template <class _Executor, class... _CompletionTokens>
-typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
+inline typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
   copost(_Executor&& __e, _CompletionTokens&&... __tokens)
 {
-  constexpr size_t _HeadSize = sizeof...(_CompletionTokens) - 1;
-  typedef __tuple_split_first<tuple<_CompletionTokens...>, _HeadSize> _Head;
-  typedef __tuple_split_second<tuple<_CompletionTokens...>, _HeadSize> _Tail;
+  return copost<sizeof...(_CompletionTokens) - 1>(forward<_Executor>(__e), forward<_CompletionTokens>(__tokens)...);
+}
+
+template <size_t _N, class _Executor, class... _CompletionTokens>
+typename __coinvoke_n_with_executor<_N, _Executor, _CompletionTokens...>::_Result
+  copost(_Executor&& __e, _CompletionTokens&&... __tokens)
+{
+  typedef __tuple_split_first<tuple<_CompletionTokens...>, _N> _Head;
+  typedef __tuple_split_second<tuple<_CompletionTokens...>, _N> _Tail;
   return __coinvoker_launcher<_Head, _Tail>(__tokens...)._Go(__coinvoke_post_ex<_Executor>{__e}, __tokens...);
 }
 

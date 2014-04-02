@@ -33,6 +33,8 @@ template <class...> struct __invoke_without_executor;
 template <class, class...> struct __invoke_with_executor;
 template <class...> struct __coinvoke_without_executor;
 template <class, class...> struct __coinvoke_with_executor;
+template <size_t, class...> struct __coinvoke_n_without_executor;
+template <size_t, class, class...> struct __coinvoke_n_with_executor;
 
 // Execution context.
 
@@ -369,6 +371,12 @@ template <class... _CompletionTokens>
 template <class _Executor, class... _CompletionTokens>
   typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
     copost(_Executor&& __e, _CompletionTokens&&... __tokens);
+template <size_t _N, class... _CompletionTokens>
+  typename __coinvoke_n_without_executor<_N, _CompletionTokens...>::_Result
+    copost(_CompletionTokens&&... __tokens);
+template <size_t _N, class _Executor, class... _CompletionTokens>
+  typename __coinvoke_n_with_executor<_N, _Executor, _CompletionTokens...>::_Result
+    copost(_Executor&& __e, _CompletionTokens&&... __tokens);
 
 // Schedule two functions to run now if possible, run concurrently later otherwise.
 
@@ -377,6 +385,12 @@ template <class... _CompletionTokens>
     codispatch(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
+    codispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
+template <size_t _N, class... _CompletionTokens>
+  typename __coinvoke_n_without_executor<_N, _CompletionTokens...>::_Result
+    codispatch(_CompletionTokens&&... __tokens);
+template <size_t _N, class _Executor, class... _CompletionTokens>
+  typename __coinvoke_n_with_executor<_N, _Executor, _CompletionTokens...>::_Result
     codispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
 
 } // namespace experimental
