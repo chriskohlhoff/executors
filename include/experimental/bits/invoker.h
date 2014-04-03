@@ -27,6 +27,7 @@ public:
   typedef __invoker_head<_Signature, _CompletionTokens...> _HeadInvoker;
   typedef typename _HeadInvoker::_Handler _Handler;
   typedef typename _HeadInvoker::_Executor _Executor;
+  typedef typename _HeadInvoker::_InitialExecutor _InitialExecutor;
 
   explicit __invoker_tail(typename remove_reference<_CompletionTokens>::type&... __tokens)
     : _M_head(__tokens...),
@@ -45,9 +46,9 @@ public:
     return _M_head._Get_handler();
   }
 
-  _Executor _Make_executor() const
+  _InitialExecutor _Make_initial_executor() const
   {
-    return make_executor(_M_work);
+    return _M_head._Make_initial_executor();
   }
 
 private:
@@ -61,6 +62,7 @@ class __invoker_head<_Signature, _CompletionToken>
 public:
   typedef handler_type_t<_CompletionToken, _Signature> _Handler;
   typedef decltype(make_executor(declval<_Handler>())) _Executor;
+  typedef decltype(make_executor(declval<_Handler>())) _InitialExecutor;
 
   explicit __invoker_head(typename remove_reference<_CompletionToken>::type& __token)
     : _M_handler(static_cast<_CompletionToken&&>(__token))
@@ -82,6 +84,11 @@ public:
     return make_executor(_M_handler);
   }
 
+  _InitialExecutor _Make_initial_executor() const
+  {
+    return make_executor(_M_handler);
+  }
+
 private:
   _Handler _M_handler;
 };
@@ -95,14 +102,10 @@ public:
   typedef typename _HeadTraits::signature _TailSignature;
   typedef __invoker_tail<_TailSignature, _Tail...> _TailInvoker;
 
-  typedef decltype(make_executor(declval<_HeadFunc>())) _HeadExecutor;
-  typedef typename _TailInvoker::_Executor _TailExecutor;
-
-  typedef typename conditional<
-    is_same<_HeadExecutor, unspecified_executor>::value,
-    _TailExecutor, _HeadExecutor>::type _Executor;
-
   typedef typename _TailInvoker::_Handler _Handler;
+  typedef decltype(make_executor(declval<_HeadFunc>())) _Executor;
+  typedef typename conditional<is_same<_Executor, unspecified_executor>::value,
+    typename _TailInvoker::_InitialExecutor, _Executor>::type _InitialExecutor;
 
   __invoker_head(typename remove_reference<_Head>::type& __head,
     typename remove_reference<_Tail>::type&... __tail)
@@ -122,16 +125,21 @@ public:
 
   _Executor _Make_executor() const
   {
-    return _Make_executor(is_same<_HeadExecutor, unspecified_executor>());
+    return make_executor(_M_head);
+  }
+
+  _InitialExecutor _Make_initial_executor() const
+  {
+    return _Make_initial_executor(is_same<_Executor, unspecified_executor>());
   }
 
 private:
-  _Executor _Make_executor(true_type) const
+  _InitialExecutor _Make_initial_executor(true_type) const
   {
-    return _M_tail._Make_executor();
+    return _M_tail._Make_initial_executor();
   }
 
-  _Executor _Make_executor(false_type) const
+  _InitialExecutor _Make_initial_executor(false_type) const
   {
     return make_executor(_M_head);
   }
@@ -139,13 +147,6 @@ private:
   _HeadFunc _M_head;
   _TailInvoker _M_tail;
 };
-
-template <class _Signature, class... _CompletionTokens>
-inline typename __invoker_head<_Signature, _CompletionTokens...>::_Executor
-  make_executor(const __invoker_head<_Signature, _CompletionTokens...>& __i)
-{
-  return __i._Make_executor();
-}
 
 template <class _Signature, class... _CompletionTokens>
 class async_result<__invoker_head<_Signature, _CompletionTokens...>>

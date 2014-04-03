@@ -29,7 +29,7 @@ typename __invoke_without_executor<_CompletionTokens...>::_Result
   __timed_invoker<chrono::steady_clock, _CompletionTokens...> __head(__tokens...);
   async_result<__invoker_tail<void(), _CompletionTokens...>> __result(__head._Get_tail());
 
-  auto __completion_executor(__head._Get_tail()._Make_executor());
+  auto __completion_executor(__head._Get_tail()._Make_initial_executor());
   __head._Start(__completion_executor, __rel_time);
 
   return __result.get();

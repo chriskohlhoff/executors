@@ -27,7 +27,7 @@ typename __invoke_without_executor<_CompletionTokens...>::_Result
   __invoker_head<void(), _CompletionTokens...> __head(__tokens...);
   async_result<__invoker_head<void(), _CompletionTokens...>> __result(__head);
 
-  auto __completion_executor(__head._Make_executor());
+  auto __completion_executor(__head._Make_initial_executor());
   __completion_executor.dispatch(std::move(__head));
 
   return __result.get();

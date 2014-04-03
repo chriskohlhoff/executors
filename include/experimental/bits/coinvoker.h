@@ -119,9 +119,9 @@ public:
     return _M_invoker._Get_handler();
   }
 
-  _Executor _Make_executor() const
+  _Executor _Make_initial_executor() const
   {
-    return _M_invoker._Make_executor();
+    return _M_invoker._Make_initial_executor();
   }
 
 private:
@@ -169,9 +169,9 @@ public:
     __t->_Complete();
   }
 
-  typename __coinvoker_tail<_Head, _Tail>::_Executor _Make_executor() const
+  typename __coinvoker_tail<_Head, _Tail>::_Executor _Make_initial_executor() const
   {
-    return _M_tail->_Make_executor();
+    return _M_tail->_Make_initial_executor();
   }
 
 private:
@@ -204,18 +204,18 @@ public:
     _HeadTraits::chain(std::move(_M_head), std::move(_M_tail))();
   }
 
-  _Executor _Make_executor() const
+  _Executor _Make_initial_executor() const
   {
-    return _Make_executor(is_same<_HeadExecutor, unspecified_executor>());
+    return _Make_initial_executor(is_same<_HeadExecutor, unspecified_executor>());
   }
 
 private:
-  _Executor _Make_executor(true_type) const
+  _Executor _Make_initial_executor(true_type) const
   {
-    return _M_tail._Make_executor();
+    return _M_tail._Make_initial_executor();
   }
 
-  _Executor _Make_executor(false_type) const
+  _Executor _Make_initial_executor(false_type) const
   {
     return make_executor(_M_head);
   }
@@ -270,7 +270,7 @@ private:
   template <class _Action, class _Invoker, class... _Invokers>
   static void _Go_2(_Action __a, _Invoker&& __i, _Invokers&&... __j)
   {
-    auto __e(__i._Make_executor());
+    auto __e(__i._Make_initial_executor());
     __a(__e, std::move(__i));
     (_Go_2)(__a, forward<_Invokers>(__j)...);
   }
