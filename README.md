@@ -373,7 +373,7 @@ causes control to jump to the resume point that is saved in the `await_context` 
 
     await balance = i->balance(ctx);
 
-Stores the resume point into `ctx` and suspends the coroutine. The `ctx` object is a completion token that causes the coroutine to automatically resume when the `deposit()` operation completes. Once the coroutine resumes, the `balance` variable contains the result of the operation.
+Stores the resume point into `ctx` and suspends the coroutine. The `ctx` object is a completion token that causes the coroutine to automatically resume when the `balance()` operation completes. Once the coroutine resumes, the `balance` variable contains the result of the operation.
 
 As the name suggests, stackless coroutines have no stack that persists across a resume point. As we cannot use any stack-based variables, we instead use a lambda capture to define our "locals":
 
