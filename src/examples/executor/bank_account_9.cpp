@@ -60,38 +60,66 @@ public:
   }
 
   template <class CompletionToken>
-  auto transfer(int amount, std::vector<bank_account*> to_accts, CompletionToken&& token)
+  auto transfer(int amount, bank_account& to_acct, CompletionToken&& token)
   {
-    return dispatch(ex_,
-      [=, i = std::size_t()](await_context ctx) mutable
-      {
-        reenter (ctx)
+    return dispatch(
+      ex_.wrap([=]
         {
-          for (i = 0; i < to_accts.size(); ++i)
+          if (balance_ >= amount)
           {
-            if (balance_ >= amount)
-            {
-              balance_ -= amount;
-              await to_accts[i]->deposit(amount, ctx);
-            }
+            balance_ -= amount;
+            return amount;
           }
-        }
-      },
+
+          return 0;
+        }),
+      to_acct.ex_.wrap(
+        [&to_acct](int deducted)
+        {
+          to_acct.balance_ += deducted;
+        }),
       std::forward<CompletionToken>(token));
   }
 };
+
+template <class Iterator, class CompletionToken>
+auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
+{
+  return dispatch(
+    [i = begin, end, largest_acct = end, balance = int(), largest_balance = int()]
+    (await_context ctx) mutable
+    {
+      reenter (ctx)
+      {
+        for (; i != end; ++i)
+        {
+          await balance = i->balance(ctx);
+          if (largest_acct == end || balance > largest_balance)
+          {
+            largest_acct = i;
+            largest_balance = balance;
+          }
+        }
+      }
+      return largest_acct;
+    },
+    std::forward<CompletionToken>(token));
+}
 
 int main()
 {
   thread_pool pool;
   auto ex = make_executor(pool);
-  bank_account acct1(ex), acct2(ex), acct3(ex);
-  acct1.deposit(20, use_future).get();
-  acct2.deposit(30, use_future).get();
-  acct3.deposit(40, use_future).get();
-  acct1.withdraw(10, use_future).get();
-  acct2.transfer(5, { &acct1, &acct3 }, use_future).get();
-  std::cout << "Account 1 balance = " << acct1.balance(use_future).get() << "\n";
-  std::cout << "Account 2 balance = " << acct2.balance(use_future).get() << "\n";
-  std::cout << "Account 3 balance = " << acct3.balance(use_future).get() << "\n";
+  std::vector<bank_account> accts(3, bank_account(ex));
+  accts[0].deposit(20, use_future).get();
+  accts[1].deposit(30, use_future).get();
+  accts[2].deposit(40, use_future).get();
+  accts[0].withdraw(10, use_future).get();
+  accts[1].transfer(5, accts[0], use_future).get();
+  accts[2].transfer(15, accts[1], use_future).get();
+  std::cout << "Account 0 balance = " << accts[0].balance(use_future).get() << "\n";
+  std::cout << "Account 1 balance = " << accts[1].balance(use_future).get() << "\n";
+  std::cout << "Account 2 balance = " << accts[2].balance(use_future).get() << "\n";
+  auto largest = find_largest_account(accts.begin(), accts.end(), use_future).get();
+  std::cout << "Largest balance = " << largest->balance(use_future).get() << "\n";
 }

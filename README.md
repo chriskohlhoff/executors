@@ -156,7 +156,7 @@ or any other type that meets the completion token requirements. This approach al
 
     class bank_account
     {
-      // ...  
+      // ...
 
       template <class CompletionToken>
       auto balance(CompletionToken&& token) const
@@ -242,7 +242,7 @@ A first attempt at solving this might use a `std::future`:
 
     class bank_account
     {
-      // ...  
+      // ...
 
       template <class CompletionToken>
       auto transfer(bank_account& to_acct, CompletionToken&& token)
@@ -335,27 +335,30 @@ which, again thanks to `wrap()`, is run on the `to_acct` object's strand. By run
 
 ### Composition using resumable functions
 
-Variadic `post()` and `dispatch()` are useful for strictly sequential task flow, but for more complex control flow the executors library offers another approach: resumable functions, or coroutines. These coroutines come in two flavours, stackless and stackful, and to illustrate them we will now change our `transfer()` operation to accept multiple target accounts.
+Variadic `post()` and `dispatch()` are useful for strictly sequential task flow, but for more complex control flow the executors library offers another approach: resumable functions, or coroutines. These coroutines come in two flavours, stackless and stackful, and to illustrate them we will now add function to find the bank account with the largest balance.
 
 Stackless coroutines are identified by having a last argument of type `await_context`:
 
-    template <class CompletionToken>
-    auto transfer(int amount, std::vector<bank_account*> to_accts, CompletionToken&& token)
+    template <class Iterator, class CompletionToken>
+    auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
     {
-      return std::experimental::dispatch(ex_,
-        [=, i = std::size_t()](std::experimental::await_context ctx) mutable
+      return std::experimental::dispatch(
+        [i = begin, end, largest_acct = end, balance = int(), largest_balance = int()]
+        (std::experimental::await_context ctx) mutable
         {
           reenter (ctx)
           {
-            for (i = 0; i < to_accts.size(); ++i)
+            for (; i != end; ++i)
             {
-              if (balance_ >= amount)
+              await balance = i->balance(ctx);
+              if (largest_acct == end || balance > largest_balance)
               {
-                balance_ -= amount;
-                await to_accts[i]->deposit(amount, ctx);
+                largest_acct = i;
+                largest_balance = balance;
               }
             }
           }
+          return largest_acct;
         },
         std::forward<CompletionToken>(token));
     }
@@ -368,39 +371,49 @@ In this library, stackless coroutines are implemented using macros and a switch-
 
 causes control to jump to the resume point that is saved in the `await_context` object named `ctx` (or the start of the block if this is the first time the coroutine has been entered). The `await` macro:
 
-    await to_accts[i]->deposit(amount, ctx);
+    await balance = i->balance(ctx);
 
-Stores the resume point into `ctx` and suspends the coroutine. The `ctx` object is a completion token that causes the coroutine to automatically resume when the `deposit()` operation completes.
+Stores the resume point into `ctx` and suspends the coroutine. The `ctx` object is a completion token that causes the coroutine to automatically resume when the `deposit()` operation completes. Once the coroutine resumes, the `balance` variable contains the result of the operation.
 
-As the name suggests, stackless coroutines have no stack that persists across a resume point. As we cannot use any stack-based variables, we instead use a lambda capture `i` as our loop counter. The lambda object is guaranteed to exist until the coroutine completes.
+As the name suggests, stackless coroutines have no stack that persists across a resume point. As we cannot use any stack-based variables, we instead use a lambda capture to define our "locals":
+
+    [i = begin, end, largest_acct = end, balance = int(), largest_balance = int()]
+
+The lambda object is guaranteed to exist until the coroutine completes, and it is safe to take the address of these variables across a suspend/resume point.
 
 Stackful coroutines are identified by having a last argument of type `yield_context`:
 
-    template <class CompletionToken>
-    auto transfer(int amount, std::vector<bank_account*> to_accts, CompletionToken&& token)
+    template <class Iterator, class CompletionToken>
+    auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
     {
-      return std::experimental::dispatch(ex_,
-        [=](std::experimental::yield_context yield)
+      return std::experimental::dispatch(
+        [=](std::experimental::yield_context ctx)
         {
-          for (auto to_acct : to_accts)
+          auto largest_acct = end;
+          int largest_balance;
+
+          for (auto i = begin; i != end; ++i)
           {
-            if (balance_ >= amount)
+            int balance = i->balance(ctx);
+            if (largest_acct == end || balance > largest_balance)
             {
-              balance_ -= amount;
-              to_acct->deposit(amount, yield);
+              largest_acct = i;
+              largest_balance = balance;
             }
           }
+
+          return largest_acct;
         },
         std::forward<CompletionToken>(token));
     }
 
 > *Full example: [bank_account_7.cpp](src/examples/executor/bank_account_7.cpp)*
 
-The `yield` object is a completion token that means that, when the call out to the `to_acct` object is reached:
+The `yield` object is a completion token that means that, when the call out to a bank account object is reached:
 
-    to_acct.deposit(amount, yield);
+    int balance = i->balance(ctx);
 
-the library implementation automatically suspends the current function. The thread is not blocked and remains available to process other function objects. Once the `deposit()` operation completes, the `transfer()` function resumes execution at the following statement.
+the library implementation automatically suspends the current function. The thread is not blocked and remains available to process other function objects. Once the `balance()` operation completes, the `find_largest_account` function resumes execution at the following statement.
 
 These stackful resumable functions are implemented entirely as a library construct, and require no alteration to the language in the form of new keywords. Consequently, they can utilise artbitrarily complex control flow constructs, including stack-based variables, while still retaining concise, familiar C++ language use.
 
