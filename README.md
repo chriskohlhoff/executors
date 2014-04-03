@@ -13,8 +13,8 @@ This is a potential standard library proposal that covers:
 
 It has been tested with g++ 4.8.2, g++ 4.9 (experimental) and clang 3.4, each using the `-std=c++1y` compiler option.
 
-<a name="executors"/> Executors
--------------------------------
+Executors
+---------
 
 The central concept of this library is the **executor**. An executor embodies a set of rules about where, when and how to run a function object. For example:
 
@@ -87,7 +87,7 @@ As a simple example, let us consider how to implement the Active Object design p
       }
     };
 
-*(Full example: [bank_account_1.cpp](src/examples/executor/bank_account_1.cpp))*
+> *Full example: [bank_account_1.cpp](src/examples/executor/bank_account_1.cpp)*
 
 First, we create a private thread pool with a single thread:
 
@@ -122,7 +122,7 @@ When implementing the Active Object pattern, we will normally want to wait for t
       fut.get();
     }
 
-*(Full example: [bank_account_2.cpp](src/examples/executor/bank_account_2.cpp))*
+> *Full example: [bank_account_2.cpp](src/examples/executor/bank_account_2.cpp)*
 
 Here, the `use_future` completion token is specified. When passed the `use_future` token, the free function `post()` returns the result via a `std::future`.
 
@@ -139,7 +139,7 @@ Other types of completion token include plain function objects (used as callback
         std::forward<CompletionToken>(token));
     }
 
-*(Full example: [bank_account_3.cpp](src/examples/executor/bank_account_3.cpp))*
+> *Full example: [bank_account_3.cpp](src/examples/executor/bank_account_3.cpp)*
 
 The caller of this function can now choose how to receive the result of the operation, as opposed to having a single strategy hard-coded in the `bank_account` implementation. For example, the caller could choose to receive the result via a `std::future`:
 
@@ -200,7 +200,7 @@ We can convert the `bank_account` class to use a strand very simply:
       // ...
     };
 
-*(Full example: [bank_account_4.cpp](src/examples/executor/bank_account_4.cpp))*
+> *Full example: [bank_account_4.cpp](src/examples/executor/bank_account_4.cpp)*
 
 ### Lightweight, immediate execution using dispatch
 
@@ -230,7 +230,7 @@ we will always incur the cost of a context switch (plus an extra context switch 
         std::forward<CompletionToken>(token));
     }
 
-*(Full example: [bank_account_4.cpp](src/examples/executor/bank_account_4.cpp))*
+> *Full example: [bank_account_4.cpp](src/examples/executor/bank_account_4.cpp)*
 
 then the enclosed function object can be executed before `dispatch()` returns. The only condition where it will run later is when the strand is already busy on another thread. In this case, in order to meet the strand's non-concurrency guarantee, the function object must be added to the strand's work queue. In the common case there is no contention on the strand and the cost is minimised.
 
@@ -306,7 +306,7 @@ For our bank account example, what is more important is that the variadic `post(
         std::forward<CompletionToken>(token));
     }
 
-*(Full example: [bank_account_5.cpp](src/examples/executor/bank_account_5.cpp))*
+> *Full example: [bank_account_5.cpp](src/examples/executor/bank_account_5.cpp)*
 
 Here, the first function object:
 
@@ -360,7 +360,7 @@ Stackless coroutines are identified by having a last argument of type `await_con
         std::forward<CompletionToken>(token));
     }
 
-*(Full example: [bank_account_6.cpp](src/examples/executor/bank_account_6.cpp))*
+> *Full example: [bank_account_6.cpp](src/examples/executor/bank_account_6.cpp)*
 
 In this library, stackless coroutines are implemented using macros and a switch-based mechanism similar to Duff's Device. The `reenter` macro:
 
@@ -394,7 +394,7 @@ Stackful coroutines are identified by having a last argument of type `yield_cont
         std::forward<CompletionToken>(token));
     }
 
-*(Full example: [bank_account_7.cpp](src/examples/executor/bank_account_7.cpp))*
+> *Full example: [bank_account_7.cpp](src/examples/executor/bank_account_7.cpp)*
 
 The `yield` object is a completion token that means that, when the call out to the `to_acct` object is reached:
 
@@ -425,7 +425,7 @@ Ultimately, executors are defined by a set of type requirements, and each of the
       // ...
     };
 
-*(Full example: [bank_account_8.cpp](src/examples/executor/bank_account_8.cpp))*
+> *Full example: [bank_account_8.cpp](src/examples/executor/bank_account_8.cpp)*
 
 On the other hand, in many situations runtime polymorphism will be preferred. To support this, the library provides the `executor` class, a polymorphic wrapper:
 
@@ -443,7 +443,7 @@ On the other hand, in many situations runtime polymorphism will be preferred. To
       // ...
     };
 
-*(Full example: [bank_account_9.cpp](src/examples/executor/bank_account_9.cpp))*
+> *Full example: [bank_account_9.cpp](src/examples/executor/bank_account_9.cpp)*
 
 The `bank_account` class can then be constructed using an explicitly-specified thread pool:
 
@@ -453,8 +453,8 @@ The `bank_account` class can then be constructed using an explicitly-specified t
 
 or any other object that meets the executor type requirements.
 
-<a name="timers"/> Timers
--------------------------
+Timers
+------
 
 ### Convenience functions for timer operations
 
@@ -501,6 +501,8 @@ These high-level convenience functions can easily be used in resumable functions
         }
       });
 
+> *Full example: [dispatch_at_1.cpp](src/examples/timer/dispatch_at_1.cpp)*
+
 Here, the `yield` object is passed as a completion token to `dispatch_at()`. The resumable function is automatically suspended and resumes once the absolute time is reached.
 
 ### Timer objects and cancellation of timer operations
@@ -536,8 +538,8 @@ Finally, if we want to cancel the wait, we simply use the `cancel()` member func
 
 If the cancellation was successful, the function object is called with a `error_code` equivalent to the condition `std::errc::operation_canceled`.
 
-<a name="channels"/> Channels
------------------------------
+Channels
+--------
 
 Channels provide a lightweight mechanism for chains of asynchronous operations (and especially resumable functions) to communicate and synchronise their execution. Here is a simple example that will print "ping" once a second until stopped:
 
@@ -577,5 +579,7 @@ Channels provide a lightweight mechanism for chains of asynchronous operations (
       std::string input;
       std::getline(std::cin, input);
     }
+
+> *Full example: [ping.cpp](src/examples/channel/ping.cpp)*
 
 When `pinger` attempts to `put` a string into the channel it will wait until `printer` is ready to `get` it.
