@@ -79,14 +79,14 @@ template <class Iterator, class CompletionToken>
 auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
 {
   return dispatch(
-    [=](yield_context ctx)
+    [=](yield_context yield)
     {
       auto largest_acct = end;
       int largest_balance;
 
       for (auto i = begin; i != end; ++i)
       {
-        int balance = i->balance(ctx);
+        int balance = i->balance(yield);
         if (largest_acct == end || balance > largest_balance)
         {
           largest_acct = i;

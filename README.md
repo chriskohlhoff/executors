@@ -387,14 +387,14 @@ Stackful coroutines are identified by having a last argument of type `yield_cont
     auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
     {
       return std::experimental::dispatch(
-        [=](std::experimental::yield_context ctx)
+        [=](std::experimental::yield_context yield)
         {
           auto largest_acct = end;
           int largest_balance;
 
           for (auto i = begin; i != end; ++i)
           {
-            int balance = i->balance(ctx);
+            int balance = i->balance(yield);
             if (largest_acct == end || balance > largest_balance)
             {
               largest_acct = i;
@@ -411,7 +411,7 @@ Stackful coroutines are identified by having a last argument of type `yield_cont
 
 The `yield` object is a completion token that means that, when the call out to a bank account object is reached:
 
-    int balance = i->balance(ctx);
+    int balance = i->balance(yield);
 
 the library implementation automatically suspends the current function. The thread is not blocked and remains available to process other function objects. Once the `balance()` operation completes, the `find_largest_account` function resumes execution at the following statement.
 
