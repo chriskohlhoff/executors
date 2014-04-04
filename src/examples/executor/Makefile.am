@@ -9,7 +9,8 @@ noinst_PROGRAMS = \
 	bank_account_8 \
 	bank_account_9 \
 	sort_1 \
-	sort_2
+	sort_2 \
+	sort_3
 
 AM_CXXFLAGS = -I$(srcdir)/../../../include
 
@@ -24,6 +25,7 @@ bank_account_8_SOURCES = bank_account_8.cpp
 bank_account_9_SOURCES = bank_account_9.cpp
 sort_1_SOURCES = sort_1.cpp
 sort_2_SOURCES = sort_2.cpp
+sort_3_SOURCES = sort_3.cpp
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in
