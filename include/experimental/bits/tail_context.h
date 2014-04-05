@@ -164,13 +164,25 @@ struct handler_type<_Func, _R(_Args...),
   typedef __tail_context_launcher<_Executor, _DecayFunc> type;
 };
 
+template <class _Result>
+struct __tail_result_signature
+{
+  static_assert(!sizeof(_Result*),
+    "A tail_context function must return the result of the tail call operation.");
+};
+
+template <class _Signature>
+struct __tail_result_signature<tail_result<_Signature>>
+{
+  typedef _Signature signature;
+};
+
 template <class _Executor, class _Func>
 struct continuation_of<__tail_context_launcher<_Executor, _Func>>
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef __result_t<__signature_t<_DecayFunc>> _Result;
-  typedef typename _Result::signature signature;
-  static_assert(is_same<_Result, tail_result<signature>>::value, "incorrect tail_result type");
+  typedef typename __tail_result_signature<_Result>::signature signature;
 
   template <class _F, class _Continuation>
   static auto chain(_F&& __f, _Continuation&& __c)

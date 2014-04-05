@@ -432,10 +432,7 @@ template <class _Executor, class _R, class... _Args>
 
 typedef basic_tail_context<executor> tail_context;
 
-template <class _Signature> struct tail_result
-{
-  typedef _Signature signature;
-};
+template <class _Signature> struct tail_result {};
 
 } // namespace experimental
 
