@@ -10,28 +10,26 @@
 using std::experimental::copost;
 using std::experimental::use_future;
 
-struct sorter_continuation_base
-{
-  virtual ~sorter_continuation_base() {}
-  virtual void operator()() = 0;
-};
-
-template <class Continuation>
-struct sorter_continuation : sorter_continuation_base
-{
-  Continuation continuation_;
-  explicit sorter_continuation(Continuation c) : continuation_(std::move(c)) {}
-  virtual void operator()() { continuation_(); }
-};
-
 template <class Iterator>
 struct sorter
 {
   Iterator begin_, end_;
-  std::unique_ptr<sorter_continuation_base> continuation_;
   bool do_merge_ = false;
 
+  // As we are doing recursive copost() calls, some type erasure is required.
+  // Would really prefer to use std::unique_function here, but it doesn't exist.
+  template <class T> static void destroy(void* p) { delete static_cast<T*>(p); }
+  template <class T> static void call(void* p) { (*static_cast<T*>(p))(); }
+  std::unique_ptr<void, void(*)(void*)> continuation_{nullptr, &sorter::destroy<int>};
+  void (*call_continuation_)(void* p) = nullptr;
+
   sorter(Iterator b, Iterator e) : begin_(b), end_(e) {}
+
+  template <class C> sorter(Iterator b, Iterator e, C c)
+    : begin_(b), end_(e),
+      continuation_(new C(std::move(c)), &sorter::destroy<C>),
+      call_continuation_(&sorter::call<C>) {}
+
   void operator()();
 };
 
@@ -42,11 +40,9 @@ struct continuation_traits<sorter<Iterator>>
 {
   typedef void signature();
 
-  template <class F, class C> static sorter<Iterator> chain(F&& f, C c)
+  template <class C> static sorter<Iterator> chain(sorter<Iterator> f, C c)
   {
-    sorter<Iterator> s(f.begin_, f.end_);
-    s.continuation_.reset(new sorter_continuation<C>(std::move(c)));
-    return s;
+    return sorter<Iterator>(f.begin_, f.end_, std::move(c));
   }
 };
 
@@ -59,12 +55,12 @@ void sorter<Iterator>::operator()()
   if (do_merge_)
   {
     std::inplace_merge(begin_, begin_ + (n / 2), end_);
-    (*continuation_)();
+    call_continuation_(continuation_.get());
   }
   else if (n <= 32768)
   {
     std::sort(begin_, end_);
-    (*continuation_)();
+    call_continuation_(continuation_.get());
   }
   else
   {
