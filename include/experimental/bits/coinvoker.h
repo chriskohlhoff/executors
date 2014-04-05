@@ -74,7 +74,7 @@ public:
     handler_type_t<_Head, void()>>::signature...> _HandlerSignature;
   typedef __invoker_tail<_HandlerSignature, _Tail...> _TailInvoker;
   typedef typename _TailInvoker::_Handler _Handler;
-  typedef typename _TailInvoker::_Executor _Executor;
+  typedef typename _TailInvoker::_InitialExecutor _InitialExecutor;
 
   explicit __coinvoker_tail(typename remove_reference<_Tail>::type&... __token)
       : _M_pending(0), _M_invoker(__token...)
@@ -119,7 +119,7 @@ public:
     return _M_invoker._Get_handler();
   }
 
-  _Executor _Make_initial_executor() const
+  _InitialExecutor _Make_initial_executor() const
   {
     return _M_invoker._Make_initial_executor();
   }
@@ -169,7 +169,7 @@ public:
     __t->_Complete();
   }
 
-  typename __coinvoker_tail<_Head, _Tail>::_Executor _Make_initial_executor() const
+  typename __coinvoker_tail<_Head, _Tail>::_InitialExecutor _Make_initial_executor() const
   {
     return _M_tail->_Make_initial_executor();
   }
@@ -187,11 +187,11 @@ public:
   typedef continuation_of<_HeadFunc> _HeadContinuation;
 
   typedef decltype(make_executor(declval<_HeadFunc>())) _HeadExecutor;
-  typedef typename __coinvoker_tail<_Head, _Tail>::_Executor _TailExecutor;
+  typedef typename __coinvoker_tail<_Head, _Tail>::_InitialExecutor _TailExecutor;
 
   typedef typename conditional<
     is_same<_HeadExecutor, unspecified_executor>::value,
-      _TailExecutor, _HeadExecutor>::type _Executor;
+      _TailExecutor, _HeadExecutor>::type _InitialExecutor;
 
   __coinvoker_head(typename remove_reference<_HeadToken>::type& __token,
     __coinvoker_tail<_Head, _Tail>* __tail)
@@ -204,18 +204,18 @@ public:
     _HeadContinuation::chain(std::move(_M_head), std::move(_M_tail))();
   }
 
-  _Executor _Make_initial_executor() const
+  _InitialExecutor _Make_initial_executor() const
   {
     return _Make_initial_executor(is_same<_HeadExecutor, unspecified_executor>());
   }
 
 private:
-  _Executor _Make_initial_executor(true_type) const
+  _InitialExecutor _Make_initial_executor(true_type) const
   {
     return _M_tail._Make_initial_executor();
   }
 
-  _Executor _Make_initial_executor(false_type) const
+  _InitialExecutor _Make_initial_executor(false_type) const
   {
     return make_executor(_M_head);
   }
