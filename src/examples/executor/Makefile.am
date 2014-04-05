@@ -10,7 +10,11 @@ noinst_PROGRAMS = \
 	bank_account_9 \
 	sort_1 \
 	sort_2 \
-	sort_3
+	sort_3 \
+	sort_4 \
+	sort_5 \
+	sort_6 \
+	sort_7
 
 AM_CXXFLAGS = -I$(srcdir)/../../../include
 
@@ -26,6 +30,11 @@ bank_account_9_SOURCES = bank_account_9.cpp
 sort_1_SOURCES = sort_1.cpp
 sort_2_SOURCES = sort_2.cpp
 sort_3_SOURCES = sort_3.cpp
+sort_4_SOURCES = sort_4.cpp
+sort_5_SOURCES = sort_5.cpp
+sort_5_SOURCES = sort_5.cpp
+sort_6_SOURCES = sort_6.cpp
+sort_7_SOURCES = sort_7.cpp
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in

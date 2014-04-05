@@ -1,22 +1,39 @@
 #include <experimental/executor>
 #include <experimental/future>
+#include <experimental/yield>
 #include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <random>
 #include <string>
 
-using std::experimental::copost;
+using std::experimental::codispatch;
 using std::experimental::use_future;
+using std::experimental::yield_context;
+
+template <typename Iterator>
+void sort_coroutine(Iterator begin, Iterator end, yield_context yield)
+{
+  std::size_t n = end - begin;
+  if (n <= 32768)
+  {
+    std::sort(begin, end);
+  }
+  else
+  {
+    copost(
+      [=](yield_context yield) { sort_coroutine(begin, begin + n / 2, yield); },
+      [=](yield_context yield) { sort_coroutine(begin + n / 2, end, yield); },
+      yield);
+    std::inplace_merge(begin, begin + n / 2, end);
+  }
+}
 
 template <class Iterator, class CompletionToken>
 auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
 {
-  const std::size_t n = end - begin;
-  return copost<2>(
-    [=]{ std::sort(begin, begin + (n / 2)); },
-    [=]{ std::sort(begin + (n / 2), end); },
-    [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+  return dispatch(
+    [=](yield_context ctx){ sort_coroutine(begin, end, ctx); },
     std::forward<CompletionToken>(token));
 }
 

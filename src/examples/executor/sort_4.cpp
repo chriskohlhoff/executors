@@ -7,17 +7,33 @@
 #include <string>
 
 using std::experimental::copost;
+using std::experimental::tail_context;
 using std::experimental::use_future;
 
 template <class Iterator, class CompletionToken>
 auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
 {
   const std::size_t n = end - begin;
-  return copost<2>(
-    [=]{ std::sort(begin, begin + (n / 2)); },
-    [=]{ std::sort(begin + (n / 2), end); },
-    [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
-    std::forward<CompletionToken>(token));
+  if (n <= 32768)
+  {
+    return dispatch(
+      [=]{ std::sort(begin, end); },
+      std::forward<CompletionToken>(token));
+  }
+  else
+  {
+    return copost<2>(
+      [=](tail_context tail)
+      {
+        return parallel_sort(begin, begin + (n / 2), std::move(tail));
+      },
+      [=](tail_context tail)
+      {
+        return parallel_sort(begin + (n / 2), end, std::move(tail));
+      },
+      [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+      std::forward<CompletionToken>(token));
+  }
 }
 
 int main(int argc, char* argv[])

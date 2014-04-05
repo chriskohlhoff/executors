@@ -1,3 +1,4 @@
+#include <experimental/await>
 #include <experimental/executor>
 #include <experimental/future>
 #include <algorithm>
@@ -6,17 +7,36 @@
 #include <random>
 #include <string>
 
-using std::experimental::copost;
+using std::experimental::await_context;
+using std::experimental::codispatch;
 using std::experimental::use_future;
+
+template <typename Iterator>
+void sort_coroutine(Iterator begin, Iterator end, await_context ctx)
+{
+  std::size_t n = end - begin;
+  reenter (ctx)
+  {
+    if (n <= 32768)
+    {
+      std::sort(begin, end);
+    }
+    else
+    {
+      await copost(
+        [=](await_context ctx) { sort_coroutine(begin, begin + n / 2, ctx); },
+        [=](await_context ctx) { sort_coroutine(begin + n / 2, end, ctx); },
+        ctx);
+      std::inplace_merge(begin, begin + n / 2, end);
+    }
+  }
+}
 
 template <class Iterator, class CompletionToken>
 auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
 {
-  const std::size_t n = end - begin;
-  return copost<2>(
-    [=]{ std::sort(begin, begin + (n / 2)); },
-    [=]{ std::sort(begin + (n / 2), end); },
-    [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+  return dispatch(
+    [=](await_context ctx){ sort_coroutine(begin, end, ctx); },
     std::forward<CompletionToken>(token));
 }
 
