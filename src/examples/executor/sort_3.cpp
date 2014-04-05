@@ -72,6 +72,14 @@ void sorter<Iterator>::operator()()
   }
 }
 
+template <class Iterator, class CompletionToken>
+auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
+{
+  return dispatch(
+    sorter<Iterator>(begin, end),
+    std::forward<CompletionToken>(token));
+}
+
 int main(int argc, char* argv[])
 {
   const std::string parallel("parallel");
@@ -95,8 +103,7 @@ int main(int argc, char* argv[])
 
   if (argv[1] == parallel)
   {
-    sorter<std::vector<double>::iterator> s(vec.begin(), vec.end());
-    dispatch(std::move(s), use_future).get();
+    parallel_sort(vec.begin(), vec.end(), use_future).get();
   }
   else
   {

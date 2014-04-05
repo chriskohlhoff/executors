@@ -12,7 +12,7 @@ using std::experimental::use_future;
 using std::experimental::yield_context;
 
 template <typename Iterator>
-void parallel_sort(Iterator begin, Iterator end, yield_context yield)
+void sort_coroutine(Iterator begin, Iterator end, yield_context yield)
 {
   std::size_t n = end - begin;
   if (n <= 32768)
@@ -22,11 +22,19 @@ void parallel_sort(Iterator begin, Iterator end, yield_context yield)
   else
   {
     copost(
-      [=](yield_context yield) { parallel_sort(begin, begin + n / 2, yield); },
-      [=](yield_context yield) { parallel_sort(begin + n / 2, end, yield); },
+      [=](yield_context yield) { sort_coroutine(begin, begin + n / 2, yield); },
+      [=](yield_context yield) { sort_coroutine(begin + n / 2, end, yield); },
       yield);
     std::inplace_merge(begin, begin + n / 2, end);
   }
+}
+
+template <class Iterator, class CompletionToken>
+auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
+{
+  return dispatch(
+    [=](yield_context ctx){ sort_coroutine(begin, end, ctx); },
+    std::forward<CompletionToken>(token));
 }
 
 int main(int argc, char* argv[])
@@ -52,9 +60,7 @@ int main(int argc, char* argv[])
 
   if (argv[1] == parallel)
   {
-    dispatch(
-      [&](yield_context yield){ parallel_sort(vec.begin(), vec.end(), yield); },
-      use_future).get();
+    parallel_sort(vec.begin(), vec.end(), use_future).get();
   }
   else
   {
