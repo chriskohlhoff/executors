@@ -196,10 +196,10 @@ struct __last_argument<_R(_Args...)> : __last_argument_in_pack<_Args...> {};
 template <class _Signature>
 using __last_argument_t = typename __last_argument<_Signature>::type;
 
-// __function_continuation_traits: Helper for determining the signature of a continuation.
+// __function_continuation_of: Helper for determining the signature of a continuation.
 
 template <class _T>
-struct __function_continuation_traits
+struct __function_continuation_of
 {
   typedef __make_signature_t<void, __result_t<__signature_t<_T>>> signature;
 };

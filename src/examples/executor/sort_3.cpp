@@ -36,7 +36,7 @@ struct sorter
 namespace std { namespace experimental {
 
 template <class Iterator>
-struct continuation_traits<sorter<Iterator>>
+struct continuation_of<sorter<Iterator>>
 {
   typedef void signature();
 

@@ -70,7 +70,7 @@ template <class... _Head, class... _Tail>
 class __coinvoker_tail<tuple<_Head...>, tuple<_Tail...>>
 {
 public:
-  typedef __signature_cat_t<typename continuation_traits<
+  typedef __signature_cat_t<typename continuation_of<
     handler_type_t<_Head, void()>>::signature...> _HandlerSignature;
   typedef __invoker_tail<_HandlerSignature, _Tail...> _TailInvoker;
   typedef typename _TailInvoker::_Handler _Handler;
@@ -131,7 +131,7 @@ private:
     _M_invoker(std::tuple_cat(get<_Index>(_M_results)._Get_value()...));
   }
 
-  tuple<__coinvoker_result<typename continuation_traits<
+  tuple<__coinvoker_result<typename continuation_of<
     handler_type_t<_Head, void()>>::signature>...> _M_results;
   atomic<size_t> _M_pending;
   _TailInvoker _M_invoker;
@@ -184,7 +184,7 @@ class __coinvoker_head
 public:
   typedef typename tuple_element<_Index, _Head>::type _HeadToken;
   typedef handler_type_t<_HeadToken, void()> _HeadFunc;
-  typedef continuation_traits<_HeadFunc> _HeadTraits;
+  typedef continuation_of<_HeadFunc> _HeadContinuation;
 
   typedef decltype(make_executor(declval<_HeadFunc>())) _HeadExecutor;
   typedef typename __coinvoker_tail<_Head, _Tail>::_Executor _TailExecutor;
@@ -201,7 +201,7 @@ public:
 
   void operator()()
   {
-    _HeadTraits::chain(std::move(_M_head), std::move(_M_tail))();
+    _HeadContinuation::chain(std::move(_M_head), std::move(_M_tail))();
   }
 
   _Executor _Make_initial_executor() const

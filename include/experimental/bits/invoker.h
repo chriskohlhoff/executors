@@ -98,8 +98,8 @@ class __invoker_head<_Signature, _Head, _Tail...>
 {
 public:
   typedef handler_type_t<_Head, _Signature> _HeadFunc;
-  typedef continuation_traits<_HeadFunc> _HeadTraits;
-  typedef typename _HeadTraits::signature _TailSignature;
+  typedef continuation_of<_HeadFunc> _HeadContinuation;
+  typedef typename _HeadContinuation::signature _TailSignature;
   typedef __invoker_tail<_TailSignature, _Tail...> _TailInvoker;
 
   typedef typename _TailInvoker::_Handler _Handler;
@@ -115,7 +115,7 @@ public:
 
   template <class... _Args> void operator()(_Args&&... __args)
   {
-    _HeadTraits::chain(std::move(_M_head), std::move(_M_tail))(forward<_Args>(__args)...);
+    _HeadContinuation::chain(std::move(_M_head), std::move(_M_tail))(forward<_Args>(__args)...);
   }
 
   _Handler& _Get_handler()

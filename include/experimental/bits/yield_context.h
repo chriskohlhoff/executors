@@ -403,7 +403,7 @@ struct handler_type<_Func, _R(_Args...),
 };
 
 template <class _Executor, class _Func>
-struct continuation_traits<__yield_context_launcher<_Executor, _Func>>
+struct continuation_of<__yield_context_launcher<_Executor, _Func>>
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef __result_t<__signature_t<_DecayFunc>> _Result;
