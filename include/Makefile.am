@@ -35,6 +35,7 @@ nobase_include_HEADERS = \
 	experimental/bits/small_block_recycler.h \
 	experimental/bits/strand.h \
 	experimental/bits/system_executor.h \
+	experimental/bits/tail_context.h \
 	experimental/bits/thread_pool.h \
 	experimental/bits/timed_invoker.h \
 	experimental/bits/timer.h \
