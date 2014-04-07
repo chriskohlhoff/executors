@@ -128,7 +128,7 @@ private:
   template <size_t... _Index>
   void _Dispatch(_Index_sequence<_Index...>)
   {
-    _M_invoker(std::tuple_cat(get<_Index>(_M_results)._Get_value()...));
+    std::move(_M_invoker)(std::tuple_cat(get<_Index>(_M_results)._Get_value()...));
   }
 
   tuple<__coinvoker_result<typename continuation_of<
@@ -161,7 +161,7 @@ public:
       _M_tail->_Release();
   }
 
-  template <class... _Args> void operator()(_Args&&... __args)
+  template <class... _Args> void operator()(_Args&&... __args) &&
   {
     _M_tail->template _Set_result<_Index>(forward<_Args>(__args)...);
     auto* __t = _M_tail;
@@ -199,7 +199,7 @@ public:
   {
   }
 
-  void operator()()
+  void operator()() &&
   {
     _HeadContinuation::chain(std::move(_M_head), std::move(_M_tail))();
   }

@@ -55,7 +55,7 @@ public:
 
   virtual _R operator()(_Args... __args)
   {
-    return _M_tail(forward<_Args>(__args)...);
+    return std::move(_M_tail)(forward<_Args>(__args)...);
   }
 
 private:
@@ -71,7 +71,7 @@ struct __tail_context_handler
   {
   }
 
-  template <class... _Args> void operator()(_Args&&... __args)
+  template <class... _Args> void operator()(_Args&&... __args) &&
   {
     (*_M_impl)(forward<_Args>(__args)...);
   }
@@ -135,9 +135,9 @@ struct __tail_context_launcher
   {
   }
 
-  template <class... _Args> void operator()(_Args&&... __args)
+  template <class... _Args> void operator()(_Args&&... __args) &&
   {
-    _M_func(basic_tail_context<_Executor>(make_executor(_M_work), std::move(_M_tail)));
+    std::move(_M_func)(basic_tail_context<_Executor>(make_executor(_M_work), std::move(_M_tail)));
   }
 };
 

@@ -188,11 +188,11 @@ struct __yield_context_call_wrapper
   exception_ptr* _M_exception;
   _Func _M_func;
 
-  void operator()()
+  void operator()() &&
   {
     try
     {
-      _M_func();
+      std::move(_M_func)();
     }
     catch (...)
     {
@@ -323,7 +323,7 @@ struct __yield_context_entry_point
     _Continuation __c(std::move(_M_continuation));
     tuple<_Args...> __args(std::move(_M_args));
     _Tuple_invoke(__f, __args, __ctx);
-    __c();
+    std::move(__c)();
   }
 
   void _Invoke(false_type, const basic_yield_context<_Executor>& __ctx)
@@ -331,7 +331,7 @@ struct __yield_context_entry_point
     _Func __f(std::move(_M_func));
     _Continuation __c(std::move(_M_continuation));
     tuple<_Args...> __args(std::move(_M_args));
-    __c(_Tuple_invoke(__f, __args, __ctx));
+    std::move(__c)(_Tuple_invoke(__f, __args, __ctx));
   }
 };
 

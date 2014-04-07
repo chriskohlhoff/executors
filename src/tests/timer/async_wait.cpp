@@ -20,7 +20,7 @@ struct handler3
   handler3() {}
   handler3(const handler3&) = delete;
   handler3(handler3&&) {}
-  void operator()(std::error_code ec) { if (!ec) ++success_count; }
+  void operator()(std::error_code ec) && { if (!ec) ++success_count; }
 };
 
 int main()

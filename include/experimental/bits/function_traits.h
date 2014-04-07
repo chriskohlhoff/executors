@@ -218,7 +218,7 @@ public:
   {
   }
 
-  void operator()(_FuncArgs... __args)
+  void operator()(_FuncArgs... __args) &&
   {
     this->_Invoke(is_same<void, _FuncResult>(), forward<_FuncArgs>(__args)...);
   }
@@ -227,12 +227,12 @@ private:
   void _Invoke(true_type, _FuncArgs... __args)
   {
     _M_func(forward<_FuncArgs>(__args)...);
-    _M_continuation();
+    std::move(_M_continuation)();
   }
 
   void _Invoke(false_type, _FuncArgs... __args)
   {
-    _M_continuation(_M_func(forward<_FuncArgs>(__args)...));
+    std::move(_M_continuation)(_M_func(forward<_FuncArgs>(__args)...));
   }
 
   _Func _M_func;

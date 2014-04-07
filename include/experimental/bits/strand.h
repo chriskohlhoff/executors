@@ -220,7 +220,7 @@ public:
     __small_block_recycler<>::_Unique_ptr<__strand_op> __op(this);
     _Func __tmp(std::move(_M_func));
     __op.reset();
-    __tmp();
+    std::move(__tmp)();
   }
 
   virtual void _Destroy()
@@ -306,8 +306,7 @@ void strand<_Executor>::dispatch(_Func&& __f)
   typedef typename decay<_Func>::type _DecayFunc;
   if (__call_stack<__strand_impl>::_Contains(_M_impl.get()))
   {
-    _DecayFunc __tmp(forward<_Func>(__f));
-    __tmp();
+    _DecayFunc(forward<_Func>(__f))();
     return;
   }
 

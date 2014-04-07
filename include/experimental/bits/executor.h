@@ -44,7 +44,7 @@ class __function
 {
 public:
   template <class _F> __function(_F&& __f) : _M_func(forward<_F>(__f)) {}
-  virtual void _Invoke() { _M_func(); }
+  virtual void _Invoke() { std::move(_M_func)(); }
 
 private:
   _Func _M_func;

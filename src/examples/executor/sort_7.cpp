@@ -19,7 +19,7 @@ struct sorter
   // As we are doing recursive copost() calls, some type erasure is required.
   // Would really prefer to use std::unique_function here, but it doesn't exist.
   template <class T> static void destroy(void* p) { delete static_cast<T*>(p); }
-  template <class T> static void call(void* p) { (*static_cast<T*>(p))(); }
+  template <class T> static void call(void* p) { std::move(*static_cast<T*>(p))(); }
   std::unique_ptr<void, void(*)(void*)> continuation_{nullptr, &sorter::destroy<int>};
   void (*call_continuation_)(void* p) = nullptr;
 
@@ -30,7 +30,7 @@ struct sorter
       continuation_(new C(std::move(c)), &sorter::destroy<C>),
       call_continuation_(&sorter::call<C>) {}
 
-  void operator()();
+  void operator()() &&;
 };
 
 namespace std { namespace experimental {
@@ -49,7 +49,7 @@ struct continuation_of<sorter<Iterator>>
 }} // namespace std::experimental
 
 template <class Iterator>
-void sorter<Iterator>::operator()()
+void sorter<Iterator>::operator()() &&
 {
   const std::size_t n = end_ - begin_;
   if (do_merge_)

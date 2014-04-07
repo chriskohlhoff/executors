@@ -305,7 +305,7 @@ public:
     __small_block_recycler<>::_Unique_ptr<__scheduler_op> __op(this);
     _Func __tmp(std::move(_M_func));
     __op.reset();
-    __tmp();
+    std::move(__tmp)();
   }
 
   virtual void _Destroy()
@@ -359,8 +359,7 @@ template <class _F> void __scheduler::_Dispatch(_F&& __f)
   typedef typename decay<_F>::type _Func;
   if (_Call_stack::_Contains(this))
   {
-    _Func __tmp(forward<_F>(__f));
-    __tmp();
+    _Func(forward<_F>(__f))();
   }
   else
   {

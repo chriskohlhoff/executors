@@ -34,9 +34,9 @@ public:
     __timer->wait(__e.wrap(std::move(*this)));
   }
 
-  void operator()(const error_code&)
+  void operator()(const error_code&) &&
   {
-    _M_tail();
+    std::move(_M_tail)();
   }
 
   __invoker_tail<void(), _CompletionTokens...>& _Get_tail()

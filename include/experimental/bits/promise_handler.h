@@ -125,11 +125,11 @@ struct __promise_invoker
   __promise_invoker(const shared_ptr<_Promise>& __p, _F&& __f)
     : _M_promise(__p), _M_func(forward<_F>(__f)) {}
 
-  void operator()()
+  void operator()() &&
   {
     try
     {
-      _M_func();
+      std::move(_M_func)();
     }
     catch (...)
     {

@@ -9,9 +9,9 @@ auto async_foo(bool fail, CompletionToken&& tok)
   std::experimental::async_completion<CompletionToken, void(std::error_code)> completion(tok);
 
   if (fail)
-    completion.handler(make_error_code(std::errc::invalid_argument));
+    std::move(completion.handler)(make_error_code(std::errc::invalid_argument));
   else
-    completion.handler(std::error_code());
+    std::move(completion.handler)(std::error_code());
 
   return completion.result.get();
 }
@@ -38,7 +38,7 @@ struct handler3
   handler3() {}
   handler3(const handler3&) = delete;
   handler3(handler3&&) {}
-  void operator()(const std::error_code& e)
+  void operator()(const std::error_code& e) &&
   {
     e ? ++fail_count : ++success_count;
   }

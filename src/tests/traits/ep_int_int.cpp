@@ -13,11 +13,11 @@ auto async_foo(bool fail, CompletionToken&& tok)
     if (fail)
       throw std::runtime_error("fail");
 
-    completion.handler(std::exception_ptr(), 1, 2);
+    std::move(completion.handler)(std::exception_ptr(), 1, 2);
   }
   catch (...)
   {
-    completion.handler(std::current_exception(), 1, 2);
+    std::move(completion.handler)(std::current_exception(), 1, 2);
   }
 
   return completion.result.get();
@@ -45,7 +45,7 @@ struct handler3
   handler3() {}
   handler3(const handler3&) = delete;
   handler3(handler3&&) {}
-  void operator()(const std::exception_ptr& e, int, int)
+  void operator()(const std::exception_ptr& e, int, int) &&
   {
     e ? ++fail_count : ++success_count;
   }

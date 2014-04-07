@@ -7,7 +7,7 @@ auto async_foo(CompletionToken&& tok)
 {
   std::experimental::async_completion<CompletionToken, void(int)> completion(tok);
 
-  completion.handler(1);
+  std::move(completion.handler)(1);
 
   return completion.result.get();
 }
@@ -30,7 +30,7 @@ struct handler3
   handler3() {}
   handler3(const handler3&) = delete;
   handler3(handler3&&) {}
-  void operator()(int) { ++success_count; }
+  void operator()(int) && { ++success_count; }
 };
 
 int main()

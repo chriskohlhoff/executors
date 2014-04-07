@@ -40,14 +40,14 @@ template <class _Func, size_t... _I, class... _Values, class... _Args>
 inline auto _Tuple_invoke_impl(_Func&& __f, _Index_sequence<_I...>,
   tuple<_Values...>& __values, _Args&&... __args)
 {
-  return __f(get<_I>(__values)..., forward<_Args>(__args)...);
+  return forward<_Func>(__f)(get<_I>(__values)..., forward<_Args>(__args)...);
 }
 
 template <class _Func, size_t... _I, class... _Values, class... _Args>
 inline auto _Tuple_invoke_impl(_Func&& __f, _Index_sequence<_I...>,
   tuple<_Values...>&& __values, _Args&&... __args)
 {
-  return __f(std::move(get<_I>(__values))..., forward<_Args>(__args)...);
+  return forward<_Func>(__f)(std::move(get<_I>(__values))..., forward<_Args>(__args)...);
 }
 
 template <class _Func, class... _Values, class... _Args>
@@ -69,13 +69,13 @@ inline auto _Tuple_invoke(_Func&& __f, tuple<_Values...>&& __values, _Args&&... 
 template <class _Func, class... _Args>
 inline auto _Tuple_invoke(_Func&& __f, tuple<>&, _Args&&... __args)
 {
-  return __f(forward<_Args>(__args)...);
+  return forward<_Func>(__f)(forward<_Args>(__args)...);
 }
 
 template <class _Func, class... _Args>
 inline auto _Tuple_invoke(_Func&& __f, tuple<>&&, _Args&&... __args)
 {
-  return __f(forward<_Args>(__args)...);
+  return forward<_Func>(__f)(forward<_Args>(__args)...);
 }
 
 // _Make_tuple_invoker: Creates a function object to call a function using
@@ -87,9 +87,9 @@ struct __tuple_invoker
   _Handler _M_handler;
   tuple<_Values...> _M_args;
 
-  void operator()()
+  void operator()() &&
   {
-    _Tuple_invoke(_M_handler, std::move(_M_args));
+    _Tuple_invoke(std::move(_M_handler), std::move(_M_args));
   }
 };
 

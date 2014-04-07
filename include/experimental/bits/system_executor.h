@@ -68,7 +68,7 @@ template <class _Func>
 void system_executor::dispatch(_Func&& __f)
 {
   typename decay<_Func>::type tmp(forward<_Func>(__f));
-  tmp();
+  std::move(tmp)();
 }
 
 inline system_executor::work system_executor::make_work()

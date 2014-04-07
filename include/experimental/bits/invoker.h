@@ -35,7 +35,7 @@ public:
   {
   }
 
-  template <class... _Args> void operator()(_Args&&... __args)
+  template <class... _Args> void operator()(_Args&&... __args) &&
   {
     make_executor(_M_work).dispatch(_Make_tuple_invoker(
       std::move(_M_head), forward<_Args>(__args)...));
@@ -69,9 +69,9 @@ public:
   {
   }
 
-  template <class... _Args> void operator()(_Args&&... __args)
+  template <class... _Args> void operator()(_Args&&... __args) &&
   {
-    _M_handler(forward<_Args>(__args)...);
+    std::move(_M_handler)(forward<_Args>(__args)...);
   }
 
   _Handler& _Get_handler()
@@ -113,7 +113,7 @@ public:
   {
   }
 
-  template <class... _Args> void operator()(_Args&&... __args)
+  template <class... _Args> void operator()(_Args&&... __args) &&
   {
     _HeadContinuation::chain(std::move(_M_head), std::move(_M_tail))(forward<_Args>(__args)...);
   }

@@ -194,7 +194,7 @@ private:
       {
         _Tuple_invoke(_M_function, _M_args, __ctx);
         if (_Get_coroutine(__ctx)._Is_complete())
-          _M_continuation();
+          std::move(_M_continuation)();
         else if (--_M_invocations != 0)
           continue;
         return;
@@ -210,7 +210,7 @@ private:
       {
         auto __r = _Tuple_invoke(_M_function, _M_args, __ctx);
         if (_Get_coroutine(__ctx)._Is_complete())
-          _M_continuation(std::move(__r));
+          std::move(_M_continuation)(std::move(__r));
         else if (--_M_invocations != 0)
           continue;
         return;
@@ -323,7 +323,7 @@ struct __await_context_call_wrapper
   {
     try
     {
-      _M_func();
+      std::move(_M_func)();
     }
     catch (...)
     {
