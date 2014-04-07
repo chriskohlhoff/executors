@@ -466,6 +466,92 @@ The `bank_account` class can then be constructed using an explicitly-specified t
 
 or any other object that meets the executor type requirements.
 
+### Coordinating parallel operations
+
+To illustate the tools that this library provides for managing parallelism and concurrency, let us now turn our attention to a different use case: sorting large datasets. Consider an example where we want to sort a very large vector of doubles:
+
+    std::vector<double> vec(a_very_large_number);
+    ...
+    std::sort(vec.begin(), vec.end());
+
+If we are running this code on a system with two at least CPUs then we can cut the running time by splitting the array into halves, sorting each half in parallel, and finally merging the two now-sorted halves into a sorted whole. The executors library lets us do this easily using the `copost()` function:
+
+    std::experimental::copost(
+      [&]{ std::sort(vec.begin(), vec.begin() + (vec.size() / 2)); },
+      [&]{ std::sort(vec.begin() + (vec.size() / 2), vec.end()); },
+      std::experimental::use_future).get();
+
+    std::inplace_merge(vec.begin(), vec.begin() + (vec.size() / 2), vec.end());
+
+> *Full example: [sort_1.cpp](src/examples/executor/sort_1.cpp)*
+
+The function name `copost()` is short for **co**ncurrent **post**. In the above example, it posts the two lambda objects:
+
+    [&]{ std::sort(vec.begin(), vec.begin() + (vec.size() / 2)); },
+    [&]{ std::sort(vec.begin() + (vec.size() / 2), vec.end()); },
+
+to the system thread pool, where they can run in parallel. When both have finished, the caller is notified via the final completion token (in this case, `use_future`).
+
+Like `post()`, `copost()` (and its counterpart `codispatch()`) is a variadic template function that can accept a number of completion tokens. The library defines `copost()` as:
+
+    auto copost(t0, t1, ..., tN-1, tN);
+    auto copost(executor, t0, t1, ..., tN-1, tN);
+
+where *t0* to *tN* are completion tokens. When we call `copost()`, the library turns each of the tokens into the function objects *f0* to *fN*. The functions *f0* to *fN-1* are then posted for parallel execution, and only when all are complete will *fN* be invoked. The return values of *f0* to *fN-1* are passed as arguments to *fN* as in the following example:
+
+    std::experimental::copost(ex_,
+      []{ return 1; },
+      []{ return "hello"s; },
+      []{ return 123.0; },
+      [](int a, std::string b, double c) { ... });
+
+To facilitate reusability, we will now wrap our parallel sort implementation in a function and let the user choose how to wait for completion. However, once the two halves have been sorted we now need to perform two separate actions: merge the halves, *and* deliver the completion notification according to the user-supplied token. We can do this by calling `copost()` with an explicitly specified number of parallel actions:
+
+    template <class Iterator, class CompletionToken>
+    auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
+    {
+      const std::size_t n = end - begin;
+      return std::experimental::copost<2>(
+        [=]{ std::sort(begin, begin + (n / 2)); },
+        [=]{ std::sort(begin + (n / 2), end); },
+        [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+        std::forward<CompletionToken>(token));
+    }
+
+> *Full example: [sort_2.cpp](src/examples/executor/sort_2.cpp)*
+
+Here, the `2` used as the template parameter:
+
+    return std::experimental::copost<2>(
+
+tells the library that we want the first two function objects to be run in parallel:
+
+      [=]{ std::sort(begin, begin + (n / 2)); },
+      [=]{ std::sort(begin + (n / 2), end); },
+
+Once both of these complete, the remaining function objects are run serially, in the same way as in a regular `post()` call:
+
+      [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+      std::forward<CompletionToken>(token));
+
+This variant of `copost()` works as described below.
+
+    template <size_t N> auto copost(t0, t1, ..., tN-1, tN, tN+1, ...);
+    template <size_t N> auto copost(executor, t0, t1, ..., tN-1, tN, tN+1, ...);
+
+The completion tokens *t0* to *tN* are converted to the function objects *f0* to *fN*. The functions *f0* to *fN-1* are then posted for parallel execution, and only when all are complete will *fN* be invoked. The return values of *f0* to *fN-1* are passed as arguments to *fN*, the result of *fN* is passed to *fN+1*, the result of *fN+1* to *fN+2*, and so on. For example:
+
+    std::future<std::string> fut = std::experimental::copost<3>(ex_,
+      []{ return 1; },
+      []{ return "hello"s; },
+      []{ return 123.0; },
+      [](int a, std::string b, double c) { return std::to_string(a) + b + std::to_string(c); },
+      [](std::string s) { return "value is " + s; },
+      std::experimental::use_future);
+    std::cout << fut.get() << std::endl;
+
+will output the string `value is 1hello123.000000`.
+
 Timers
 ------
 
