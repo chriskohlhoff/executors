@@ -485,7 +485,7 @@ If we are running this code on a system with two at least CPUs then we can cut t
 
 > *Full example: [sort_1.cpp](src/examples/executor/sort_1.cpp)*
 
-The function name `copost()` is short for **co**ncurrent **post**. In the above example, it posts the two lambda objects:
+The function name `copost()` is short for <b>co</b>ncurrent **post**. In the above example, it posts the two lambda objects:
 
     [&]{ std::sort(vec.begin(), vec.begin() + (vec.size() / 2)); },
     [&]{ std::sort(vec.begin() + (vec.size() / 2), vec.end()); },
