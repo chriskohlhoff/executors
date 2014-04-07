@@ -37,7 +37,7 @@ template <size_t, class...> struct __coinvoke_n_without_executor;
 template <size_t, class, class...> struct __coinvoke_n_with_executor;
 
 class __tail_context;
-template <class, class> class __tail_context_launcher;
+template <class, class> struct __tail_context_launcher;
 
 // Execution context.
 
@@ -415,7 +415,7 @@ public:
 private:
   template <class> friend class basic_tail_context;
   template <class, class> friend class __tail_context_handler;
-  template <class, class> friend class __tail_context_launcher;
+  template <class, class> friend struct __tail_context_launcher;
 
   basic_tail_context(const typename _Executor::work& __w, unique_ptr<__tail_context> __i)
     : _M_executor(make_executor(__w)), _M_impl(std::move(__i)) {}

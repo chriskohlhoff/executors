@@ -137,7 +137,8 @@ struct __tail_context_launcher
 
   template <class... _Args> void operator()(_Args&&... __args) &&
   {
-    std::move(_M_func)(basic_tail_context<_Executor>(make_executor(_M_work), std::move(_M_tail)));
+    std::move(_M_func)(forward<_Args>(__args)...,
+      basic_tail_context<_Executor>(make_executor(_M_work), std::move(_M_tail)));
   }
 };
 
