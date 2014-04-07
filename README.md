@@ -468,7 +468,7 @@ or any other object that meets the executor type requirements.
 
 ### Coordinating parallel operations
 
-To illustate the tools that this library provides for managing parallelism and concurrency, let us now turn our attention to a different use case: sorting large datasets. Consider an example where we want to sort a very large vector of doubles:
+To illustrate the tools that this library provides for managing parallelism and concurrency, let us now turn our attention to a different use case: sorting large datasets. Consider an example where we want to sort a very large vector of doubles:
 
     std::vector<double> vec(a_very_large_number);
     ...
