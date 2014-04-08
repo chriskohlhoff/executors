@@ -72,15 +72,21 @@ template <class _R, class _C, class... _Args>
 struct __signature_function<_R(_C::*)(_Args...)> : __signature_base<_R(_Args...)> {};
 
 template <class _R, class _C, class... _Args>
+struct __signature_function<_R(_C::*)(_Args...) &&> : __signature_base<_R(_Args...)> {};
+
+template <class _R, class _C, class... _Args>
 struct __signature_function<_R(_C::*)(_Args...) const> : __signature_base<_R(_Args...)> {};
+
+template <class _R, class _C, class... _Args>
+struct __signature_function<_R(_C::*)(_Args...) const &&> : __signature_base<_R(_Args...)> {};
 
 template <class _T, class = void>
 struct __signature_result_of {};
 
 template <class _T>
 struct __signature_result_of<_T,
-  typename __signature_check<typename result_of<_T()>::type>::type>
-    : __signature_base<typename result_of<_T()>::type()> {};
+  typename __signature_check<typename result_of<_T&&()>::type>::type>
+    : __signature_base<typename result_of<_T&&()>::type()> {};
 
 template <class _T, class = void>
 struct __signature_class : __signature_result_of<_T> {};
@@ -226,13 +232,13 @@ public:
 private:
   void _Invoke(true_type, _FuncArgs... __args)
   {
-    _M_func(forward<_FuncArgs>(__args)...);
+    std::move(_M_func)(forward<_FuncArgs>(__args)...);
     std::move(_M_continuation)();
   }
 
   void _Invoke(false_type, _FuncArgs... __args)
   {
-    std::move(_M_continuation)(_M_func(forward<_FuncArgs>(__args)...));
+    std::move(_M_continuation)(std::move(_M_func)(forward<_FuncArgs>(__args)...));
   }
 
   _Func _M_func;

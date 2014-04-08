@@ -1,6 +1,7 @@
 nobase_include_HEADERS = \
 	experimental/await \
 	experimental/channel \
+	experimental/continuation \
 	experimental/executor \
 	experimental/future \
 	experimental/loop_scheduler \
@@ -15,6 +16,7 @@ nobase_include_HEADERS = \
 	experimental/bits/channel_void.h \
 	experimental/bits/codispatch.h \
 	experimental/bits/coinvoker.h \
+	experimental/bits/continuation.h \
 	experimental/bits/copost.h \
 	experimental/bits/curry.h \
 	experimental/bits/dispatch.h \
@@ -36,7 +38,6 @@ nobase_include_HEADERS = \
 	experimental/bits/small_block_recycler.h \
 	experimental/bits/strand.h \
 	experimental/bits/system_executor.h \
-	experimental/bits/tail_context.h \
 	experimental/bits/thread_pool.h \
 	experimental/bits/timed_invoker.h \
 	experimental/bits/timer.h \

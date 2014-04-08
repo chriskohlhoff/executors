@@ -36,9 +36,6 @@ template <class, class...> struct __coinvoke_with_executor;
 template <size_t, class...> struct __coinvoke_n_without_executor;
 template <size_t, class, class...> struct __coinvoke_n_with_executor;
 
-class __tail_context;
-template <class, class> struct __tail_context_launcher;
-
 // Execution context.
 
 class execution_context
@@ -348,13 +345,6 @@ bool operator==(nullptr_t, const executor::work& __w) noexcept;
 bool operator!=(const executor::work& __w, nullptr_t) noexcept;
 bool operator!=(nullptr_t, const executor::work& __w) noexcept;
 
-// Create a continuation function object from a list of completion tokens.
-
-template <class... _CompletionTokens>
-  auto curry(_CompletionTokens&&... __tokens);
-template <class _Signature, class... _CompletionTokens>
-  auto curry(_CompletionTokens&&... __tokens);
-
 // Schedule a function to run later.
 
 template <class... _CompletionTokens>
@@ -403,44 +393,6 @@ template <size_t _N, class _Executor, class... _CompletionTokens>
   typename __coinvoke_n_with_executor<_N, _Executor, _CompletionTokens...>::_Result
     codispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
 
-// Completion token type for performing tail calls.
-
-template <class _Executor>
-class basic_tail_context
-{
-public:
-  // construct / copy / destroy:
-
-  template <class _OtherExecutor>
-    basic_tail_context(basic_tail_context<_OtherExecutor>&&);
-
-  basic_tail_context(const basic_tail_context&) = delete;
-  basic_tail_context(basic_tail_context&&) = default;
-  basic_tail_context& operator=(const basic_tail_context&) = delete;
-  basic_tail_context& operator=(basic_tail_context&&) = default;
-
-private:
-  template <class> friend class basic_tail_context;
-  template <class, class> friend class __tail_context_handler;
-  template <class, class> friend struct __tail_context_launcher;
-
-  basic_tail_context(const typename _Executor::work& __w, unique_ptr<__tail_context> __i)
-    : _M_executor(make_executor(__w)), _M_impl(std::move(__i)) {}
-
-  _Executor _M_executor;
-  unique_ptr<__tail_context> _M_impl;
-};
-
-template <class _Executor>
-  _Executor make_executor(const basic_tail_context<_Executor>& __c);
-
-template <class _Executor, class _R, class... _Args>
-  struct handler_type<basic_tail_context<_Executor>, _R(_Args...)>;
-
-typedef basic_tail_context<executor> tail_context;
-
-template <class _Signature> struct tail_result {};
-
 } // namespace experimental
 
 template<class _Alloc>
@@ -458,11 +410,9 @@ template<class _Alloc>
 #include <experimental/bits/unspecified_executor.h>
 #include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/executor.h>
-#include <experimental/bits/curry.h>
 #include <experimental/bits/post.h>
 #include <experimental/bits/dispatch.h>
 #include <experimental/bits/copost.h>
 #include <experimental/bits/codispatch.h>
-#include <experimental/bits/tail_context.h>
 
 #endif

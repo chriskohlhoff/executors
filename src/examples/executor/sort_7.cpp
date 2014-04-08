@@ -1,3 +1,4 @@
+#include <experimental/continuation>
 #include <experimental/executor>
 #include <experimental/future>
 #include <algorithm>
@@ -7,6 +8,7 @@
 #include <random>
 #include <string>
 
+using std::experimental::continuation;
 using std::experimental::copost;
 using std::experimental::use_future;
 
@@ -15,20 +17,12 @@ struct sorter
 {
   Iterator begin_, end_;
   bool do_merge_ = false;
-
-  // As we are doing recursive copost() calls, some type erasure is required.
-  // Would really prefer to use std::unique_function here, but it doesn't exist.
-  template <class T> static void destroy(void* p) { delete static_cast<T*>(p); }
-  template <class T> static void call(void* p) { std::move(*static_cast<T*>(p))(); }
-  std::unique_ptr<void, void(*)(void*)> continuation_{nullptr, &sorter::destroy<int>};
-  void (*call_continuation_)(void* p) = nullptr;
+  continuation<void()> continuation_;
 
   sorter(Iterator b, Iterator e) : begin_(b), end_(e) {}
 
   template <class C> sorter(Iterator b, Iterator e, C c)
-    : begin_(b), end_(e),
-      continuation_(new C(std::move(c)), &sorter::destroy<C>),
-      call_continuation_(&sorter::call<C>) {}
+    : begin_(b), end_(e), continuation_(std::move(c)) {}
 
   void operator()() &&;
 };
@@ -55,12 +49,12 @@ void sorter<Iterator>::operator()() &&
   if (do_merge_)
   {
     std::inplace_merge(begin_, begin_ + (n / 2), end_);
-    call_continuation_(continuation_.get());
+    dispatch(std::move(continuation_));
   }
   else if (n <= 32768)
   {
     std::sort(begin_, end_);
-    call_continuation_(continuation_.get());
+    dispatch(std::move(continuation_));
   }
   else
   {
