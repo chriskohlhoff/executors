@@ -17,14 +17,14 @@
 namespace std {
 namespace experimental {
 
-template <class _Signature, class... _CompletionTokens>
-class __invoker_head;
+template <class _Signature, class... _CompletionTokens> class __invoker_head;
+template <class _Signature, class... _CompletionTokens> class __invoker_tail;
 
-template <class _Signature, class... _CompletionTokens>
-class __invoker_tail
+template <class _Result, class... _Args, class... _CompletionTokens>
+class __invoker_tail<_Result(_Args...), _CompletionTokens...>
 {
 public:
-  typedef __invoker_head<_Signature, _CompletionTokens...> _HeadInvoker;
+  typedef __invoker_head<_Result(_Args...), _CompletionTokens...> _HeadInvoker;
   typedef typename _HeadInvoker::_Handler _Handler;
   typedef typename _HeadInvoker::_Executor _Executor;
   typedef typename _HeadInvoker::_InitialExecutor _InitialExecutor;
@@ -35,7 +35,7 @@ public:
   {
   }
 
-  template <class... _Args> void operator()(_Args&&... __args) &&
+  void operator()(_Args... __args) &&
   {
     make_executor(_M_work).dispatch(_Make_tuple_invoker(
       std::move(_M_head), forward<_Args>(__args)...));
@@ -56,11 +56,11 @@ private:
   typename _Executor::work _M_work;
 };
 
-template <class _Signature, class _CompletionToken>
-class __invoker_head<_Signature, _CompletionToken>
+template <class _Result, class... _Args, class _CompletionToken>
+class __invoker_head<_Result(_Args...), _CompletionToken>
 {
 public:
-  typedef handler_type_t<_CompletionToken, _Signature> _Handler;
+  typedef handler_type_t<_CompletionToken, _Result(_Args...)> _Handler;
   typedef decltype(make_executor(declval<_Handler>())) _Executor;
   typedef decltype(make_executor(declval<_Handler>())) _InitialExecutor;
 
@@ -69,7 +69,7 @@ public:
   {
   }
 
-  template <class... _Args> void operator()(_Args&&... __args) &&
+  void operator()(_Args... __args) &&
   {
     std::move(_M_handler)(forward<_Args>(__args)...);
   }
@@ -93,11 +93,11 @@ private:
   _Handler _M_handler;
 };
 
-template <class _Signature, class _Head, class... _Tail>
-class __invoker_head<_Signature, _Head, _Tail...>
+template <class _Result, class... _Args, class _Head, class... _Tail>
+class __invoker_head<_Result(_Args...), _Head, _Tail...>
 {
 public:
-  typedef handler_type_t<_Head, _Signature> _HeadFunc;
+  typedef handler_type_t<_Head, _Result(_Args...)> _HeadFunc;
   typedef continuation_of<_HeadFunc> _HeadContinuation;
   typedef typename _HeadContinuation::signature _TailSignature;
   typedef __invoker_tail<_TailSignature, _Tail...> _TailInvoker;
@@ -113,7 +113,7 @@ public:
   {
   }
 
-  template <class... _Args> void operator()(_Args&&... __args) &&
+  void operator()(_Args... __args) &&
   {
     _HeadContinuation::chain(std::move(_M_head), std::move(_M_tail))(forward<_Args>(__args)...);
   }
@@ -167,6 +167,13 @@ public:
     : async_result<typename __invoker_tail<_Signature, _CompletionTokens...>::_Handler>(
         __h._Get_handler()) {}
 };
+
+template <class _Signature, class... _CompletionTokens>
+inline typename __invoker_tail<_Signature, _CompletionTokens...>::_InitialExecutor
+  make_executor(const __invoker_tail<_Signature, _CompletionTokens...>& __i)
+{
+  return __i._Make_initial_executor();
+}
 
 template <class... _T> struct __is_executor;
 

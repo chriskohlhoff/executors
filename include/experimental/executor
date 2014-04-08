@@ -348,6 +348,13 @@ bool operator==(nullptr_t, const executor::work& __w) noexcept;
 bool operator!=(const executor::work& __w, nullptr_t) noexcept;
 bool operator!=(nullptr_t, const executor::work& __w) noexcept;
 
+// Create a continuation function object from a list of completion tokens.
+
+template <class... _CompletionTokens>
+  auto curry(_CompletionTokens&&... __tokens);
+template <class _Signature, class... _CompletionTokens>
+  auto curry(_CompletionTokens&&... __tokens);
+
 // Schedule a function to run later.
 
 template <class... _CompletionTokens>
@@ -451,6 +458,7 @@ template<class _Alloc>
 #include <experimental/bits/unspecified_executor.h>
 #include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/executor.h>
+#include <experimental/bits/curry.h>
 #include <experimental/bits/post.h>
 #include <experimental/bits/dispatch.h>
 #include <experimental/bits/copost.h>

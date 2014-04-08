@@ -16,6 +16,7 @@ nobase_include_HEADERS = \
 	experimental/bits/codispatch.h \
 	experimental/bits/coinvoker.h \
 	experimental/bits/copost.h \
+	experimental/bits/curry.h \
 	experimental/bits/dispatch.h \
 	experimental/bits/dispatch_at.h \
 	experimental/bits/dispatch_after.h \

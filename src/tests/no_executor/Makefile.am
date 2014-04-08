@@ -1,4 +1,8 @@
 noinst_PROGRAMS = \
+	curry_int \
+	curry_int_int \
+	curry_int_void \
+	curry_void \
 	dispatch_int \
 	dispatch_void \
 	dispatch_after_int \
@@ -9,6 +13,10 @@ noinst_PROGRAMS = \
 	post_void
 
 TESTS = \
+	curry_int \
+	curry_int_int \
+	curry_int_void \
+	curry_void \
 	dispatch_int \
 	dispatch_void \
 	dispatch_after_int \
@@ -20,6 +28,10 @@ TESTS = \
 
 AM_CXXFLAGS = -I$(srcdir)/../../../include
 
+curry_int_SOURCES = curry_int.cpp
+curry_int_int_SOURCES = curry_int_int.cpp
+curry_int_void_SOURCES = curry_int_void.cpp
+curry_void_SOURCES = curry_void.cpp
 dispatch_int_SOURCES = dispatch_int.cpp
 dispatch_void_SOURCES = dispatch_void.cpp
 dispatch_after_int_SOURCES = dispatch_after_int.cpp

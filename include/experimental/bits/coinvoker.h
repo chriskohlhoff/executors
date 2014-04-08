@@ -128,7 +128,7 @@ private:
   template <size_t... _Index>
   void _Dispatch(_Index_sequence<_Index...>)
   {
-    std::move(_M_invoker)(std::tuple_cat(get<_Index>(_M_results)._Get_value()...));
+    _Tuple_invoke(std::move(_M_invoker), std::tuple_cat(get<_Index>(_M_results)._Get_value()...));
   }
 
   tuple<__coinvoker_result<typename continuation_of<
