@@ -639,7 +639,7 @@ Both of these have a `void` return type. Therefore, the `Signature` applied to t
 
 Now that we have a heuristic for deciding when an array is too small to warrant a parallel sort, we can use this test to make a complementary improvement to our algorithm: if, after dividing our array into halves, the halves themselves are above the threshold, they can be further divided and sorted in parallel. That is, we can make our `parallel_sort()` function recursive.
 
-By default, operations like `dispatch()` and `copost()` preserve the type information of the tokens passed to them. This gives the compiler maximum opportunity to optimise the chain. However, recursion implies that we will need some form of type erasure. This is achieved using the polymorphic wrapper `completion<>`:
+By default, operations like `dispatch()` and `copost()` preserve the type information of the tokens passed to them. This gives the compiler maximum opportunity to optimise the chain. However, recursion implies that we will need some form of type erasure. This is achieved using the polymorphic wrapper `continuation<>`:
 
     template <class Iterator, class CompletionToken>
     auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
@@ -670,11 +670,11 @@ By default, operations like `dispatch()` and `copost()` preserve the type inform
 
 > *Full example: [sort_4.cpp](src/examples/executor/sort_4.cpp)*
 
-When the library is passed a function with a last argument of type `completion<>`:
+When the library is passed a function with a last argument of type `continuation<>`:
 
     [=](continuation<> c)
 
-it captures the chain of function objects that comes after it (that is, the continuation of the current function), and passes them in the `completion<>` object. We must then pass this continuation object on to other operations, such as a recursive call to `parallel_sort()`:
+it captures the chain of function objects that comes after it (that is, the continuation of the current function), and passes them in the `continuation<>` object. We must then pass this continuation object on to other operations, such as a recursive call to `parallel_sort()`:
 
     {
       return parallel_sort(begin, begin + (n / 2), std::move(c));
