@@ -574,6 +574,67 @@ Unlike a direct call, this has the advantage of preserving completion token beha
 
 and outputs the string `value is 4`.
 
+### Predictable return type deduction
+
+For small arrays there is little benefit in parallelisation, as the CPU cost of coordinating parallel operations can outweigh any savings in elapsed time. We will now alter our parallel sort implementation to add a heuristic to detect small arrays and sort them serially:
+
+    template <class Iterator, class CompletionToken>
+    auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
+    {
+      const std::size_t n = end - begin;
+      if (n <= 32768)
+      {
+        return std::experimental::dispatch(
+          [=]{ std::sort(begin, end); },
+          std::forward<CompletionToken>(token));
+      }
+      else
+      {
+        return std::experimental::copost(
+          [=]{ std::sort(begin, begin + (n / 2)); },
+          [=]{ std::sort(begin + (n / 2), end); },
+          std::experimental::curry(
+            [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+            std::forward<CompletionToken>(token)));
+      }
+    }
+
+> *Full example: [sort_3.cpp](src/examples/executor/sort_3.cpp)*
+
+As our `parallel_sort()` function has an automatically deduced return type, we must ensure that all return statements use the same type. At first glance, it appears that we have two quite different return statements, with the `dispatch()` performing the serial sort:
+
+    return std::experimental::dispatch(
+      [=]{ std::sort(begin, end); },
+      std::forward<CompletionToken>(token));
+
+and the `copost()` performing the parallel sort:
+
+    return std::experimental::copost(
+      [=]{ std::sort(begin, begin + (n / 2)); },
+      [=]{ std::sort(begin + (n / 2), end); },
+      std::experimental::curry(
+        [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+        std::forward<CompletionToken>(token)));
+
+The `dispatch()` and `copost()` return types are each deduced in two steps using the `handler_type<>` and `async_result<>` type traits:
+
+1. The handler type `Handler` is determined by `handler_type<CompletionToken, Signature>::type`.
+2. The return type is determined by `async_result<Handler>::type`.
+
+You will recall that with both `dispatch()` and `curry()`, the function objects are called serially and the result of a function is passed as the argument to the next. If we consider the position of our completion tokens:
+
+    std::forward<CompletionToken>(token)));
+
+then for the `dispatch()` call, the preceding function is the lambda:
+
+    [=]{ std::sort(begin, end); },
+
+and for `curry()`, the preceding function is:
+
+    [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+
+Both of these have a `void` return type. Therefore, the `Signature` applied to the completion token is the same in both cases, namely `void()`. Consequently, both calls have the same return type.
+
 Timers
 ------
 
