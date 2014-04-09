@@ -635,6 +635,75 @@ and for `curry()`, the preceding function is:
 
 Both of these have a `void` return type. Therefore, the `Signature` applied to the completion token is the same in both cases, namely `void()`. Consequently, both calls have the same return type.
 
+### Polymorphic continuations
+
+Now that we have a heuristic for deciding when an array is too small to warrant a parallel sort, we can use this test to make a complementary improvement to our algorithm: if, after dividing our array into halves, the halves themselves are above the threshold, they can be further divided and sorted in parallel. That is, we can make our `parallel_sort()` function recursive.
+
+By default, operations like `dispatch()` and `copost()` preserve the type information of the tokens passed to them. This gives the compiler maximum opportunity to optimise the chain. However, recursion implies that we will need some type of type erasure. This is achieved using the polymorphic wrapper `completion<>`:
+
+    template <class Iterator, class CompletionToken>
+    auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
+    {
+      const std::size_t n = end - begin;
+      if (n <= 32768)
+      {
+        return dispatch(
+          [=]{ std::sort(begin, end); },
+          std::forward<CompletionToken>(token));
+      }
+      else
+      {
+        return copost(
+          [=](continuation<> c)
+          {
+            return parallel_sort(begin, begin + (n / 2), std::move(c));
+          },
+          [=](continuation<> c)
+          {
+            return parallel_sort(begin + (n / 2), end, std::move(c));
+          },
+          curry(
+            [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+            std::forward<CompletionToken>(token)));
+      }
+    }
+
+> *Full example: [sort_4.cpp](src/examples/executor/sort_4.cpp)*
+
+When the library is passed a function with a last argument of type `completion<>`:
+
+    [=](continuation<> c)
+
+it captures the chain of function objects that come after it (that is, the continuation of the current function), and passes them in the `completion<>` object. We must then pass this continuation object on to other operations, such as a recursive call to `parallel_sort()`:
+
+    {
+      return parallel_sort(begin, begin + (n / 2), std::move(c));
+    },
+
+In this example we let the library work out the correct signature of the continuation. The return type of the recursive call to `parallel_sort()` contains the type information needed by the library to make this deduction. If, on the other hand, we prefer to be explicit then we can specify the continuation signature as a template parameter to `continuation<>`:
+
+    [=](continuation<void()> c)
+    {
+      parallel_sort(begin, begin + (n / 2), std::move(c));
+    },
+
+These polymorphic continuations can also be used to capture and store other function objects:
+
+    continuation<void()> c = std::experimental::curry(
+      []{ return 1; },
+      [](int i) { return i + 1; },
+      [](int i) { return i * 2; },
+      [](int i) { return std::to_string(i); },
+      [](std::string s) { std::cout << "value is " << s << "\n"; });
+
+The polymorphic wrapper has the same behaviour as the non-type-erased objects returned by `curry()`. That is, it has a `void` return type and must be called using an rvalue reference:
+
+    std::move(c)();
+
+or, as with `curry()`, more often passed to some other operation:
+
+    std::experimental::post(std::move(c));
+
 Timers
 ------
 
