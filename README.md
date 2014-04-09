@@ -335,7 +335,7 @@ which, again thanks to `wrap()`, is run on the `to_acct` object's strand. By run
 
 ### Composition using resumable functions
 
-Variadic `post()` and `dispatch()` are useful for strictly sequential task flow, but for more complex control flow the executors library offers another approach: resumable functions, or coroutines. These coroutines come in two flavours, stackless and stackful, and to illustrate them we will now add function to find the bank account with the largest balance.
+Variadic `post()` and `dispatch()` are useful for strictly sequential task flow, but for more complex control flow the executors library offers another approach: resumable functions, or coroutines. These coroutines come in two flavours, stackless and stackful, and to illustrate them we will now add a function to find the bank account with the largest balance.
 
 Stackless coroutines are identified by having a last argument of type `await_context`:
 
