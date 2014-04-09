@@ -1,3 +1,4 @@
+#include <experimental/continuation>
 #include <experimental/executor>
 #include <experimental/future>
 #include <algorithm>
@@ -7,6 +8,7 @@
 #include <string>
 
 using std::experimental::copost;
+using std::experimental::curry;
 using std::experimental::use_future;
 
 template <class Iterator, class CompletionToken>
@@ -21,11 +23,12 @@ auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
   }
   else
   {
-    return copost<2>(
+    return copost(
       [=]{ std::sort(begin, begin + (n / 2)); },
       [=]{ std::sort(begin + (n / 2), end); },
-      [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
-      std::forward<CompletionToken>(token));
+      curry(
+        [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
+        std::forward<CompletionToken>(token)));
   }
 }
 

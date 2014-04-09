@@ -29,13 +29,7 @@ template <class... _CompletionTokens>
 inline typename __coinvoke_without_executor<_CompletionTokens...>::_Result
   codispatch(_CompletionTokens&&... __tokens)
 {
-  return codispatch<sizeof...(_CompletionTokens) - 1>(forward<_CompletionTokens>(__tokens)...);
-}
-
-template <size_t _N, class... _CompletionTokens>
-typename __coinvoke_n_without_executor<_N, _CompletionTokens...>::_Result
-  codispatch(_CompletionTokens&&... __tokens)
-{
+  constexpr size_t _N = sizeof...(_CompletionTokens) - 1;
   typedef __tuple_split_first<tuple<_CompletionTokens...>, _N> _Head;
   typedef __tuple_split_second<tuple<_CompletionTokens...>, _N> _Tail;
   return __coinvoker_launcher<_Head, _Tail>(__tokens...)._Go(__coinvoke_dispatch(), __tokens...);
@@ -56,13 +50,7 @@ template <class _Executor, class... _CompletionTokens>
 inline typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
   codispatch(_Executor&& __e, _CompletionTokens&&... __tokens)
 {
-  return codispatch<sizeof...(_CompletionTokens) - 1>(forward<_Executor>(__e), forward<_CompletionTokens>(__tokens)...);
-}
-
-template <size_t _N, class _Executor, class... _CompletionTokens>
-typename __coinvoke_n_with_executor<_N, _Executor, _CompletionTokens...>::_Result
-  codispatch(_Executor&& __e, _CompletionTokens&&... __tokens)
-{
+  constexpr size_t _N = sizeof...(_CompletionTokens) - 1;
   typedef __tuple_split_first<tuple<_CompletionTokens...>, _N> _Head;
   typedef __tuple_split_second<tuple<_CompletionTokens...>, _N> _Tail;
   return __coinvoker_launcher<_Head, _Tail>(__tokens...)._Go(__coinvoke_dispatch_ex<_Executor>{__e}, __tokens...);

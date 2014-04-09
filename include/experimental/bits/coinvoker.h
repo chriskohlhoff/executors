@@ -66,18 +66,18 @@ private:
 template <class _Head, class _Tail>
 class __coinvoker_tail;
 
-template <class... _Head, class... _Tail>
-class __coinvoker_tail<tuple<_Head...>, tuple<_Tail...>>
+template <class... _Head, class _Tail>
+class __coinvoker_tail<tuple<_Head...>, tuple<_Tail>>
 {
 public:
   typedef __signature_cat_t<typename continuation_of<
     handler_type_t<_Head, void()>>::signature...> _HandlerSignature;
-  typedef __invoker_tail<_HandlerSignature, _Tail...> _TailInvoker;
+  typedef __invoker_tail<_HandlerSignature, _Tail> _TailInvoker;
   typedef typename _TailInvoker::_Handler _Handler;
   typedef typename _TailInvoker::_InitialExecutor _InitialExecutor;
 
-  explicit __coinvoker_tail(typename remove_reference<_Tail>::type&... __token)
-      : _M_pending(0), _M_invoker(__token...)
+  explicit __coinvoker_tail(typename remove_reference<_Tail>::type& __token)
+      : _M_pending(0), _M_invoker(__token)
   {
   }
 
@@ -227,21 +227,21 @@ private:
 template <class _Head, class _Tail>
 class __coinvoker_launcher;
 
-template <class... _Head, class... _Tail>
-class __coinvoker_launcher<tuple<_Head...>, tuple<_Tail...>>
+template <class... _Head, class _Tail>
+class __coinvoker_launcher<tuple<_Head...>, tuple<_Tail>>
 {
 public:
   __coinvoker_launcher(typename remove_reference<_Head>::type&...,
-    typename remove_reference<_Tail>::type&... __tail)
-      : _M_tail(new __coinvoker_tail<tuple<_Head...>, tuple<_Tail...>>(__tail...))
+    typename remove_reference<_Tail>::type& __tail)
+      : _M_tail(new __coinvoker_tail<tuple<_Head...>, tuple<_Tail>>(__tail))
   {
   }
 
   template <class _Action>
   auto _Go(_Action __a, typename remove_reference<_Head>::type&... __head,
-    typename remove_reference<_Tail>::type&...)
+    typename remove_reference<_Tail>::type&)
   {
-    typedef typename __coinvoker_tail<tuple<_Head...>, tuple<_Tail...>>::_Handler _Handler;
+    typedef typename __coinvoker_tail<tuple<_Head...>, tuple<_Tail>>::_Handler _Handler;
     async_result<_Handler> __result(_M_tail->_Get_handler());
     this->_Go_0(__a, typename _Make_index_sequence<sizeof...(_Head)>::_Type(), __head...);
     return __result.get();
@@ -253,7 +253,7 @@ private:
     typename remove_reference<_Head>::type&... __head)
   {
     this->_Go_1(__a,
-      __coinvoker_head<_Indexes, tuple<_Head...>, tuple<_Tail...>>(
+      __coinvoker_head<_Indexes, tuple<_Head...>, tuple<_Tail>>(
         __head, _M_tail.get())...);
   }
 
@@ -275,43 +275,32 @@ private:
     (_Go_2)(__a, forward<_Invokers>(__j)...);
   }
 
-  unique_ptr<__coinvoker_tail<tuple<_Head...>, tuple<_Tail...>>> _M_tail;
+  unique_ptr<__coinvoker_tail<tuple<_Head...>, tuple<_Tail>>> _M_tail;
 };
 
-template <size_t _HeadSize, class... _CompletionTokens>
+template <class... _CompletionTokens>
 struct __coinvoke_result
 {
-  typedef __tuple_split_first<tuple<_CompletionTokens...>, _HeadSize> _Head;
-  typedef __tuple_split_second<tuple<_CompletionTokens...>, _HeadSize> _Tail;
+  static constexpr size_t _N = sizeof...(_CompletionTokens) - 1;
+  typedef __tuple_split_first<tuple<_CompletionTokens...>, _N> _Head;
+  typedef __tuple_split_second<tuple<_CompletionTokens...>, _N> _Tail;
   typedef typename __coinvoker_tail<_Head, _Tail>::_Handler _Handler;
   typedef typename async_result<_Handler>::type _Result;
 };
 
 struct __coinvoke_no_result {};
 
-template <size_t _HeadSize, class... _CompletionTokens>
-struct __coinvoke_n_without_executor
-  : conditional<__is_executor<_CompletionTokens...>::value,
-    __coinvoke_no_result, __coinvoke_result<_HeadSize, _CompletionTokens...>>::type
-{
-};
-
-template <size_t _HeadSize, class _Executor, class... _CompletionTokens>
-struct __coinvoke_n_with_executor
-  : conditional<__is_executor<_Executor>::value,
-    __coinvoke_result<_HeadSize, _CompletionTokens...>, __coinvoke_no_result>::type
-{
-};
-
 template <class... _CompletionTokens>
 struct __coinvoke_without_executor
-  : __coinvoke_n_without_executor<sizeof...(_CompletionTokens) - 1, _CompletionTokens...>
+  : conditional<__is_executor<_CompletionTokens...>::value,
+    __coinvoke_no_result, __coinvoke_result<_CompletionTokens...>>::type
 {
 };
 
 template <class _Executor, class... _CompletionTokens>
 struct __coinvoke_with_executor
-  : __coinvoke_n_with_executor<sizeof...(_CompletionTokens) - 1, _Executor, _CompletionTokens...>
+  : conditional<__is_executor<_Executor>::value,
+    __coinvoke_result<_CompletionTokens...>, __coinvoke_no_result>::type
 {
 };
 
