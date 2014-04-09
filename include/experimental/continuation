@@ -38,12 +38,12 @@ public:
 
   continuation() noexcept;
   continuation(nullptr_t) noexcept;
-  continuation(continuation&& __c);
+  continuation(continuation&& __c) noexcept;
   continuation(continuation<>&&) = delete;
   template <class _Continuation> continuation(_Continuation __c);
   template <class _Alloc> continuation(allocator_arg_t, const _Alloc&) noexcept;
   template <class _Alloc> continuation(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
-  template <class _Alloc> continuation(allocator_arg_t, const _Alloc&, continuation&& __c);
+  template <class _Alloc> continuation(allocator_arg_t, const _Alloc&, continuation&& __c) noexcept;
   template <class _Alloc> continuation(allocator_arg_t, const _Alloc&, continuation<>&&) = delete;
   template <class _Continuation, class _Alloc>
     continuation(allocator_arg_t, const _Alloc& __a, _Continuation __c);
@@ -107,13 +107,13 @@ public:
 
   continuation() noexcept;
   continuation(nullptr_t) noexcept;
-  continuation(continuation&& __c);
-  template <class _R, class... _Args> continuation(continuation<_R(_Args...)>&& __c);
+  continuation(continuation&& __c) noexcept;
+  template <class _R, class... _Args> continuation(continuation<_R(_Args...)>&& __c) noexcept;
   template <class _Alloc> continuation(allocator_arg_t, const _Alloc&) noexcept;
   template <class _Alloc> continuation(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
-  template <class _Alloc> continuation(allocator_arg_t, const _Alloc&, continuation&& __c);
+  template <class _Alloc> continuation(allocator_arg_t, const _Alloc&, continuation&& __c) noexcept;
   template <class _R, class... _Args, class _Alloc>
-    continuation(allocator_arg_t, const _Alloc& __a, continuation<_R(_Args...)>&& __c);
+    continuation(allocator_arg_t, const _Alloc& __a, continuation<_R(_Args...)>&& __c) noexcept;
 
   continuation& operator=(continuation&& __c);
   continuation& operator=(nullptr_t);
