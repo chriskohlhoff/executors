@@ -140,7 +140,7 @@ inline continuation<_R(_Args...)>::continuation(allocator_arg_t, const _Alloc&, 
 }
 
 template <class _R, class... _Args> template <class _Continuation, class _Alloc>
-inline continuation<_R(_Args...)>::continuation(allocator_arg_t, const _Alloc& __a, _Continuation __c)
+inline continuation<_R(_Args...)>::continuation(allocator_arg_t, const _Alloc&, _Continuation __c)
   : _M_impl(new __continuation_impl<_Continuation, _R(_Args...)>(std::move(__c)))
 {
 }
@@ -303,7 +303,7 @@ inline continuation<>::continuation(allocator_arg_t, const _Alloc&, continuation
 }
 
 template <class _R, class... _Args, class _Alloc>
-inline continuation<>::continuation(allocator_arg_t, const _Alloc& __a, continuation<_R(_Args...)>&& __c) noexcept
+inline continuation<>::continuation(allocator_arg_t, const _Alloc&, continuation<_R(_Args...)>&& __c) noexcept
   : _M_impl(std::move(__c._M_impl))
 {
 }
