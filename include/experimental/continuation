@@ -20,6 +20,7 @@ namespace experimental {
 
 class __continuation;
 template <class> class __continuation_impl_base;
+template <class, class...> struct __continuation_chain;
 template <class> struct __continuation_handler;
 
 class bad_continuation;
@@ -70,6 +71,7 @@ public:
 
 private:
   friend class continuation<>;
+  template <class, class...> friend struct __continuation_chain;
   template <class> friend struct __continuation_handler;
   template <class _R1, class... _Args1>
     friend executor make_executor(const continuation<_R1(_Args1...)>& __c);
@@ -82,6 +84,9 @@ private:
   explicit continuation(__continuation_impl_base<_R(_Args...)>* __i) : _M_impl(__i) {}
   unique_ptr<__continuation_impl_base<_R(_Args...)>> _M_impl;
 };
+
+template <class _R, class... _Args>
+  struct continuation_of<continuation<_R(_Args...)>>;
 
 template <class _R, class... _Args>
   executor make_executor(const continuation<_R(_Args...)>& __c);

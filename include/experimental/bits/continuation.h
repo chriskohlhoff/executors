@@ -48,7 +48,9 @@ class __continuation_impl_base<_R(_Args...)>
   : public __continuation
 {
 public:
-  virtual _R operator()(_Args... __args) = 0;
+  virtual void _Call(_Args... __args) = 0;
+  virtual void _Call_with_continuation(_Args... __args,
+    continuation<__make_signature_t<void, _R>>&& __c) = 0;
 };
 
 template <class _Continuation, class _Signature>
@@ -62,9 +64,17 @@ public:
   template <class _T> explicit __continuation_impl(_T&& __t)
     : _M_continuation(forward<_T>(__t)) {}
 
-  virtual _R operator()(_Args... __args)
+  virtual void _Call(_Args... __args)
   {
-    return std::move(_M_continuation)(forward<_Args>(__args)...);
+    std::move(_M_continuation)(forward<_Args>(__args)...);
+  }
+
+  virtual void _Call_with_continuation(_Args... __args,
+    continuation<__make_signature_t<void, _R>>&& __c)
+  {
+    continuation_of<_Continuation>::chain(
+      std::move(_M_continuation), std::move(__c))(
+        forward<_Args>(__args)...);
   }
 
   virtual const type_info& _Target_type()
@@ -172,7 +182,7 @@ inline void continuation<_R(_Args...)>::operator()(_Args... __args) &&
 {
   if (!_M_impl)
     throw bad_continuation();
-  (*_M_impl)(forward<_Args>(__args)...);
+  _M_impl->_Call(forward<_Args>(__args)...);
 }
 
 template <class _R, class... _Args>
@@ -192,6 +202,30 @@ inline const _Continuation* continuation<_R(_Args...)>::target() const noexcept
 {
   return static_cast<_Continuation*>(_M_impl->_Target());
 }
+
+template <class _R, class... _Args>
+struct __continuation_chain
+{
+  continuation<_R(_Args...)> _M_head;
+  continuation<__make_signature_t<void, _R>> _M_tail;
+
+  void operator()(_Args... __args) &&
+  {
+    _M_head._M_impl->_Call_with_continuation(forward<_Args>(__args)..., std::move(_M_tail));
+  }
+};
+
+template <class _R, class... _Args>
+struct continuation_of<continuation<_R(_Args...)>>
+{
+  typedef __make_signature_t<void, _R> signature;
+
+  template <class _C>
+  static auto chain(continuation<_R(_Args...)>&& __f, _C&& __c)
+  {
+    return __continuation_chain<_R, _Args...>{std::move(__f), forward<_C>(__c)};
+  }
+};
 
 template <class _R, class... _Args>
 inline executor make_executor(const continuation<_R(_Args...)>& __c)
