@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_INVOKER_H
 #define EXECUTORS_EXPERIMENTAL_BITS_INVOKER_H
 
+#include <experimental/bits/function_traits.h>
 #include <experimental/bits/tuple_utils.h>
 
 namespace std {
@@ -30,8 +31,12 @@ public:
   typedef typename _HeadInvoker::_InitialExecutor _InitialExecutor;
 
   explicit __invoker_tail(typename remove_reference<_CompletionTokens>::type&... __tokens)
-    : _M_head(__tokens...),
-      _M_work(_M_head._Make_executor().make_work())
+    : _M_head(__tokens...), _M_work(_M_head._Make_executor().make_work())
+  {
+  }
+
+  __invoker_tail(_HeadInvoker&& __head, typename _Executor::work&& __work)
+    : _M_head(std::move(__head)), _M_work(std::move(__work))
   {
   }
 
@@ -49,6 +54,19 @@ public:
   _InitialExecutor _Make_initial_executor() const
   {
     return _M_head._Make_initial_executor();
+  }
+
+  template <class _C> auto _Chain(_C&& __c)
+  {
+    return __invoker_tail<_Result(_Args...), _CompletionTokens..., _C>(
+      _M_head._Chain(forward<_C>(__c)), std::move(_M_work));
+  }
+
+  template <class _R, class... _A, class... _T>
+  auto _Chain(__invoker_tail<_R(_A...), _T...>&& __c)
+  {
+    return __invoker_tail<_Result(_Args...), _CompletionTokens..., _T...>(
+      _M_head._Chain(std::move(__c)), std::move(_M_work));
   }
 
 private:
@@ -89,6 +107,19 @@ public:
     return make_executor(_M_handler);
   }
 
+  template <class _C> auto _Chain(_C&& __c)
+  {
+    return __invoker_head<_Result(_Args...), _CompletionToken, _C>(std::move(_M_handler),
+      __invoker_tail<typename continuation_of<_Handler>::signature, _C>(__c));
+  }
+
+  template <class _R, class... _A, class... _T>
+  auto _Chain(__invoker_tail<_R(_A...), _T...>&& __c)
+  {
+    return __invoker_head<_Result(_Args...), _CompletionToken, _T...>(
+      std::move(_M_handler), std::move(__c));
+  }
+
 private:
   _Handler _M_handler;
 };
@@ -113,6 +144,11 @@ public:
   {
   }
 
+  __invoker_head(_HeadFunc&& __head, _TailInvoker&& __tail)
+    : _M_head(std::move(__head)), _M_tail(std::move(__tail))
+  {
+  }
+
   void operator()(_Args... __args) &&
   {
     _HeadContinuation::chain(std::move(_M_head), std::move(_M_tail))(forward<_Args>(__args)...);
@@ -133,6 +169,19 @@ public:
     return _Make_initial_executor(is_same<_Executor, unspecified_executor>());
   }
 
+  template <class _C> auto _Chain(_C&& __c)
+  {
+    return __invoker_head<_Result(_Args...), _Head, _Tail..., _C>(
+      std::move(_M_head), _M_tail._Chain(forward<_C>(__c)));
+  }
+
+  template <class _R, class... _A, class... _T>
+  auto _Chain(__invoker_tail<_R(_A...), _T...>&& __c)
+  {
+    return __invoker_head<_Result(_Args...), _Head, _Tail..., _T...>(
+      std::move(_M_head), _M_tail._Chain(std::move(__c)));
+  }
+
 private:
   _InitialExecutor _Make_initial_executor(true_type) const
   {
@@ -146,6 +195,19 @@ private:
 
   _HeadFunc _M_head;
   _TailInvoker _M_tail;
+};
+
+template <class _Result, class... _Args, class... _CompletionTokens>
+struct continuation_of<__invoker_tail<_Result(_Args...), _CompletionTokens...>>
+{
+  typedef typename continuation_of<typename __invoker_tail<
+    _Result(_Args...), _CompletionTokens...>::_Handler>::signature signature;
+
+  template <class _C>
+  static auto chain(__invoker_tail<_Result(_Args...), _CompletionTokens...>&& __f, _C&& __c)
+  {
+    return __f._Chain(forward<_C>(__c));
+  }
 };
 
 template <class _Signature, class... _CompletionTokens>
