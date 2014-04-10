@@ -22,25 +22,23 @@
 namespace std {
 namespace experimental {
 
-template <class... _Values>
+template <class... _Args>
 struct __value_pack
 {
-  typedef tuple<_Values...> _Type;
+  typedef tuple<typename decay<_Args>::type...> _Type;
 
-  template <class... _Args>
-  static void _Apply(promise<_Type>& __p, _Args&&... __args)
+  static void _Apply(promise<_Type>& __p, _Args... __args)
   {
     __p.set_value(std::make_tuple(forward<_Args>(__args)...));
   }
 };
 
-template <class _Value>
-struct __value_pack<_Value>
+template <class _Arg>
+struct __value_pack<_Arg>
 {
-  typedef _Value _Type;
+  typedef typename decay<_Arg>::type _Type;
 
-  template <class _Arg>
-  static void _Apply(promise<_Type>& __p, _Arg&& __arg)
+  static void _Apply(promise<_Type>& __p, _Arg __arg)
   {
     __p.set_value(forward<_Arg>(__arg));
   }
@@ -57,67 +55,64 @@ struct __value_pack<>
   }
 };
 
-template <class... _Values>
+template <class... _Args>
 struct __promise_handler
 {
-  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  typedef promise<typename __value_pack<_Args...>::_Type> _Promise;
   shared_ptr<_Promise> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
     : _M_promise(make_shared<_Promise>(allocator_arg, __u.get_allocator())) {}
 
-  template <class... _Args>
-  void operator()(_Args&&... __args)
+  void operator()(_Args... __args)
   {
-    __value_pack<_Values...>::_Apply(*_M_promise, forward<_Args>(__args)...);
+    __value_pack<_Args...>::_Apply(*_M_promise, forward<_Args>(__args)...);
   }
 };
 
-template <class... _Values>
-struct __promise_handler<error_code, _Values...>
+template <class... _Args>
+struct __promise_handler<error_code, _Args...>
 {
-  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  typedef promise<typename __value_pack<_Args...>::_Type> _Promise;
   shared_ptr<_Promise> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
     : _M_promise(make_shared<_Promise>(allocator_arg, __u.get_allocator())) {}
 
-  template <class... _Args>
-  void operator()(const error_code& __e, _Args&&... __args)
+  void operator()(const error_code& __e, _Args... __args)
   {
     if (__e)
       _M_promise->set_exception(make_exception_ptr(system_error(__e)));
     else
-      __value_pack<_Values...>::_Apply(*_M_promise, forward<_Args>(__args)...);
+      __value_pack<_Args...>::_Apply(*_M_promise, forward<_Args>(__args)...);
   }
 };
 
-template <class... _Values>
-struct __promise_handler<exception_ptr, _Values...>
+template <class... _Args>
+struct __promise_handler<exception_ptr, _Args...>
 {
-  typedef promise<typename __value_pack<_Values...>::_Type> _Promise;
+  typedef promise<typename __value_pack<_Args...>::_Type> _Promise;
   shared_ptr<_Promise> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
     : _M_promise(make_shared<_Promise>(allocator_arg, __u.get_allocator())) {}
 
-  template <class... _Args>
-  void operator()(const exception_ptr& __e, _Args&&... __args)
+  void operator()(const exception_ptr& __e, _Args... __args)
   {
     if (__e)
       _M_promise->set_exception(__e);
     else
-      __value_pack<_Values...>::_Apply(*_M_promise, forward<_Args>(__args)...);
+      __value_pack<_Args...>::_Apply(*_M_promise, forward<_Args>(__args)...);
   }
 };
 
-template <class _Func, class... _Values>
+template <class _Func, class... _Args>
 struct __promise_invoker
 {
-  typedef typename __promise_handler<_Values...>::_Promise _Promise;
+  typedef typename __promise_handler<_Args...>::_Promise _Promise;
   shared_ptr<_Promise> _M_promise;
   _Func _M_func;
 
@@ -138,10 +133,10 @@ struct __promise_invoker
   }
 };
 
-template <class... _Values>
+template <class... _Args>
 struct __promise_executor
 {
-  typedef typename __promise_handler<_Values...>::_Promise _Promise;
+  typedef typename __promise_handler<_Args...>::_Promise _Promise;
   shared_ptr<_Promise> _M_promise;
 
   struct work
@@ -160,13 +155,13 @@ struct __promise_executor
   {
     typedef typename decay<_F>::type _Func;
     system_executor().post(
-      __promise_invoker<_Func, _Values...>(_M_promise, forward<_F>(__f)));
+      __promise_invoker<_Func, _Args...>(_M_promise, forward<_F>(__f)));
   }
 
   template <class _F> void dispatch(_F&& __f)
   {
     typedef typename decay<_F>::type _Func;
-    __promise_invoker<_Func, _Values...>(_M_promise, forward<_F>(__f))();
+    __promise_invoker<_Func, _Args...>(_M_promise, forward<_F>(__f))();
   }
 
   template <class _Func>
@@ -186,20 +181,20 @@ struct __promise_executor
   }
 };
 
-template <class... _Values>
-struct is_executor<__promise_executor<_Values...>> : true_type {};
+template <class... _Args>
+struct is_executor<__promise_executor<_Args...>> : true_type {};
 
-template <class... _Values>
-inline auto make_executor(const __promise_handler<_Values...>& __h)
+template <class... _Args>
+inline auto make_executor(const __promise_handler<_Args...>& __h)
 {
-  return __promise_executor<_Values...>{__h._M_promise};
+  return __promise_executor<_Args...>{__h._M_promise};
 }
 
-template <class... _Values>
-class async_result<__promise_handler<_Values...>>
+template <class... _Args>
+class async_result<__promise_handler<_Args...>>
 {
 public:
-  typedef __promise_handler<_Values...> _Handler;
+  typedef __promise_handler<_Args...> _Handler;
   typedef decltype(*declval<_Handler>()._M_promise) _Promise;
   typedef decltype(declval<_Promise>().get_future()) type;
 
@@ -217,7 +212,7 @@ private:
 template <class _Alloc, class _R, class... _Args>
 struct handler_type<use_future_t<_Alloc>, _R(_Args...)>
 {
-  typedef __promise_handler<typename decay<_Args>::type...> type;
+  typedef __promise_handler<_Args...> type;
 };
 
 } // namespace experimental
