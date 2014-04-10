@@ -82,6 +82,9 @@ public:
   typedef decltype(make_executor(declval<_Handler>())) _Executor;
   typedef decltype(make_executor(declval<_Handler>())) _InitialExecutor;
 
+  static_assert(__is_callable_with<_Handler, _Result(_Args...)>::value,
+    "function object must be callable with the specified signature");
+
   explicit __invoker_head(typename remove_reference<_CompletionToken>::type& __token)
     : _M_handler(static_cast<_CompletionToken&&>(__token))
   {
