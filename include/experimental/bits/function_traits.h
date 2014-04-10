@@ -46,18 +46,15 @@ struct __is_callable :
     __is_callable_class<_T>, __is_callable_function<_T>>::type {};
 
 // __is_callable_with: Determines whether a function object is callable with the
-// given list of arguments.
-
-template <class _T>
-struct __is_callable_with_check { typedef void type; };
+// specified signature.
 
 template <class _T, class _Signature, class = void>
 struct __is_callable_with : false_type {};
 
 template <class _T, class _R, class... _Args>
-struct __is_callable_with<_T, _R(_Args...),
-  typename __is_callable_with_check<decltype(declval<_T&&>()(declval<_Args>()...))>::type>
-    : true_type {};
+struct __is_callable_with<_T, _R(_Args...), typename enable_if<
+  is_convertible<typename result_of<_T&&(_Args...)>::type, _R>::value
+    || is_same<_R, void>::value>::type> : true_type {};
 
 // __signature: Makes a best effort at determining the signature of a function
 // or function object. Works for functions, nullary function objects, and
