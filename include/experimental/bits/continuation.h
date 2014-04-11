@@ -61,6 +61,13 @@ class __continuation_impl<_Continuation, _R(_Args...)>
   : public __continuation_impl_base<_R(_Args...)>
 {
 public:
+  static_assert(__is_callable_with<_Continuation, void(_Args...)>::value,
+    "continuation must be callable with the specified arguments");
+
+  static_assert(__is_callable_with<typename continuation_of<_Continuation>::signature,
+    __make_signature_t<void, _R>>::value,
+    "continuation's continuation must accept specified return value");
+
   template <class _T> explicit __continuation_impl(_T&& __t)
     : _M_continuation(forward<_T>(__t)) {}
 
