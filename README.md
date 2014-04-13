@@ -781,7 +781,7 @@ or an absolute one:
 
 Once the expiry time is set, we then wait for the timer to expire:
 
-    timer.wait([[(std::error_code ec){ std::cout << "Hello, world!\n"; });
+    timer.wait([](std::error_code ec){ std::cout << "Hello, world!\n"; });
 
 Finally, if we want to cancel the wait, we simply use the `cancel()` member function:
 
