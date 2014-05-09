@@ -156,7 +156,7 @@ struct continuation_of
   // - if _Func and decay<_Func>::type are different types,
   //   continuation_of<typename decay<_Func>::type>::type;
   //
-  // - if _Func is a function ponter type, the return type;
+  // - if _Func is a function pointer type, the return type;
   //
   // - if _Func is a function object type with a single, non-template overload
   //   of operator(), the return type of operator();
