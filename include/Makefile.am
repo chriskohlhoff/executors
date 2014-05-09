@@ -12,13 +12,13 @@ nobase_include_HEADERS = \
 	experimental/yield \
 	experimental/bits/await_context.h \
 	experimental/bits/call_stack.h \
+	experimental/bits/chain.h \
 	experimental/bits/channel.h \
 	experimental/bits/channel_void.h \
 	experimental/bits/codispatch.h \
 	experimental/bits/coinvoker.h \
 	experimental/bits/continuation.h \
 	experimental/bits/copost.h \
-	experimental/bits/curry.h \
 	experimental/bits/dispatch.h \
 	experimental/bits/dispatch_at.h \
 	experimental/bits/dispatch_after.h \

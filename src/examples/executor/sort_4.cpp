@@ -9,7 +9,7 @@
 
 using std::experimental::continuation;
 using std::experimental::copost;
-using std::experimental::curry;
+using std::experimental::chain;
 using std::experimental::use_future;
 
 template <class Iterator, class CompletionToken>
@@ -33,7 +33,7 @@ auto parallel_sort(Iterator begin, Iterator end, CompletionToken&& token)
       {
         return parallel_sort(begin + (n / 2), end, std::move(c));
       },
-      curry(
+      chain(
         [=]{ std::inplace_merge(begin, begin + (n / 2), end); },
         std::forward<CompletionToken>(token)));
   }

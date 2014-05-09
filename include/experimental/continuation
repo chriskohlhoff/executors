@@ -168,9 +168,9 @@ template <class _Signature>
 // Create a continuation function object from a list of completion tokens.
 
 template <class... _CompletionTokens>
-  auto curry(_CompletionTokens&&... __tokens);
+  auto chain(_CompletionTokens&&... __tokens);
 template <class _Signature, class... _CompletionTokens>
-  auto curry(_CompletionTokens&&... __tokens);
+  auto chain(_CompletionTokens&&... __tokens);
 
 } // namespace experimental
 
@@ -185,6 +185,6 @@ template<class _Alloc>
 } // namespace std
 
 #include <experimental/bits/continuation.h>
-#include <experimental/bits/curry.h>
+#include <experimental/bits/chain.h>
 
 #endif

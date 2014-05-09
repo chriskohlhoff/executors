@@ -32,7 +32,6 @@ sort_2_SOURCES = sort_2.cpp
 sort_3_SOURCES = sort_3.cpp
 sort_4_SOURCES = sort_4.cpp
 sort_5_SOURCES = sort_5.cpp
-sort_5_SOURCES = sort_5.cpp
 sort_6_SOURCES = sort_6.cpp
 sort_7_SOURCES = sort_7.cpp
 

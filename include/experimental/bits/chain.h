@@ -1,5 +1,5 @@
 //
-// curry.h
+// chain.h
 // ~~~~~~~
 // Create a function object from a list of tokens.
 //
@@ -9,8 +9,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef EXECUTORS_EXPERIMENTAL_BITS_CURRY_H
-#define EXECUTORS_EXPERIMENTAL_BITS_CURRY_H
+#ifndef EXECUTORS_EXPERIMENTAL_BITS_CHAIN_H
+#define EXECUTORS_EXPERIMENTAL_BITS_CHAIN_H
 
 #include <experimental/bits/invoker.h>
 
@@ -18,19 +18,19 @@ namespace std {
 namespace experimental {
 
 template <class... _CompletionTokens>
-auto curry(_CompletionTokens&&... __tokens)
+auto chain(_CompletionTokens&&... __tokens)
 {
   static_assert(sizeof...(_CompletionTokens) > 0,
-    "curry() must be called with one or more completion tokens");
+    "chain() must be called with one or more completion tokens");
 
   return __invoker_tail<void(), _CompletionTokens...>(__tokens...);
 }
 
 template <class _Signature, class... _CompletionTokens>
-auto curry(_CompletionTokens&&... __tokens)
+auto chain(_CompletionTokens&&... __tokens)
 {
   static_assert(sizeof...(_CompletionTokens) > 0,
-    "curry() must be called with one or more completion tokens");
+    "chain() must be called with one or more completion tokens");
 
   return __invoker_tail<_Signature, _CompletionTokens...>(__tokens...);
 }
