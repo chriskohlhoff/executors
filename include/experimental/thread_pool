@@ -20,7 +20,7 @@
 namespace std {
 namespace experimental {
 
-// Loop scheduler.
+// Thread pool.
 
 class thread_pool
   : public execution_context,
