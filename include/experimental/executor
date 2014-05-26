@@ -247,8 +247,8 @@ public:
 
   executor() noexcept;
   executor(nullptr_t) noexcept;
-  executor(const executor& __e);
-  executor(executor&& __e);
+  executor(const executor& __e) noexcept;
+  executor(executor&& __e) noexcept;
   template <class _Executor> executor(_Executor __e);
   template <class _Alloc> executor(allocator_arg_t, const _Alloc&) noexcept;
   template <class _Alloc> executor(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
@@ -257,9 +257,9 @@ public:
   template <class _Executor, class _Alloc>
     executor(allocator_arg_t, const _Alloc& __a, _Executor __e);
 
-  executor& operator=(const executor& __e);
-  executor& operator=(executor&& __e);
-  executor& operator=(nullptr_t);
+  executor& operator=(const executor& __e) noexcept;
+  executor& operator=(executor&& __e) noexcept;
+  executor& operator=(nullptr_t) noexcept;
   template <class _Executor> executor& operator=(_Executor&& __e);
 
   ~executor();

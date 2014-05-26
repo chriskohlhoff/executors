@@ -501,12 +501,12 @@ inline executor::executor(nullptr_t) noexcept
 {
 }
 
-inline executor::executor(const executor& __e)
+inline executor::executor(const executor& __e) noexcept
   : _M_impl(__e._M_impl->_Clone())
 {
 }
 
-inline executor::executor(executor&& __e)
+inline executor::executor(executor&& __e) noexcept
   : _M_impl(__e._M_impl)
 {
   __e._M_impl = __bad_executor_impl::_Create();
@@ -554,7 +554,7 @@ inline executor::~executor()
   _M_impl->_Destroy();
 }
 
-inline executor& executor::operator=(const executor& __e)
+inline executor& executor::operator=(const executor& __e) noexcept
 {
   __executor_impl_base* __tmp = _M_impl;
   _M_impl = __e._M_impl->_Clone();
@@ -562,7 +562,7 @@ inline executor& executor::operator=(const executor& __e)
   return *this;
 }
 
-inline executor& executor::operator=(executor&& __e)
+inline executor& executor::operator=(executor&& __e) noexcept
 {
   __executor_impl_base* __tmp = _M_impl;
   _M_impl = __e._M_impl;
@@ -571,7 +571,7 @@ inline executor& executor::operator=(executor&& __e)
   return *this;
 }
 
-inline executor& executor::operator=(nullptr_t)
+inline executor& executor::operator=(nullptr_t) noexcept
 {
   _M_impl->_Destroy();
   _M_impl = __bad_executor_impl::_Create();
