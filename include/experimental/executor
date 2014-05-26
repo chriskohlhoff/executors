@@ -343,6 +343,15 @@ bool operator==(nullptr_t, const executor::work& __w) noexcept;
 bool operator!=(const executor::work& __w, nullptr_t) noexcept;
 bool operator!=(nullptr_t, const executor::work& __w) noexcept;
 
+// Schedule a function to run now if possible, later otherwise.
+
+template <class... _CompletionTokens>
+  typename __invoke_without_executor<_CompletionTokens...>::_Result
+    dispatch(_CompletionTokens&&... __tokens);
+template <class _Executor, class... _CompletionTokens>
+  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
+    dispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
+
 // Schedule a function to run later.
 
 template <class... _CompletionTokens>
@@ -352,14 +361,14 @@ template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     post(_Executor&& __e, _CompletionTokens&&... __tokens);
 
-// Schedule a function to run now if possible, later otherwise.
+// Schedule a function to run later, treating the function a continuation of the caller.
 
 template <class... _CompletionTokens>
   typename __invoke_without_executor<_CompletionTokens...>::_Result
-    dispatch(_CompletionTokens&&... __tokens);
+    defer(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    dispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
+    defer(_Executor&& __e, _CompletionTokens&&... __tokens);
 
 // Schedule two functions to run concurrently later.
 
@@ -396,8 +405,9 @@ template<class _Alloc>
 #include <experimental/bits/unspecified_executor.h>
 #include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/executor.h>
-#include <experimental/bits/post.h>
 #include <experimental/bits/dispatch.h>
+#include <experimental/bits/post.h>
+#include <experimental/bits/defer.h>
 #include <experimental/bits/copost.h>
 #include <experimental/bits/codispatch.h>
 
