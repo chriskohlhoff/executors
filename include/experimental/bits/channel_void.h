@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_VOID_H
 #define EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_VOID_H
 
+#include <experimental/bits/get_executor.h>
 #include <experimental/bits/tuple_utils.h>
 
 namespace std {
@@ -22,9 +23,12 @@ class channel<void, _Cont>::_Op
   : public __channel_op
 {
 public:
+  typedef decltype(__get_executor_helper(declval<_Handler>())) _Executor;
+  typedef executor_work<_Executor> _Work;
+
   template <class _H> explicit _Op(_H&& __h)
     : _M_handler(forward<_H>(__h)),
-      _M_work(make_executor(_M_handler).make_work())
+      _M_work(__get_executor_helper(_M_handler))
   {
   }
 
@@ -38,11 +42,11 @@ public:
     else if (this->_M_result == __channel_op::_Result::__broken_pipe)
       __ec = make_error_code(errc::broken_pipe);
 
-    typename decltype(make_executor(declval<_Handler>()))::work __work(std::move(_M_work));
-    auto __executor(make_executor(__work));
+    executor_work<_Executor> __work(std::move(_M_work));
+    _Executor __executor(__work.get_executor());
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec));
     __op.reset();
-    __executor.post(std::move(__i));
+    __executor.post(std::move(__i), std::allocator<void>());
   }
 
   virtual void _Destroy()
@@ -52,7 +56,7 @@ public:
 
 private:
   _Handler _M_handler;
-  typename decltype(make_executor(declval<_Handler>()))::work _M_work;
+  _Work _M_work;
 };
 
 template <class _Cont>

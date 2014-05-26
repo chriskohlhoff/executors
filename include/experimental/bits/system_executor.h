@@ -53,58 +53,54 @@ public:
     _M_scheduler._Post(forward<_F>(__f));
   }
 
+  template <class _F> void _Defer(_F&& __f)
+  {
+    _M_scheduler._Defer(forward<_F>(__f));
+  }
+
 private:
   __scheduler _M_scheduler;
   vector<thread> _M_threads;
 };
-
-template <class _Func>
-inline void system_executor::post(_Func&& __f)
-{
-  __system_executor_impl::_Instance()._Post(forward<_Func>(__f));
-}
-
-template <class _Func>
-void system_executor::dispatch(_Func&& __f)
-{
-  typename decay<_Func>::type tmp(forward<_Func>(__f));
-  std::move(tmp)();
-}
-
-inline system_executor::work system_executor::make_work()
-{
-  return work{};
-}
-
-template <class _Func>
-inline auto system_executor::wrap(_Func&& __f)
-{
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
-}
 
 inline execution_context& system_executor::context()
 {
   return __system_executor_impl::_Instance();
 }
 
-inline system_executor make_executor(const system_executor&)
+inline void system_executor::work_started() noexcept
 {
-  return system_executor();
+  // No-op.
 }
 
-inline system_executor make_executor(system_executor&&)
+inline void system_executor::work_finished() noexcept
 {
-  return system_executor();
+  // No-op.
 }
 
-inline system_executor make_executor(const system_executor::work&)
+template <class _Func, class _Alloc>
+void system_executor::dispatch(_Func&& __f, const _Alloc&)
 {
-  return system_executor();
+  typename decay<_Func>::type tmp(forward<_Func>(__f));
+  std::move(tmp)();
 }
 
-inline system_executor make_executor(system_executor::work&&)
+template <class _Func, class _Alloc>
+inline void system_executor::post(_Func&& __f, const _Alloc&)
 {
-  return system_executor();
+  __system_executor_impl::_Instance()._Post(forward<_Func>(__f));
+}
+
+template <class _Func, class _Alloc>
+inline void system_executor::defer(_Func&& __f, const _Alloc&)
+{
+  __system_executor_impl::_Instance()._Defer(forward<_Func>(__f));
+}
+
+template <class _Func>
+inline auto system_executor::wrap(_Func&& __f) const
+{
+  return (wrap_with_executor)(forward<_Func>(__f), *this);
 }
 
 } // namespace experimental

@@ -197,6 +197,30 @@ inline strand<_Executor>::~strand()
 {
 }
 
+template <class _Executor>
+inline typename strand<_Executor>::executor_type strand<_Executor>::get_executor() const noexcept
+{
+  return _M_executor;
+}
+
+template <class _Executor>
+inline execution_context& strand<_Executor>::context()
+{
+  return _M_executor.context();
+}
+
+template <class _Executor>
+inline void strand<_Executor>::work_started() noexcept
+{
+  return _M_executor.work_started();
+}
+
+template <class _Executor>
+inline void strand<_Executor>::work_finished() noexcept
+{
+  return _M_executor.work_finished();
+}
+
 template <class _Func>
 class __strand_op
   : public __operation
@@ -235,8 +259,13 @@ private:
 template <class _Executor>
 struct __strand_invoker
 {
-  typename _Executor::work _M_work;
+  executor_work<_Executor> _M_work;
   shared_ptr<__strand_impl> _M_impl;
+
+  __strand_invoker(const _Executor& __e, const shared_ptr<__strand_impl>& __i)
+    : _M_work(__e), _M_impl(__i)
+  {
+  }
 
   struct _On_exit
   {
@@ -253,8 +282,8 @@ struct __strand_invoker
 
       if (__more)
       {
-        auto __executor(make_executor(_M_invoker->_M_work));
-        __executor.post(std::move(*_M_invoker));
+        auto __executor(_M_invoker->_M_work.get_executor());
+        __executor.defer(std::move(*_M_invoker), std::allocator<void>());
       }
     }
   };
@@ -274,34 +303,8 @@ struct __strand_invoker
   }
 };
 
-template <class _Executor> template <class _Func>
-void strand<_Executor>::post(_Func&& __f)
-{
-  typedef typename decay<_Func>::type _DecayFunc;
-  __small_block_recycler<>::_Unique_ptr<__strand_op<_DecayFunc>> __op(
-    __small_block_recycler<>::_Create<__strand_op<_DecayFunc>>(forward<_Func>(__f)));
-
-  {
-    __strand_impl::_Lock_guard __lock(*_M_impl);
-
-    if (_M_impl->_M_ready)
-    {
-      _M_impl->_M_waiting_queue._Push(__op.get());
-      __op.release();
-      return;
-    }
-
-    _M_impl->_M_ready = true;
-  }
-
-  _M_impl->_M_ready_queue._Push(__op.get());
-  __op.release();
-
-  _M_executor.post(__strand_invoker<_Executor>{_M_executor.make_work(), _M_impl});
-}
-
-template <class _Executor> template <class _Func>
-void strand<_Executor>::dispatch(_Func&& __f)
+template <class _Executor> template <class _Func, class _Alloc>
+void strand<_Executor>::dispatch(_Func&& __f, const _Alloc&)
 {
   typedef typename decay<_Func>::type _DecayFunc;
   if (__call_stack<__strand_impl>::_Contains(_M_impl.get()))
@@ -330,76 +333,45 @@ void strand<_Executor>::dispatch(_Func&& __f)
   _M_impl->_M_ready_queue._Push(__op.get());
   __op.release();
 
-  _M_executor.dispatch(__strand_invoker<_Executor>{_M_executor.make_work(), _M_impl});
+  _M_executor.dispatch(__strand_invoker<_Executor>(_M_executor, _M_impl), std::allocator<void>());
 }
 
-template <class _Executor>
-inline typename strand<_Executor>::work strand<_Executor>::make_work()
+template <class _Executor> template <class _Func, class _Alloc>
+void strand<_Executor>::post(_Func&& __f, const _Alloc&)
 {
-  return work(_M_executor.make_work(), _M_impl);
+  typedef typename decay<_Func>::type _DecayFunc;
+  __small_block_recycler<>::_Unique_ptr<__strand_op<_DecayFunc>> __op(
+    __small_block_recycler<>::_Create<__strand_op<_DecayFunc>>(forward<_Func>(__f)));
+
+  {
+    __strand_impl::_Lock_guard __lock(*_M_impl);
+
+    if (_M_impl->_M_ready)
+    {
+      _M_impl->_M_waiting_queue._Push(__op.get());
+      __op.release();
+      return;
+    }
+
+    _M_impl->_M_ready = true;
+  }
+
+  _M_impl->_M_ready_queue._Push(__op.get());
+  __op.release();
+
+  _M_executor.post(__strand_invoker<_Executor>{_M_executor, _M_impl}, std::allocator<void>());
+}
+
+template <class _Executor> template <class _Func, class _Alloc>
+inline void strand<_Executor>::defer(_Func&& __f, const _Alloc& a)
+{
+  this->post(forward<_Func>(__f), a);
 }
 
 template <class _Executor> template <class _Func>
-inline auto strand<_Executor>::wrap(_Func&& __f)
+inline auto strand<_Executor>::wrap(_Func&& __f) const
 {
   return (wrap_with_executor)(forward<_Func>(__f), *this);
-}
-
-template <class _Executor>
-inline execution_context& strand<_Executor>::context()
-{
-  return _M_executor.context();
-}
-
-template <class _Executor>
-inline strand<_Executor>::work::work(const work& __w)
-  : _M_work(__w._M_work), _M_impl(__w._M_impl)
-{
-}
-
-template <class _Executor>
-inline strand<_Executor>::work::work(work&& __w)
-  : _M_work(__w._M_work), _M_impl(__w._M_impl)
-{
-}
-
-template <class _Executor>
-inline strand<_Executor>::work::work(typename _Executor::work&& __w, const shared_ptr<__strand_impl>& __i)
-  : _M_work(forward<typename _Executor::work>(__w)), _M_impl(__i)
-{
-}
-
-template <class _Executor>
-inline typename strand<_Executor>::work& strand<_Executor>::work::operator=(const work& __w)
-{
-  _M_work = __w._M_work;
-  _M_impl = __w._M_impl;
-  return *this;
-}
-
-template <class _Executor>
-inline typename strand<_Executor>::work& strand<_Executor>::work::operator=(work&& __w)
-{
-  _M_work = std::move(__w._M_work);
-  _M_impl = std::move(__w._M_impl);
-  return *this;
-}
-
-template <class _Executor>
-inline strand<_Executor>::work::~work()
-{
-}
-
-template <class _Executor>
-inline strand<_Executor> make_executor(const strand<_Executor>& __e)
-{
-  return __e;
-}
-
-template <class _Executor>
-inline strand<_Executor> make_executor(strand<_Executor>&& __e)
-{
-  return std::move(__e);
 }
 
 template <class _T> inline auto make_strand(_T&& __t)

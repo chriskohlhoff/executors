@@ -22,10 +22,13 @@ nobase_include_HEADERS = \
 	experimental/bits/dispatch.h \
 	experimental/bits/dispatch_at.h \
 	experimental/bits/dispatch_after.h \
+	experimental/bits/exception_ptr_executor.h \
 	experimental/bits/execution_context.h \
 	experimental/bits/executor.h \
+	experimental/bits/executor_work.h \
 	experimental/bits/executor_wrapper.h \
 	experimental/bits/function_traits.h \
+	experimental/bits/get_executor.h \
 	experimental/bits/invoker.h \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/operation.h \

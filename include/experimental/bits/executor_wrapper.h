@@ -103,6 +103,13 @@ inline executor_wrapper<_T, _Executor>::~executor_wrapper()
 {
 }
 
+template <class _T, class _Executor>
+inline typename executor_wrapper<_T, _Executor>::executor_type
+executor_wrapper<_T, _Executor>::get_executor() const noexcept
+{
+  return this->_M_executor;
+}
+
 template <class _T, class _Executor, class _Signature>
 struct handler_type<executor_wrapper<_T, _Executor>, _Signature>
 {

@@ -13,6 +13,7 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_INVOKER_H
 
 #include <experimental/bits/function_traits.h>
+#include <experimental/bits/get_executor.h>
 #include <experimental/bits/tuple_utils.h>
 
 namespace std {
@@ -27,23 +28,25 @@ class __invoker_tail<_Result(_Args...), _CompletionTokens...>
 public:
   typedef __invoker_head<_Result(_Args...), _CompletionTokens...> _HeadInvoker;
   typedef typename _HeadInvoker::_Handler _Handler;
-  typedef typename _HeadInvoker::_Executor _Executor;
-  typedef typename _HeadInvoker::_InitialExecutor _InitialExecutor;
+  typedef typename _HeadInvoker::_HandlerExecutor _HandlerExecutor;
+  typedef typename _HeadInvoker::executor_type executor_type;
 
   explicit __invoker_tail(typename remove_reference<_CompletionTokens>::type&... __tokens)
-    : _M_head(__tokens...), _M_work(_M_head._Make_executor().make_work())
+    : _M_head(__tokens...), _M_work(_M_head._Get_handler_executor())
   {
   }
 
-  __invoker_tail(_HeadInvoker&& __head, typename _Executor::work&& __work)
+  __invoker_tail(_HeadInvoker&& __head, executor_work<_HandlerExecutor>&& __work)
     : _M_head(std::move(__head)), _M_work(std::move(__work))
   {
   }
 
   void operator()(_Args... __args) &&
   {
-    make_executor(_M_work).dispatch(_Make_tuple_invoker(
-      std::move(_M_head), forward<_Args>(__args)...));
+    auto ex(_M_work.get_executor());
+    ex.dispatch(_Make_tuple_invoker(
+      std::move(_M_head), forward<_Args>(__args)...),
+        std::allocator<void>());
   }
 
   _Handler& _Get_handler()
@@ -51,9 +54,9 @@ public:
     return _M_head._Get_handler();
   }
 
-  _InitialExecutor _Make_initial_executor() const
+  executor_type get_executor() const noexcept
   {
-    return _M_head._Make_initial_executor();
+    return _M_head.get_executor();
   }
 
   template <class _C> auto _Chain(_C&& __c)
@@ -71,7 +74,7 @@ public:
 
 private:
   _HeadInvoker _M_head;
-  typename _Executor::work _M_work;
+  executor_work<_HandlerExecutor> _M_work;
 };
 
 template <class _Result, class... _Args, class _CompletionToken>
@@ -79,8 +82,8 @@ class __invoker_head<_Result(_Args...), _CompletionToken>
 {
 public:
   typedef handler_type_t<_CompletionToken, _Result(_Args...)> _Handler;
-  typedef decltype(make_executor(declval<_Handler>())) _Executor;
-  typedef decltype(make_executor(declval<_Handler>())) _InitialExecutor;
+  typedef decltype(__get_executor_helper(declval<_Handler>())) _HandlerExecutor;
+  typedef decltype(__get_executor_helper(declval<_Handler>())) executor_type;
 
   static_assert(__is_callable_with<_Handler, _Result(_Args...)>::value,
     "function object must be callable with the specified signature");
@@ -100,14 +103,14 @@ public:
     return _M_handler;
   }
 
-  _Executor _Make_executor() const
+  _HandlerExecutor _Get_handler_executor() const noexcept
   {
-    return make_executor(_M_handler);
+    return __get_executor_helper(_M_handler);
   }
 
-  _InitialExecutor _Make_initial_executor() const
+  executor_type get_executor() const noexcept
   {
-    return make_executor(_M_handler);
+    return __get_executor_helper(_M_handler);
   }
 
   template <class _C> auto _Chain(_C&& __c)
@@ -137,9 +140,9 @@ public:
   typedef __invoker_tail<_TailSignature, _Tail...> _TailInvoker;
 
   typedef typename _TailInvoker::_Handler _Handler;
-  typedef decltype(make_executor(declval<_HeadFunc>())) _Executor;
-  typedef typename conditional<is_same<_Executor, unspecified_executor>::value,
-    typename _TailInvoker::_InitialExecutor, _Executor>::type _InitialExecutor;
+  typedef decltype(__get_executor_helper(declval<_HeadFunc>())) _HandlerExecutor;
+  typedef typename conditional<is_same<_HandlerExecutor, unspecified_executor>::value,
+    typename _TailInvoker::executor_type, _HandlerExecutor>::type executor_type;
 
   __invoker_head(typename remove_reference<_Head>::type& __head,
     typename remove_reference<_Tail>::type&... __tail)
@@ -162,14 +165,14 @@ public:
     return _M_tail._Get_handler();
   }
 
-  _Executor _Make_executor() const
+  _HandlerExecutor _Get_handler_executor() const noexcept
   {
-    return make_executor(_M_head);
+    return __get_executor_helper(_M_head);
   }
 
-  _InitialExecutor _Make_initial_executor() const
+  executor_type get_executor() const noexcept
   {
-    return _Make_initial_executor(is_same<_Executor, unspecified_executor>());
+    return get_executor(is_same<_HandlerExecutor, unspecified_executor>());
   }
 
   template <class _C> auto _Chain(_C&& __c)
@@ -186,14 +189,14 @@ public:
   }
 
 private:
-  _InitialExecutor _Make_initial_executor(true_type) const
+  typename _TailInvoker::executor_type get_executor(true_type) const noexcept
   {
-    return _M_tail._Make_initial_executor();
+    return _M_tail.get_executor();
   }
 
-  _InitialExecutor _Make_initial_executor(false_type) const
+  _HandlerExecutor get_executor(false_type) const noexcept
   {
-    return make_executor(_M_head);
+    return __get_executor_helper(_M_head);
   }
 
   _HeadFunc _M_head;
@@ -232,13 +235,6 @@ public:
     : async_result<typename __invoker_tail<_Signature, _CompletionTokens...>::_Handler>(
         __h._Get_handler()) {}
 };
-
-template <class _Signature, class... _CompletionTokens>
-inline typename __invoker_tail<_Signature, _CompletionTokens...>::_InitialExecutor
-  make_executor(const __invoker_tail<_Signature, _CompletionTokens...>& __i)
-{
-  return __i._Make_initial_executor();
-}
 
 template <class... _T> struct __is_executor;
 

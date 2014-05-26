@@ -15,59 +15,44 @@
 namespace std {
 namespace experimental {
 
-template <class _Func>
-inline void unspecified_executor::post(_Func&& __f)
-{
-  system_executor().post(forward<_Func>(__f));
-}
-
-template <class _Func>
-void unspecified_executor::dispatch(_Func&& __f)
-{
-  system_executor().dispatch(forward<_Func>(__f));
-}
-
-inline unspecified_executor::work unspecified_executor::make_work()
-{
-  return work{};
-}
-
-template <class _Func>
-inline auto unspecified_executor::wrap(_Func&& __f)
-{
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
-}
 
 inline execution_context& unspecified_executor::context()
 {
   return system_executor().context();
 }
 
-template <class _T>
-inline unspecified_executor make_executor(const _T&,
-  typename enable_if<__is_callable<_T>::value>::type*)
+inline void unspecified_executor::work_started() noexcept
 {
-  return unspecified_executor();
+  // No-op.
 }
 
-inline unspecified_executor make_executor(const unspecified_executor&)
+inline void unspecified_executor::work_finished() noexcept
 {
-  return unspecified_executor();
+  // No-op.
 }
 
-inline unspecified_executor make_executor(unspecified_executor&&)
+template <class _Func, class _Alloc>
+void unspecified_executor::dispatch(_Func&& __f, const _Alloc& a)
 {
-  return unspecified_executor();
+  system_executor().dispatch(forward<_Func>(__f), a);
 }
 
-inline unspecified_executor make_executor(const unspecified_executor::work&)
+template <class _Func, class _Alloc>
+inline void unspecified_executor::post(_Func&& __f, const _Alloc& a)
 {
-  return unspecified_executor();
+  system_executor().post(forward<_Func>(__f), a);
 }
 
-inline unspecified_executor make_executor(unspecified_executor::work&&)
+template <class _Func, class _Alloc>
+inline void unspecified_executor::defer(_Func&& __f, const _Alloc& a)
 {
-  return unspecified_executor();
+  system_executor().defer(forward<_Func>(__f), a);
+}
+
+template <class _Func>
+inline auto unspecified_executor::wrap(_Func&& __f) const
+{
+  return (wrap_with_executor)(forward<_Func>(__f), *this);
 }
 
 } // namespace experimental

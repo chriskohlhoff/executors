@@ -26,7 +26,7 @@ class loop_scheduler
     private __scheduler
 {
 public:
-  class executor;
+  class executor_type;
 
   // construct / copy / destroy:
 
@@ -37,6 +37,8 @@ public:
   ~loop_scheduler();
 
   // scheduler operations:
+
+  executor_type get_executor() const noexcept;
 
   size_t run();
   size_t run_one();
@@ -50,65 +52,37 @@ public:
   void stop();
   bool stopped() const;
   void reset();
-
-private:
-  friend executor make_executor(loop_scheduler& __s);
 };
 
-class loop_scheduler::executor
+class loop_scheduler::executor_type
 {
 public:
-  class work;
-
   // construct / copy / destroy:
 
-  executor(const executor& __e);
-  executor& operator=(const executor& __e);
-  ~executor();
+  executor_type(const executor_type& __e) noexcept;
+  executor_type& operator=(const executor_type& __e) noexcept;
+  ~executor_type();
 
   // executor operations:
 
-  template <class _Func> void post(_Func&& __f);
-  template <class _Func> void dispatch(_Func&& __f);
-  work make_work();
-  template <class _Func> auto wrap(_Func&& __f);
   execution_context& context();
+
+  void work_started() noexcept;
+  void work_finished() noexcept;
+
+  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+
+  template <class _Func> auto wrap(_Func&& __f) const;
 
 private:
   friend class loop_scheduler;
-  friend executor make_executor(loop_scheduler& __s);
-  friend executor make_executor(const executor& __e);
-  friend executor make_executor(executor&& __e);
-  friend executor make_executor(const work& __w);
-  friend executor make_executor(work&& __w);
-  explicit executor(loop_scheduler* __s) : _M_scheduler(__s) {}
+  explicit executor_type(loop_scheduler* __s) : _M_scheduler(__s) {}
   loop_scheduler* _M_scheduler;
 };
 
-template <> struct is_executor<loop_scheduler::executor> : true_type {};
-
-class loop_scheduler::executor::work
-{
-public:
-  work(const work& __w);
-  work& operator=(const work& __w);
-  ~work();
-
-private:
-  friend class executor;
-  friend executor make_executor(const work& __w);
-  friend executor make_executor(work&& __w);
-  loop_scheduler* _M_scheduler;
-  explicit work(loop_scheduler* __s);
-};
-
-loop_scheduler::executor make_executor(loop_scheduler& __s);
-loop_scheduler::executor make_executor(const loop_scheduler&) = delete;
-loop_scheduler::executor make_executor(loop_scheduler&&) = delete;
-loop_scheduler::executor make_executor(const loop_scheduler::executor& __e);
-loop_scheduler::executor make_executor(loop_scheduler::executor&& __e);
-loop_scheduler::executor make_executor(const loop_scheduler::executor::work& __w);
-loop_scheduler::executor make_executor(loop_scheduler::executor::work&& __w);
+template <> struct is_executor<loop_scheduler::executor_type> : true_type {};
 
 } // namespace experimental
 } // namespace std

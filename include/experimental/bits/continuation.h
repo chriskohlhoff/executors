@@ -37,7 +37,7 @@ public:
   virtual const type_info& _Target_type() = 0;
   virtual void* _Target() = 0;
   virtual const void* _Target() const = 0;
-  virtual executor _Make_executor() const = 0;
+  virtual executor _Get_executor() const noexcept = 0;
 };
 
 template <class _Signature>
@@ -69,7 +69,9 @@ public:
     "continuation's continuation must accept specified return value");
 
   template <class _T> explicit __continuation_impl(_T&& __t)
-    : _M_continuation(forward<_T>(__t)) {}
+    : _M_continuation(forward<_T>(__t)), _M_executor(get_executor(_M_continuation))
+  {
+  }
 
   virtual void _Call(_Args... __args)
   {
@@ -99,13 +101,14 @@ public:
     return &_M_continuation;
   }
 
-  virtual executor _Make_executor() const
+  virtual executor _Get_executor() const noexcept
   {
-    return make_executor(_M_continuation);
+    return _M_executor;
   }
 
 private:
   _Continuation _M_continuation;
+  executor _M_executor;
 };
 
 template <class _R, class... _Args>
@@ -185,6 +188,13 @@ inline continuation<_R(_Args...)>::operator bool() const noexcept
 }
 
 template <class _R, class... _Args>
+inline typename continuation<_R(_Args...)>::executor_type
+continuation<_R(_Args...)>::get_executor() const noexcept
+{
+  return _M_impl ? _M_impl->_Get_executor() : executor_type();
+}
+
+template <class _R, class... _Args>
 inline void continuation<_R(_Args...)>::operator()(_Args... __args) &&
 {
   if (!_M_impl)
@@ -233,22 +243,6 @@ struct continuation_of<continuation<_R(_Args...)>>
     return __continuation_chain<_R, _Args...>{std::move(__f), forward<_C>(__c)};
   }
 };
-
-template <class _R, class... _Args>
-inline executor make_executor(const continuation<_R(_Args...)>& __c)
-{
-  if (!__c)
-    throw bad_continuation();
-  return __c._M_impl->_Make_executor();
-}
-
-template <class _R, class... _Args>
-inline executor make_executor(continuation<_R(_Args...)>&& __c)
-{
-  if (!__c)
-    throw bad_continuation();
-  return __c._M_impl->_Make_executor();
-}
 
 template <class _R, class... _Args>
 inline bool operator==(const continuation<_R(_Args...)>& __c, nullptr_t) noexcept
@@ -343,6 +337,11 @@ inline continuation<>::operator bool() const noexcept
   return static_cast<bool>(_M_impl);
 }
 
+inline continuation<>::executor_type continuation<>::get_executor() const noexcept
+{
+  return _M_impl ? _M_impl->_Get_executor() : executor_type();
+}
+
 inline const type_info& continuation<>::target_type() const noexcept
 {
   return _M_impl->_Target_type();
@@ -358,20 +357,6 @@ template <class _Continuation>
 inline const _Continuation* continuation<>::target() const noexcept
 {
   return static_cast<_Continuation*>(_M_impl->_Target());
-}
-
-inline executor make_executor(const continuation<>& __c)
-{
-  if (!__c)
-    throw bad_continuation();
-  return __c._M_impl->_Make_executor();
-}
-
-inline executor make_executor(continuation<>&& __c)
-{
-  if (!__c)
-    throw bad_continuation();
-  return __c._M_impl->_Make_executor();
 }
 
 inline bool operator==(const continuation<>& __c, nullptr_t) noexcept

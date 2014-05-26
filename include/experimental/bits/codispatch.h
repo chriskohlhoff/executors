@@ -21,7 +21,7 @@ struct __coinvoke_dispatch
 {
   template <class _E, class _F> void operator()(_E& __e, _F&& __f)
   {
-    __e.dispatch(forward<_F>(__f));
+    __e.dispatch(forward<_F>(__f), std::allocator<void>());
   }
 };
 
@@ -42,7 +42,7 @@ struct __coinvoke_dispatch_ex
 
   template <class _E, class _F> void operator()(_E&, _F&& __f)
   {
-    __e.dispatch(forward<_F>(__f));
+    __e.dispatch(forward<_F>(__f), std::allocator<void>());
   }
 };
 

@@ -24,10 +24,10 @@
 namespace std {
 namespace experimental {
 
+template <class, class = void> struct __get_executor_impl;
+
 class __executor_impl_base;
 template <class> class __executor_impl;
-class __work_impl_base;
-template <class> class __work_impl;
 
 template <class...> struct __invoke_without_executor;
 template <class, class...> struct __invoke_with_executor;
@@ -62,9 +62,6 @@ private:
   mutex _M_mutex;
   service* _M_first_service;
 };
-
-void make_executor(execution_context&) = delete;
-void make_executor(const execution_context&) = delete;
 
 // Base class for all services within an execution context.
 
@@ -135,6 +132,8 @@ class executor_wrapper
     public __executor_wrapper_base_wrapped<_T>
 {
 public:
+  typedef _Executor executor_type;
+
   // construct / copy / destroy:
 
   executor_wrapper(const executor_wrapper& __w);
@@ -153,7 +152,7 @@ public:
 
   // executor wrapper operations:
 
-  friend _Executor make_executor(const executor_wrapper& __w) { return __w._M_executor; }
+  executor_type get_executor() const noexcept;
 
 private:
   template <class _U, class _E> friend class executor_wrapper;
@@ -180,6 +179,34 @@ template <class _T, class _Executor>
 template <class _T, class _Executor>
   auto wrap_with_executor(_T&& __t, const _Executor& __e);
 
+// An object of class executor_work controls ownership of executor work within
+// a scope.
+
+template <class _Executor>
+class executor_work
+{
+public:
+  typedef _Executor executor_type;
+
+  // construct / copy / destroy:
+
+  explicit executor_work(const executor_type& __e) noexcept;
+  executor_work(const executor_work& __w) noexcept;
+  executor_work(executor_work&& __w) noexcept;
+
+  executor_work operator=(const executor_type&) = delete;
+
+  ~executor_work();
+
+  // executor work operations:
+
+  executor_type get_executor() const noexcept;
+
+private:
+  executor_type _M_executor;
+  bool _M_owns;
+};
+
 // The system executor represents an execution context where functions are
 // permitted to run on arbitrary threads. The post() function schedules the
 // function to run on an unspecified system thread pool, and dispatch() invokes
@@ -188,23 +215,21 @@ template <class _T, class _Executor>
 class system_executor
 {
 public:
-  class work {};
-
   // executor operations:
 
-  template <class _Func> void post(_Func&& __f);
-  template <class _Func> void dispatch(_Func&& __f);
-  work make_work();
-  template <class _Func> auto wrap(_Func&& __f);
   execution_context& context();
+
+  void work_started() noexcept;
+  void work_finished() noexcept;
+
+  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+
+  template <class _Func> auto wrap(_Func&& __f) const;
 };
 
 template <> struct is_executor<system_executor> : true_type {};
-
-system_executor make_executor(const system_executor&);
-system_executor make_executor(system_executor&&);
-system_executor make_executor(const system_executor::work&);
-system_executor make_executor(system_executor::work&&);
 
 // The unspecified executor is used for function objects that do not explicitly
 // specify an associated executor. It is implemented in terms of the system
@@ -213,26 +238,35 @@ system_executor make_executor(system_executor::work&&);
 class unspecified_executor
 {
 public:
-  class work {};
-
   // executor operations:
 
-  template <class _Func> void post(_Func&& __f);
-  template <class _Func> void dispatch(_Func&& __f);
-  work make_work();
-  template <class _Func> auto wrap(_Func&& __f);
   execution_context& context();
+
+  void work_started() noexcept;
+  void work_finished() noexcept;
+
+  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+
+  template <class _Func> auto wrap(_Func&& __f) const;
 };
 
 template <> struct is_executor<unspecified_executor> : true_type {};
 
-template <class _T> unspecified_executor make_executor(const _T&,
-  typename enable_if<__is_callable<_T>::value>::type* = 0);
+// Function to obtain an object's associated executor. For function objects,
+// this is the executor that would be used to invoke the given function. This
+// default implementation behaves as follows:
+//
+// - if the object type has a nested type @c executor_type, returns the
+//   result of the object's @c get_executor() member function;
+//
+// - if the object is callable, returns an @c unspecified_executor object;
+//
+// - otherwise, this function does not participate in overload resolution.
 
-unspecified_executor make_executor(const unspecified_executor&);
-unspecified_executor make_executor(unspecified_executor&&);
-unspecified_executor make_executor(const unspecified_executor::work&);
-unspecified_executor make_executor(unspecified_executor::work&&);
+template <class _T> typename __get_executor_impl<_T>::_Type
+  get_executor(const _T&) noexcept;
 
 class bad_executor;
 
@@ -241,8 +275,6 @@ class bad_executor;
 class executor
 {
 public:
-  class work;
-
   // construct / copy / destroy:
 
   executor() noexcept;
@@ -266,11 +298,16 @@ public:
 
   // executor operations:
 
-  template <class _Func> void post(_Func&& __f);
-  template <class _Func> void dispatch(_Func&& __f);
-  work make_work();
-  template <class _Func> auto wrap(_Func&& __f);
   execution_context& context();
+
+  void work_started() noexcept;
+  void work_finished() noexcept;
+
+  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+
+  template <class _Func> auto wrap(_Func&& __f) const;
 
   // executor capacity:
 
@@ -283,65 +320,16 @@ public:
   template <class _Executor> const _Executor* target() const noexcept;
 
 private:
-  friend executor make_executor(const executor::work& __w);
-  friend executor make_executor(executor::work&& __w);
   explicit executor(__executor_impl_base* __i) : _M_impl(__i) {}
   __executor_impl_base* _M_impl;
 };
 
 template <> struct is_executor<executor> : true_type {};
 
-executor make_executor(const executor& __e);
-executor make_executor(executor&& __e);
-
 bool operator==(const executor& __e, nullptr_t) noexcept;
 bool operator==(nullptr_t, const executor& __e) noexcept;
 bool operator!=(const executor& __e, nullptr_t) noexcept;
 bool operator!=(nullptr_t, const executor& __e) noexcept;
-
-class executor::work
-{
-public:
-  // construct / copy / destroy:
-
-  work() noexcept;
-  work(nullptr_t) noexcept;
-  work(const work& __w);
-  work(work&& __w);
-  template <class _Work> work(_Work __w);
-  template <class _Alloc> work(allocator_arg_t, const _Alloc&) noexcept;
-  template <class _Alloc> work(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
-  template <class _Alloc> work(allocator_arg_t, const _Alloc&, const work& __w);
-  template <class _Alloc> work(allocator_arg_t, const _Alloc&, work&& __w);
-  template <class _Work, class _Alloc>
-    work(allocator_arg_t, const _Alloc& __a, _Work __w);
-
-  work& operator=(const work& __w);
-  work& operator=(work&& __w);
-  work& operator=(nullptr_t);
-  template <class _Work> work& operator=(_Work&& __w);
-
-  ~work();
-
-  // work capacity:
-
-  explicit operator bool() const noexcept;
-
-private:
-  friend class executor;
-  friend executor make_executor(const executor::work& __w);
-  friend executor make_executor(executor::work&& __w);
-  __work_impl_base* _M_impl;
-  explicit work(__work_impl_base* __i) : _M_impl(__i) {}
-};
-
-executor make_executor(const executor::work& __w);
-executor make_executor(executor::work&& __w);
-
-bool operator==(const executor::work& __w, nullptr_t) noexcept;
-bool operator==(nullptr_t, const executor::work& __w) noexcept;
-bool operator!=(const executor::work& __w, nullptr_t) noexcept;
-bool operator!=(nullptr_t, const executor::work& __w) noexcept;
 
 // Schedule a function to run now if possible, later otherwise.
 
@@ -391,10 +379,6 @@ template <class _Executor, class... _CompletionTokens>
 } // namespace experimental
 
 template<class _Alloc>
-  struct uses_allocator<std::experimental::executor::work, _Alloc>
-    : true_type {};
-
-template<class _Alloc>
   struct uses_allocator<std::experimental::executor, _Alloc>
     : true_type {};
 
@@ -403,7 +387,9 @@ template<class _Alloc>
 #include <experimental/bits/execution_context.h>
 #include <experimental/bits/system_executor.h>
 #include <experimental/bits/unspecified_executor.h>
+#include <experimental/bits/get_executor.h>
 #include <experimental/bits/executor_wrapper.h>
+#include <experimental/bits/executor_work.h>
 #include <experimental/bits/executor.h>
 #include <experimental/bits/dispatch.h>
 #include <experimental/bits/post.h>

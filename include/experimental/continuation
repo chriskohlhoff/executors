@@ -32,6 +32,8 @@ template <class...> class continuation; // not defined
 template <class _R, class... _Args> class continuation<_R(_Args...)>
 {
 public:
+  typedef executor executor_type;
+
   // construct / copy / destroy:
 
   continuation(const continuation&) = delete;
@@ -61,6 +63,7 @@ public:
 
   // continuation invocation:
 
+  executor_type get_executor() const noexcept;
   void operator()(_Args... __args) &&;
 
   // continuation target access:
@@ -73,10 +76,6 @@ private:
   friend class continuation<>;
   template <class, class...> friend struct __continuation_chain;
   template <class> friend struct __continuation_handler;
-  template <class _R1, class... _Args1>
-    friend executor make_executor(const continuation<_R1(_Args1...)>& __c);
-  template <class _R1, class... _Args1>
-    friend executor make_executor(continuation<_R1(_Args1...)>&& __c);
   template <class _Signature>
     friend continuation<_Signature> static_continuation_cast(continuation<>&& __c);
   template <class _Signature>
@@ -87,11 +86,6 @@ private:
 
 template <class _R, class... _Args>
   struct continuation_of<continuation<_R(_Args...)>>;
-
-template <class _R, class... _Args>
-  executor make_executor(const continuation<_R(_Args...)>& __c);
-template <class _R, class... _Args>
-  executor make_executor(continuation<_R(_Args...)>&& __c);
 
 template <class _R, class... _Args>
   bool operator==(const continuation<_R(_Args...)>& __c, nullptr_t) noexcept;
@@ -105,6 +99,8 @@ template <class _R, class... _Args>
 template <> class continuation<>
 {
 public:
+  typedef executor executor_type;
+
   // construct / copy / destroy:
 
   continuation(const continuation&) = delete;
@@ -131,6 +127,10 @@ public:
 
   explicit operator bool() const noexcept;
 
+  // continuation invocation:
+
+  executor_type get_executor() const noexcept;
+
   // continuation target access:
 
   const type_info& target_type() const noexcept;
@@ -138,17 +138,12 @@ public:
   template <class _Continuation> const _Continuation* target() const noexcept;
 
 private:
-  friend executor make_executor(const continuation<>& __c);
-  friend executor make_executor(continuation<>&& __c);
   template <class _Signature>
     friend continuation<_Signature> static_continuation_cast(continuation<>&& __c);
   template <class _Signature>
     friend continuation<_Signature> dynamic_continuation_cast(continuation<>&& __c);
   unique_ptr<__continuation> _M_impl;
 };
-
-executor make_executor(const continuation<>& __c);
-executor make_executor(continuation<>&& __c);
 
 bool operator==(const continuation<>& __c, nullptr_t) noexcept;
 bool operator==(nullptr_t, const continuation<>& __c) noexcept;

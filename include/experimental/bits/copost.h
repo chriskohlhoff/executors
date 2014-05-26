@@ -21,7 +21,7 @@ struct __coinvoke_post
 {
   template <class _E, class _F> void operator()(_E& __e, _F&& __f)
   {
-    __e.post(forward<_F>(__f));
+    __e.post(forward<_F>(__f), std::allocator<void>());
   }
 };
 
@@ -42,7 +42,7 @@ struct __coinvoke_post_ex
 
   template <class _E, class _F> void operator()(_E&, _F&& __f)
   {
-    __e.post(forward<_F>(__f));
+    __e.post(forward<_F>(__f), std::allocator<void>());
   }
 };
 

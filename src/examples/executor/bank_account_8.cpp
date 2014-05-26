@@ -110,8 +110,8 @@ auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
 int main()
 {
   thread_pool pool;
-  auto ex = make_executor(pool);
-  std::vector<bank_account<thread_pool::executor>> accts(3, bank_account<thread_pool::executor>(ex));
+  auto ex = pool.get_executor();
+  std::vector<bank_account<thread_pool::executor_type>> accts(3, bank_account<thread_pool::executor_type>(ex));
   accts[0].deposit(20, use_future).get();
   accts[1].deposit(30, use_future).get();
   accts[2].deposit(40, use_future).get();

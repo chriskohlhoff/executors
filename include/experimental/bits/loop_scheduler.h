@@ -31,6 +31,11 @@ inline loop_scheduler::~loop_scheduler()
   shutdown();
 }
 
+inline loop_scheduler::executor_type loop_scheduler::get_executor() const noexcept
+{
+  return executor_type(const_cast<loop_scheduler*>(this));
+}
+
 inline size_t loop_scheduler::run()
 {
   return _Run();
@@ -80,102 +85,60 @@ inline void loop_scheduler::reset()
   _Reset();
 }
 
-inline loop_scheduler::executor::executor(
-  const loop_scheduler::executor& __e)
+inline loop_scheduler::executor_type::executor_type(
+  const loop_scheduler::executor_type& __e) noexcept
     : _M_scheduler(__e._M_scheduler)
 {
 }
 
-inline loop_scheduler::executor&
-  loop_scheduler::executor::operator=(const executor& __e)
+inline loop_scheduler::executor_type&
+  loop_scheduler::executor_type::operator=(const executor_type& __e) noexcept
 {
   _M_scheduler = __e._M_scheduler;
   return *this;
 }
 
-inline loop_scheduler::executor::~executor()
+inline loop_scheduler::executor_type::~executor_type()
 {
 }
 
-template <class _Func> void loop_scheduler::executor::post(_Func&& __f)
-{
-  _M_scheduler->_Post(forward<_Func>(__f));
-}
-
-template <class _Func> void loop_scheduler::executor::dispatch(_Func&& __f)
-{
-  _M_scheduler->_Dispatch(forward<_Func>(__f));
-}
-
-inline loop_scheduler::executor::work loop_scheduler::executor::make_work()
-{
-  return work(_M_scheduler);
-}
-
-template <class _Func>
-inline auto loop_scheduler::executor::wrap(_Func&& __f)
-{
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
-}
-
-inline execution_context& loop_scheduler::executor::context()
+inline execution_context& loop_scheduler::executor_type::context()
 {
   return *_M_scheduler;
 }
 
-inline loop_scheduler::executor::work::work(loop_scheduler* __s)
-  : _M_scheduler(__s)
+inline void loop_scheduler::executor_type::work_started() noexcept
 {
   _M_scheduler->_Work_started();
 }
 
-inline loop_scheduler::executor::work::work(
-  const loop_scheduler::executor::work& __w)
-    : _M_scheduler(__w._M_scheduler)
-{
-  _M_scheduler->_Work_started();
-}
-
-inline loop_scheduler::executor::work&
-  loop_scheduler::executor::work::operator=(const work& __w)
-{
-  loop_scheduler* __tmp = _M_scheduler;
-  _M_scheduler = __w._M_scheduler;
-  _M_scheduler->_Work_started();
-  __tmp->_Work_finished();
-  return *this;
-}
-
-inline loop_scheduler::executor::work::~work()
+inline void loop_scheduler::executor_type::work_finished() noexcept
 {
   _M_scheduler->_Work_finished();
 }
 
-inline loop_scheduler::executor make_executor(loop_scheduler& __s)
+template <class _Func, class _Alloc>
+void loop_scheduler::executor_type::dispatch(_Func&& __f, const _Alloc&)
 {
-  return loop_scheduler::executor(&__s);
+  _M_scheduler->_Dispatch(forward<_Func>(__f));
 }
 
-inline loop_scheduler::executor make_executor(const loop_scheduler::executor& __e)
+template <class _Func, class _Alloc>
+void loop_scheduler::executor_type::post(_Func&& __f, const _Alloc&)
 {
-  return __e;
+  _M_scheduler->_Post(forward<_Func>(__f));
 }
 
-inline loop_scheduler::executor make_executor(loop_scheduler::executor&& __e)
+template <class _Func, class _Alloc>
+void loop_scheduler::executor_type::defer(_Func&& __f, const _Alloc&)
 {
-  return std::move(__e);
+  _M_scheduler->_Defer(forward<_Func>(__f));
 }
 
-inline loop_scheduler::executor
-  make_executor(const loop_scheduler::executor::work& __w)
+template <class _Func>
+inline auto loop_scheduler::executor_type::wrap(_Func&& __f) const
 {
-  return loop_scheduler::executor(__w._M_scheduler);
-}
-
-inline loop_scheduler::executor
-  make_executor(loop_scheduler::executor::work&& __w)
-{
-  return loop_scheduler::executor(__w._M_scheduler);
+  return (wrap_with_executor)(forward<_Func>(__f), *this);
 }
 
 } // namespace experimental

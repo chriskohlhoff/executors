@@ -6,13 +6,12 @@
 using std::experimental::dispatch;
 using std::experimental::dispatch_at;
 using std::experimental::loop_scheduler;
-using std::experimental::make_executor;
 using std::experimental::yield_context;
 
 int main()
 {
   loop_scheduler scheduler;
-  auto executor = make_executor(scheduler);
+  auto executor = scheduler.get_executor();
 
   dispatch(
     executor.wrap(

@@ -85,8 +85,9 @@ public:
   {
   }
 
-  template <class _F> void _Post(_F&& __f);
   template <class _F> void _Dispatch(_F&& __f);
+  template <class _F> void _Post(_F&& __f);
+  template <class _F> void _Defer(_F&& __f);
 
   void _Work_started()
   {
@@ -317,6 +318,19 @@ private:
   _Func _M_func;
 };
 
+template <class _F> void __scheduler::_Dispatch(_F&& __f)
+{
+  typedef typename decay<_F>::type _Func;
+  if (_Call_stack::_Contains(this))
+  {
+    _Func(forward<_F>(__f))();
+  }
+  else
+  {
+    this->_Post(forward<_F>(__f));
+  }
+}
+
 template <class _F> void __scheduler::_Post(_F&& __f)
 {
   typedef typename decay<_F>::type _Func;
@@ -354,17 +368,33 @@ template <class _F> void __scheduler::_Post(_F&& __f)
   __op.release();
 }
 
-template <class _F> void __scheduler::_Dispatch(_F&& __f)
+template <class _F> void __scheduler::_Defer(_F&& __f)
 {
   typedef typename decay<_F>::type _Func;
-  if (_Call_stack::_Contains(this))
+  __small_block_recycler<>::_Unique_ptr<__scheduler_op<_Func>> __op(
+    __small_block_recycler<>::_Create<__scheduler_op<_Func>>(forward<_F>(__f)));
+
+  _Context* __ctx = _Call_stack::_Contains(this);
+  if (__ctx == nullptr)
   {
-    _Func(forward<_F>(__f))();
+    ++_M_outstanding_work;
   }
   else
   {
-    this->_Post(forward<_F>(__f));
+    ++__ctx->_M_work_delta;
+    __ctx->_M_private_queue._Push(__op.get());
+
+    __op.release();
+    return;
   }
+
+  lock_guard<mutex> lock(_M_mutex);
+
+  _M_queue._Push(__op.get());
+  if (_M_queue._Front() == __op.get())
+    _M_condition.notify_one();
+
+  __op.release();
 }
 
 } // namespace experimental

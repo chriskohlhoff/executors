@@ -16,6 +16,7 @@
 #include <cassert>
 #include <memory>
 #include <type_traits>
+#include <experimental/bits/get_executor.h>
 #include <experimental/bits/invoker.h>
 #include <experimental/bits/tuple_utils.h>
 
@@ -74,7 +75,7 @@ public:
     handler_type_t<_Head, void()>>::signature...> _HandlerSignature;
   typedef __invoker_tail<_HandlerSignature, _Tail> _TailInvoker;
   typedef typename _TailInvoker::_Handler _Handler;
-  typedef typename _TailInvoker::_InitialExecutor _InitialExecutor;
+  typedef typename _TailInvoker::executor_type executor_type;
 
   explicit __coinvoker_tail(typename remove_reference<_Tail>::type& __token)
       : _M_pending(0), _M_invoker(__token)
@@ -119,9 +120,9 @@ public:
     return _M_invoker._Get_handler();
   }
 
-  _InitialExecutor _Make_initial_executor() const
+  executor_type get_executor() const noexcept
   {
-    return _M_invoker._Make_initial_executor();
+    return _M_invoker.get_executor();
   }
 
 private:
@@ -141,6 +142,8 @@ template <size_t _Index, class _Head, class _Tail>
 class __coinvoker_tail_ptr
 {
 public:
+  typedef typename __coinvoker_tail<_Head, _Tail>::executor_type executor_type;
+
   __coinvoker_tail_ptr(const __coinvoker_tail_ptr&) = delete;
   __coinvoker_tail_ptr& operator=(const __coinvoker_tail_ptr&) = delete;
 
@@ -169,9 +172,9 @@ public:
     __t->_Complete();
   }
 
-  typename __coinvoker_tail<_Head, _Tail>::_InitialExecutor _Make_initial_executor() const
+  executor_type get_executor() const noexcept
   {
-    return _M_tail->_Make_initial_executor();
+    return _M_tail->get_executor();
   }
 
 private:
@@ -186,12 +189,12 @@ public:
   typedef handler_type_t<_HeadToken, void()> _HeadFunc;
   typedef continuation_of<_HeadFunc> _HeadContinuation;
 
-  typedef decltype(make_executor(declval<_HeadFunc>())) _HeadExecutor;
-  typedef typename __coinvoker_tail<_Head, _Tail>::_InitialExecutor _TailExecutor;
+  typedef decltype(__get_executor_helper(declval<_HeadFunc>())) _HeadExecutor;
+  typedef typename __coinvoker_tail<_Head, _Tail>::executor_type _TailExecutor;
 
   typedef typename conditional<
     is_same<_HeadExecutor, unspecified_executor>::value,
-      _TailExecutor, _HeadExecutor>::type _InitialExecutor;
+      _TailExecutor, _HeadExecutor>::type executor_type;
 
   __coinvoker_head(typename remove_reference<_HeadToken>::type& __token,
     __coinvoker_tail<_Head, _Tail>* __tail)
@@ -204,20 +207,20 @@ public:
     _HeadContinuation::chain(std::move(_M_head), std::move(_M_tail))();
   }
 
-  _InitialExecutor _Make_initial_executor() const
+  executor_type get_executor() const
   {
-    return _Make_initial_executor(is_same<_HeadExecutor, unspecified_executor>());
+    return get_executor(is_same<_HeadExecutor, unspecified_executor>());
   }
 
 private:
-  _InitialExecutor _Make_initial_executor(true_type) const
+  _TailExecutor get_executor(true_type) const
   {
-    return _M_tail._Make_initial_executor();
+    return _M_tail.get_executor();
   }
 
-  _InitialExecutor _Make_initial_executor(false_type) const
+  _HeadExecutor get_executor(false_type) const
   {
-    return make_executor(_M_head);
+    return __get_executor_helper(_M_head);
   }
 
   _HeadFunc _M_head;
@@ -270,7 +273,7 @@ private:
   template <class _Action, class _Invoker, class... _Invokers>
   static void _Go_2(_Action __a, _Invoker&& __i, _Invokers&&... __j)
   {
-    auto __e(__i._Make_initial_executor());
+    auto __e(__i.get_executor());
     __a(__e, std::move(__i));
     (_Go_2)(__a, forward<_Invokers>(__j)...);
   }

@@ -29,6 +29,8 @@ template <class _Executor>
 class basic_yield_context
 {
 public:
+  typedef _Executor executor_type;
+
   // construct / copy / destroy:
 
   template <class _OtherExecutor>
@@ -36,6 +38,7 @@ public:
 
   // basic_yield_context operations:
 
+  executor_type get_executor() const noexcept;
   basic_yield_context operator[](error_code& __ec) const;
 
 private:
@@ -50,9 +53,6 @@ private:
   __yield_context_caller* _M_caller;
   error_code* _M_error_code;
 };
-
-template <class _Executor>
-  _Executor make_executor(const basic_yield_context<_Executor>& __c);
 
 template <class _Executor, class _R, class... _Args>
   struct handler_type<basic_yield_context<_Executor>, _R(_Args...)>;

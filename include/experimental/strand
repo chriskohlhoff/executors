@@ -25,7 +25,7 @@ template <class _Executor>
 class strand
 {
 public:
-  class work;
+  typedef _Executor executor_type;
 
   // construct / copy / destroy:
 
@@ -46,11 +46,17 @@ public:
 
   // executor operations:
 
-  template <class _Func> void post(_Func&& __f);
-  template <class _Func> void dispatch(_Func&& __f);
-  work make_work();
-  template <class _Func> auto wrap(_Func&& __f);
+  executor_type get_executor() const noexcept;
   execution_context& context();
+
+  void work_started() noexcept;
+  void work_finished() noexcept;
+
+  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+
+  template <class _Func> auto wrap(_Func&& __f) const;
 
 private:
   template <class> friend class strand;
@@ -61,37 +67,6 @@ private:
 };
 
 template <class _Executor> struct is_executor<strand<_Executor>> : true_type {};
-
-template <class _Executor>
-class strand<_Executor>::work
-{
-public:
-  // construct / copy / destroy:
-
-  work(const work& __w);
-  work(work&& __w);
-
-  work& operator=(const work& __w);
-  work& operator=(work&& __w);
-
-  ~work();
-
-  friend strand make_executor(const work& __w) { return __w._Get_strand(); }
-  friend strand make_executor(work&& __w) { return __w._Move_strand(); }
-
-private:
-  friend class strand;
-  work(typename _Executor::work&& __w, const shared_ptr<__strand_impl>& __i);
-  strand _Get_strand() const { return strand(make_executor(_M_work), _M_impl); }
-  strand _Move_strand() { return strand(make_executor(_M_work), std::move(_M_impl)); }
-  typename _Executor::work _M_work;
-  shared_ptr<__strand_impl> _M_impl;
-};
-
-template <class _Executor>
-  strand<_Executor> make_executor(const strand<_Executor>& __e);
-template <class _Executor>
-  strand<_Executor> make_executor(strand<_Executor>&& __e);
 
 template <class _T> auto make_strand(_T&& __t);
 

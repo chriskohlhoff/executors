@@ -16,6 +16,7 @@
 #include <system_error>
 #include <tuple>
 #include <utility>
+#include <experimental/bits/exception_ptr_executor.h>
 #include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/function_traits.h>
 #include <experimental/bits/invoker.h>
@@ -36,6 +37,13 @@ basic_await_context<_Executor> basic_await_context<_Executor>::operator[](error_
   basic_await_context<_Executor> __c(*this);
   __c._M_error_code = &__ec;
   return __c;
+}
+
+template <class _Executor>
+inline typename basic_await_context<_Executor>::executor_type
+basic_await_context<_Executor>::get_executor() const noexcept
+{
+  return _M_executor;
 }
 
 template <class _T> class __awaitable {};
@@ -172,7 +180,7 @@ class __await_context_impl
 {
 public:
   template <class _F, class _C, class... _A>
-  __await_context_impl(const typename _Executor::work& __w, _F&& __f, _C&& __c, _A&&... __args)
+  __await_context_impl(const executor_work<_Executor>& __w, _F&& __f, _C&& __c, _A&&... __args)
     : _M_work(__w), _M_function(forward<_F>(__f)), _M_invocations(0),
       _M_continuation(forward<_C>(__c)), _M_args(forward<_A>(__args)...)
   {
@@ -218,7 +226,7 @@ private:
     }
   }
 
-  typename _Executor::work _M_work;
+  executor_work<_Executor> _M_work;
   _Func _M_function;
   atomic<size_t> _M_invocations;
   _Continuation _M_continuation;
@@ -250,11 +258,17 @@ struct __await_context_result<>
 template <class _Executor, class... _Values>
 struct __await_context_handler
 {
+  typedef __exception_ptr_executor<_Executor> executor_type;
   typedef __await_context_result<_Values...> _Result;
 
   __await_context_handler(basic_await_context<_Executor> __c)
     : _M_executor(__c._M_executor), _M_impl(__c._M_impl)
   {
+  }
+
+  executor_type get_executor() const noexcept
+  {
+    return executor_type(&_M_impl->_M_ex, _M_executor);
   }
 
   template <class... _Args> void operator()(_Args&&... __args)
@@ -270,11 +284,17 @@ struct __await_context_handler
 template <class _Executor, class... _Values>
 struct __await_context_handler<_Executor, error_code, _Values...>
 {
+  typedef __exception_ptr_executor<_Executor> executor_type;
   typedef __await_context_result<_Values...> _Result;
 
   __await_context_handler(basic_await_context<_Executor> __c)
     : _M_executor(__c._M_executor), _M_impl(__c._M_impl)
   {
+  }
+
+  executor_type get_executor() const noexcept
+  {
+    return executor_type(&_M_impl->_M_ex, _M_executor);
   }
 
   template <class... _Args> void operator()(const error_code& __e, _Args&&... __args)
@@ -294,11 +314,17 @@ struct __await_context_handler<_Executor, error_code, _Values...>
 template <class _Executor, class... _Values>
 struct __await_context_handler<_Executor, exception_ptr, _Values...>
 {
+  typedef __exception_ptr_executor<_Executor> executor_type;
   typedef __await_context_result<_Values...> _Result;
 
   __await_context_handler(basic_await_context<_Executor> __c)
     : _M_executor(__c._M_executor), _M_impl(__c._M_impl)
   {
+  }
+
+  executor_type get_executor() const noexcept
+  {
+    return executor_type(&_M_impl->_M_ex, _M_executor);
   }
 
   template <class... _Args> void operator()(const exception_ptr& __e, _Args&&... __args)
@@ -312,82 +338,6 @@ struct __await_context_handler<_Executor, exception_ptr, _Values...>
   _Executor _M_executor;
   shared_ptr<__await_context_impl_base> _M_impl;
 };
-
-template <class _Func>
-struct __await_context_call_wrapper
-{
-  exception_ptr* _M_exception;
-  _Func _M_func;
-
-  void operator()()
-  {
-    try
-    {
-      std::move(_M_func)();
-    }
-    catch (...)
-    {
-      *_M_exception = current_exception();
-    }
-  }
-};
-
-template <class _Executor>
-struct __await_context_executor
-{
-  exception_ptr* _M_exception;
-  _Executor _M_executor;
-
-  struct work
-  {
-    exception_ptr* _M_exception;
-    typename _Executor::work _M_work;
-
-    friend __await_context_executor make_executor(const work& __w)
-    {
-      return __await_context_executor{__w._M_exception, make_executor(__w._M_work)};
-    }
-  };
-
-  work make_work() { return work{_M_exception, _M_executor.make_work()}; }
-
-  template <class _F> void post(_F&& __f)
-  {
-    typedef typename decay<_F>::type _Func;
-    _M_executor.post(__await_context_call_wrapper<_Func>{_M_exception, forward<_F>(__f)});
-  }
-
-  template <class _F> void dispatch(_F&& __f)
-  {
-    typedef typename decay<_F>::type _Func;
-    _M_executor.dispatch(__await_context_call_wrapper<_Func>{_M_exception, forward<_F>(__f)});
-  }
-
-  template <class _Func>
-  inline auto wrap(_Func&& __f)
-  {
-    return (wrap_with_executor)(forward<_Func>(__f), *this);
-  }
-
-  execution_context& context()
-  {
-    return _M_executor.context();
-  }
-
-  friend __await_context_executor make_executor(const __await_context_executor& __e)
-  {
-    return __e;
-  }
-};
-
-template <class _Executor>
-struct is_executor<__await_context_executor<_Executor>> : true_type {};
-
-template <class _Executor, class... _Values>
-inline auto make_executor(const __await_context_handler<_Executor, _Values...>& __h)
-{
-  return __await_context_executor<_Executor>{_Get_coroutine_exception(*__h._M_impl), __h._M_executor};
-}
 
 template <class _Executor, class... _Values>
 class async_result<__await_context_handler<_Executor, _Values...>>
@@ -424,25 +374,32 @@ struct __await_null_continuation
 template <class _Executor, class _Func, class _Continuation = __await_null_continuation>
 struct __await_context_launcher
 {
-  typename _Executor::work _M_work;
+  typedef _Executor executor_type;
+
+  executor_work<_Executor> _M_work;
   _Func _M_func;
   _Continuation _M_continuation;
 
   template <class _F> __await_context_launcher(_F&& __f)
-    : _M_work(make_executor(__f).make_work()), _M_func(forward<_F>(__f))
+    : _M_work(__get_executor_helper(__f)), _M_func(forward<_F>(__f))
   {
   }
 
   template <class _F> __await_context_launcher(
     executor_arg_t, const _Executor& __e, _F&& __f)
-      : _M_work(make_executor(__e).make_work()), _M_func(forward<_F>(__f))
+      : _M_work(__e), _M_func(forward<_F>(__f))
   {
   }
 
   template <class _F, class _C> __await_context_launcher(
-    true_type, const typename _Executor::work& __w, _F&& __f, _C&& __c)
+    true_type, const executor_work<_Executor>& __w, _F&& __f, _C&& __c)
       : _M_work(__w), _M_func(forward<_F>(__f)), _M_continuation(forward<_C>(__c))
   {
+  }
+
+  executor_type get_executor() const noexcept
+  {
+    return _M_work.get_executor();
   }
 
   template <class... _Args> void operator()(_Args&&... __args)
@@ -473,7 +430,7 @@ struct handler_type<_Func, _R(_Args...),
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef __last_argument_t<__signature_t<_DecayFunc>> _AwaitContext;
-  typedef decltype(make_executor(declval<_AwaitContext>())) _Executor;
+  typedef decltype(get_executor(declval<_AwaitContext>())) _Executor;
   typedef __await_context_launcher<_Executor, _DecayFunc> type;
 };
 

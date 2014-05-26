@@ -15,6 +15,7 @@
 #include <memory>
 #include <system_error>
 #include <experimental/executor>
+#include <experimental/bits/get_executor.h>
 #include <experimental/bits/operation.h>
 #include <experimental/bits/tuple_utils.h>
 
@@ -35,18 +36,18 @@ class __wait_op
 {
 public:
   template <class _F> explicit __wait_op(_F&& __f)
-    : _M_func(forward<_F>(__f)), _M_work(make_executor(_M_func).make_work())
+    : _M_func(forward<_F>(__f)), _M_work(__get_executor_helper(_M_func))
   {
   }
 
   virtual void _Complete()
   {
     __small_block_recycler<>::_Unique_ptr<__wait_op> __op(this);
-    typename decltype(make_executor(declval<_Func>()))::work __work(std::move(_M_work));
-    auto __executor(make_executor(__work));
+    executor_work<_Executor> __work(std::move(_M_work));
+    _Executor __executor(__work.get_executor());
     auto __i(_Make_tuple_invoker(std::move(_M_func), _M_ec));
     __op.reset();
-    __executor.post(std::move(__i));
+    __executor.post(std::move(__i), std::allocator<void>());
   }
 
   virtual void _Destroy()
@@ -56,7 +57,8 @@ public:
 
 private:
   _Func _M_func;
-  typename decltype(make_executor(declval<_Func>()))::work _M_work;
+  typedef decltype(__get_executor_helper(declval<_Func>())) _Executor;
+  executor_work<_Executor> _M_work;
 };
 
 } // namespace experimental

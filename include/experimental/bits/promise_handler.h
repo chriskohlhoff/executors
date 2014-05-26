@@ -22,6 +22,77 @@
 namespace std {
 namespace experimental {
 
+template <class _Func, class _Promise>
+struct __promise_invoker
+{
+  shared_ptr<_Promise> _M_promise;
+  _Func _M_func;
+
+  template <class _F>
+  __promise_invoker(const shared_ptr<_Promise>& __p, _F&& __f)
+    : _M_promise(__p), _M_func(forward<_F>(__f)) {}
+
+  void operator()() &&
+  {
+    try
+    {
+      std::move(_M_func)();
+    }
+    catch (...)
+    {
+      _M_promise->set_exception(current_exception());
+    }
+  }
+};
+
+template <class _Promise>
+struct __promise_executor
+{
+  shared_ptr<_Promise> _M_promise;
+
+  execution_context& context()
+  {
+    return system_executor().context();
+  }
+
+  void work_started() noexcept
+  {
+  }
+
+  void work_finished() noexcept
+  {
+  }
+
+  template <class _F, class _A> void dispatch(_F&& __f, const _A&)
+  {
+    typedef typename decay<_F>::type _Func;
+    __promise_invoker<_Func, _Promise>(_M_promise, forward<_F>(__f))();
+  }
+
+  template <class _F, class _A> void post(_F&& __f, const _A& __a)
+  {
+    typedef typename decay<_F>::type _Func;
+    system_executor().post(
+      __promise_invoker<_Func, _Promise>(_M_promise, forward<_F>(__f)), __a);
+  }
+
+  template <class _F, class _A> void defer(_F&& __f, const _A& __a)
+  {
+    typedef typename decay<_F>::type _Func;
+    system_executor().defer(
+      __promise_invoker<_Func, _Promise>(_M_promise, forward<_F>(__f)), __a);
+  }
+
+  template <class _Func>
+  inline auto wrap(_Func&& __f) const
+  {
+    return (wrap_with_executor)(forward<_Func>(__f), *this);
+  }
+};
+
+template <class _Promise>
+struct is_executor<__promise_executor<_Promise>> : true_type {};
+
 template <class... _Args>
 struct __value_pack
 {
@@ -59,11 +130,17 @@ template <class... _Args>
 struct __promise_handler
 {
   typedef promise<typename __value_pack<_Args...>::_Type> _Promise;
+  typedef __promise_executor<_Promise> executor_type;
   shared_ptr<_Promise> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
     : _M_promise(make_shared<_Promise>(allocator_arg, __u.get_allocator())) {}
+
+  executor_type get_executor() const noexcept
+  {
+    return __promise_executor<_Promise>{_M_promise};
+  }
 
   void operator()(_Args... __args)
   {
@@ -75,11 +152,17 @@ template <class... _Args>
 struct __promise_handler<error_code, _Args...>
 {
   typedef promise<typename __value_pack<_Args...>::_Type> _Promise;
+  typedef __promise_executor<_Promise> executor_type;
   shared_ptr<_Promise> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
     : _M_promise(make_shared<_Promise>(allocator_arg, __u.get_allocator())) {}
+
+  executor_type get_executor() const noexcept
+  {
+    return __promise_executor<_Promise>{_M_promise};
+  }
 
   void operator()(const error_code& __e, _Args... __args)
   {
@@ -94,11 +177,17 @@ template <class... _Args>
 struct __promise_handler<exception_ptr, _Args...>
 {
   typedef promise<typename __value_pack<_Args...>::_Type> _Promise;
+  typedef __promise_executor<_Promise> executor_type;
   shared_ptr<_Promise> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
     : _M_promise(make_shared<_Promise>(allocator_arg, __u.get_allocator())) {}
+
+  executor_type get_executor() const noexcept
+  {
+    return __promise_executor<_Promise>{_M_promise};
+  }
 
   void operator()(const exception_ptr& __e, _Args... __args)
   {
@@ -108,87 +197,6 @@ struct __promise_handler<exception_ptr, _Args...>
       __value_pack<_Args...>::_Apply(*_M_promise, forward<_Args>(__args)...);
   }
 };
-
-template <class _Func, class... _Args>
-struct __promise_invoker
-{
-  typedef typename __promise_handler<_Args...>::_Promise _Promise;
-  shared_ptr<_Promise> _M_promise;
-  _Func _M_func;
-
-  template <class _F>
-  __promise_invoker(const shared_ptr<_Promise>& __p, _F&& __f)
-    : _M_promise(__p), _M_func(forward<_F>(__f)) {}
-
-  void operator()() &&
-  {
-    try
-    {
-      std::move(_M_func)();
-    }
-    catch (...)
-    {
-      _M_promise->set_exception(current_exception());
-    }
-  }
-};
-
-template <class... _Args>
-struct __promise_executor
-{
-  typedef typename __promise_handler<_Args...>::_Promise _Promise;
-  shared_ptr<_Promise> _M_promise;
-
-  struct work
-  {
-    shared_ptr<_Promise> _M_promise;
-
-    friend __promise_executor make_executor(const work& __w)
-    {
-      return __promise_executor{__w._M_promise};
-    }
-  };
-
-  work make_work() { return work{_M_promise}; }
-
-  template <class _F> void post(_F&& __f)
-  {
-    typedef typename decay<_F>::type _Func;
-    system_executor().post(
-      __promise_invoker<_Func, _Args...>(_M_promise, forward<_F>(__f)));
-  }
-
-  template <class _F> void dispatch(_F&& __f)
-  {
-    typedef typename decay<_F>::type _Func;
-    __promise_invoker<_Func, _Args...>(_M_promise, forward<_F>(__f))();
-  }
-
-  template <class _Func>
-  inline auto wrap(_Func&& __f)
-  {
-    return (wrap_with_executor)(forward<_Func>(__f), *this);
-  }
-
-  execution_context& context()
-  {
-    return system_executor().context();
-  }
-
-  friend __promise_executor make_executor(const __promise_executor& __e)
-  {
-    return __e;
-  }
-};
-
-template <class... _Args>
-struct is_executor<__promise_executor<_Args...>> : true_type {};
-
-template <class... _Args>
-inline auto make_executor(const __promise_handler<_Args...>& __h)
-{
-  return __promise_executor<_Args...>{__h._M_promise};
-}
 
 template <class... _Args>
 class async_result<__promise_handler<_Args...>>

@@ -20,17 +20,6 @@ namespace experimental {
 
 class __executor_impl_base;
 
-class __work_impl_base
-{
-public:
-  virtual __work_impl_base* _Clone() const = 0;
-  virtual void _Destroy() = 0;
-  virtual __executor_impl_base* _Get_executor() const = 0;
-
-protected:
-  virtual ~__work_impl_base() {}
-};
-
 class __function_base
 {
 public:
@@ -64,50 +53,20 @@ private:
 class __executor_impl_base
 {
 public:
-  virtual __executor_impl_base* _Clone() const = 0;
-  virtual void _Destroy() = 0;
-  virtual void _Post(__function_ptr&& __f) = 0;
-  virtual void _Dispatch(__function_ptr&& __f) = 0;
-  virtual __work_impl_base* _Make_work() = 0;
+  virtual __executor_impl_base* _Clone() const noexcept = 0;
+  virtual void _Destroy() noexcept = 0;
   virtual execution_context& _Context() = 0;
+  virtual void _Work_started() noexcept = 0;
+  virtual void _Work_finished() noexcept = 0;
+  virtual void _Dispatch(__function_ptr&& __f) = 0;
+  virtual void _Post(__function_ptr&& __f) = 0;
+  virtual void _Defer(__function_ptr&& __f) = 0;
   virtual const type_info& _Target_type() = 0;
   virtual void* _Target() = 0;
   virtual const void* _Target() const = 0;
 
 protected:
   virtual ~__executor_impl_base() {}
-};
-
-template <class _Work>
-class __work_impl
-  : public __work_impl_base
-{
-public:
-  static __work_impl_base* _Create(const _Work& __w)
-  {
-    return new __work_impl(__w);
-  }
-
-  virtual __work_impl_base* _Clone() const
-  {
-    __work_impl* __w = const_cast<__work_impl*>(this);
-    ++__w->_M_ref_count;
-    return __w;
-  }
-
-  virtual void _Destroy()
-  {
-    if (--_M_ref_count == 0)
-      delete this;
-  }
-
-  virtual __executor_impl_base* _Get_executor() const;
-
-private:
-  explicit __work_impl(const _Work& __w) : _M_work(__w), _M_ref_count(1) {}
-  ~__work_impl() {}
-  _Work _M_work;
-  atomic<size_t> _M_ref_count;
 };
 
 template <class _Executor>
@@ -120,37 +79,47 @@ public:
     return new __executor_impl(__e);
   }
 
-  virtual __executor_impl_base* _Clone() const
+  virtual __executor_impl_base* _Clone() const noexcept
   {
     __executor_impl* __e = const_cast<__executor_impl*>(this);
     ++__e->_M_ref_count;
     return __e;
   }
 
-  virtual void _Destroy()
+  virtual void _Destroy() noexcept
   {
     if (--_M_ref_count == 0)
       delete this;
   }
 
-  virtual void _Post(__function_ptr&& __f)
+  virtual execution_context& _Context()
   {
-    _M_executor.post(std::move(__f));
+    return _M_executor.context();
+  }
+
+  virtual void _Work_started() noexcept
+  {
+    _M_executor.work_started();
+  }
+
+  virtual void _Work_finished() noexcept
+  {
+    _M_executor.work_finished();
   }
 
   virtual void _Dispatch(__function_ptr&& __f)
   {
-    _M_executor.dispatch(std::move(__f));
+    _M_executor.dispatch(std::move(__f), std::allocator<void>());
   }
 
-  virtual __work_impl_base* _Make_work()
+  virtual void _Post(__function_ptr&& __f)
   {
-    return __work_impl<typename _Executor::work>::_Create(_M_executor.make_work());
+    _M_executor.post(std::move(__f), std::allocator<void>());
   }
 
-  virtual execution_context& _Context()
+  virtual void _Defer(__function_ptr&& __f)
   {
-    return _M_executor.context();
+    _M_executor.defer(std::move(__f), std::allocator<void>());
   }
 
   virtual const type_info& _Target_type()
@@ -175,45 +144,6 @@ private:
   atomic<size_t> _M_ref_count;
 };
 
-template <class _Work>
-inline __executor_impl_base* __work_impl<_Work>::_Get_executor() const
-{
-  typedef decltype(make_executor(_M_work)) _Executor;
-  return __executor_impl<_Executor>::_Create(make_executor(_M_work));
-}
-
-template <>
-class __work_impl<system_executor::work>
-  : public __work_impl_base
-{
-public:
-  static __work_impl_base* _Create()
-  {
-    static __work_impl* __w = new __work_impl;
-    return __w;
-  }
-
-  static __work_impl_base* _Create(system_executor::work)
-  {
-    return _Create();
-  }
-
-  virtual __work_impl_base* _Clone() const
-  {
-    return const_cast<__work_impl*>(this);
-  }
-
-  virtual void _Destroy()
-  {
-  }
-
-  virtual __executor_impl_base* _Get_executor() const;
-
-private:
-  __work_impl() {}
-  ~__work_impl() {}
-};
-
 template <>
 class __executor_impl<system_executor>
   : public __executor_impl_base
@@ -230,33 +160,43 @@ public:
     return _Create();
   }
 
-  virtual __executor_impl_base* _Clone() const
+  virtual __executor_impl_base* _Clone() const noexcept
   {
     return const_cast<__executor_impl*>(this);
   }
 
-  virtual void _Destroy()
+  virtual void _Destroy() noexcept
   {
-  }
-
-  virtual void _Post(__function_ptr&& __f)
-  {
-    _M_executor.post(std::move(__f));
-  }
-
-  virtual void _Dispatch(__function_ptr&& __f)
-  {
-    _M_executor.dispatch(std::move(__f));
-  }
-
-  virtual __work_impl_base* _Make_work()
-  {
-    return __work_impl<system_executor::work>::_Create();
   }
 
   virtual execution_context& _Context()
   {
     return _M_executor.context();
+  }
+
+  virtual void _Work_started() noexcept
+  {
+    _M_executor.work_started();
+  }
+
+  virtual void _Work_finished() noexcept
+  {
+    _M_executor.work_started();
+  }
+
+  virtual void _Dispatch(__function_ptr&& __f)
+  {
+    _M_executor.dispatch(std::move(__f), std::allocator<void>());
+  }
+
+  virtual void _Post(__function_ptr&& __f)
+  {
+    _M_executor.post(std::move(__f), std::allocator<void>());
+  }
+
+  virtual void _Defer(__function_ptr&& __f)
+  {
+    _M_executor.defer(std::move(__f), std::allocator<void>());
   }
 
   virtual const type_info& _Target_type()
@@ -280,43 +220,6 @@ protected:
   system_executor _M_executor;
 };
 
-inline __executor_impl_base* __work_impl<system_executor::work>::_Get_executor() const
-{
-  return __executor_impl<system_executor>::_Create();
-}
-
-template <>
-class __work_impl<unspecified_executor::work>
-  : public __work_impl_base
-{
-public:
-  static __work_impl_base* _Create()
-  {
-    static __work_impl* __w = new __work_impl;
-    return __w;
-  }
-
-  static __work_impl_base* _Create(unspecified_executor::work)
-  {
-    return _Create();
-  }
-
-  virtual __work_impl_base* _Clone() const
-  {
-    return const_cast<__work_impl*>(this);
-  }
-
-  virtual void _Destroy()
-  {
-  }
-
-  virtual __executor_impl_base* _Get_executor() const;
-
-private:
-  __work_impl() {}
-  ~__work_impl() {}
-};
-
 template <>
 class __executor_impl<unspecified_executor>
   : public __executor_impl_base
@@ -333,33 +236,43 @@ public:
     return _Create();
   }
 
-  virtual __executor_impl_base* _Clone() const
+  virtual __executor_impl_base* _Clone() const noexcept
   {
     return const_cast<__executor_impl*>(this);
   }
 
-  virtual void _Destroy()
+  virtual void _Destroy() noexcept
   {
-  }
-
-  virtual void _Post(__function_ptr&& __f)
-  {
-    _M_executor.post(std::move(__f));
-  }
-
-  virtual void _Dispatch(__function_ptr&& __f)
-  {
-    _M_executor.dispatch(std::move(__f));
-  }
-
-  virtual __work_impl_base* _Make_work()
-  {
-    return __work_impl<unspecified_executor::work>::_Create();
   }
 
   virtual execution_context& _Context()
   {
     return _M_executor.context();
+  }
+
+  virtual void _Work_started() noexcept
+  {
+    _M_executor.work_started();
+  }
+
+  virtual void _Work_finished() noexcept
+  {
+    _M_executor.work_started();
+  }
+
+  virtual void _Dispatch(__function_ptr&& __f)
+  {
+    _M_executor.dispatch(std::move(__f), std::allocator<void>());
+  }
+
+  virtual void _Post(__function_ptr&& __f)
+  {
+    _M_executor.post(std::move(__f), std::allocator<void>());
+  }
+
+  virtual void _Defer(__function_ptr&& __f)
+  {
+    _M_executor.defer(std::move(__f), std::allocator<void>());
   }
 
   virtual const type_info& _Target_type()
@@ -383,11 +296,6 @@ protected:
   unspecified_executor _M_executor;
 };
 
-inline __executor_impl_base* __work_impl<unspecified_executor::work>::_Get_executor() const
-{
-  return __executor_impl<unspecified_executor>::_Create();
-}
-
 class bad_executor
   : public std::exception
 {
@@ -401,54 +309,36 @@ public:
   }
 };
 
-class __bad_work_impl
-  : public __work_impl_base
-{
-public:
-  static __work_impl_base* _Create()
-  {
-    static __bad_work_impl* __w = new __bad_work_impl;
-    return __w;
-  }
-
-  virtual __work_impl_base* _Clone() const
-  {
-    return const_cast<__bad_work_impl*>(this);
-  }
-
-  virtual void _Destroy()
-  {
-  }
-
-  virtual __executor_impl_base* _Get_executor() const;
-
-private:
-  __bad_work_impl() {}
-  ~__bad_work_impl() {}
-};
-
 class __bad_executor_impl
   : public __executor_impl_base
 {
 public:
-  static __executor_impl_base* _Create()
+  static __executor_impl_base* _Create() noexcept
   {
-    static __bad_executor_impl* __e = new __bad_executor_impl;
-    return __e;
+    static __bad_executor_impl __e;
+    return &__e;
   }
 
-  virtual __executor_impl_base* _Clone() const
+  virtual __executor_impl_base* _Clone() const noexcept
   {
     return const_cast<__bad_executor_impl*>(this);
   }
 
-  virtual void _Destroy()
+  virtual void _Destroy() noexcept
   {
   }
 
-  virtual void _Post(__function_ptr&&)
+  virtual execution_context& _Context()
   {
-    throw bad_executor();
+    return system_executor().context();
+  }
+
+  virtual void _Work_started() noexcept
+  {
+  }
+
+  virtual void _Work_finished() noexcept
+  {
   }
 
   virtual void _Dispatch(__function_ptr&&)
@@ -456,12 +346,12 @@ public:
     throw bad_executor();
   }
 
-  virtual __work_impl_base* _Make_work()
+  virtual void _Post(__function_ptr&&)
   {
-    return __bad_work_impl::_Create();
+    throw bad_executor();
   }
 
-  virtual execution_context& _Context()
+  virtual void _Defer(__function_ptr&&)
   {
     throw bad_executor();
   }
@@ -485,11 +375,6 @@ private:
   __bad_executor_impl() {}
   ~__bad_executor_impl() {}
 };
-
-inline __executor_impl_base* __bad_work_impl::_Get_executor() const
-{
-  return __bad_executor_impl::_Create();
-}
 
 inline executor::executor() noexcept
   : _M_impl(__bad_executor_impl::_Create())
@@ -587,36 +472,47 @@ inline executor& executor::operator=(_Executor&& __e)
   return *this;
 }
 
-template <class _Func>
-inline void executor::post(_Func&& __f)
+inline execution_context& executor::context()
 {
-  _M_impl->_Post(__function_ptr(forward<_Func>(__f)));
+  return _M_impl->_Context();
 }
 
-template <class _Func>
-void executor::dispatch(_Func&& __f)
+inline void executor::work_started() noexcept
+{
+  _M_impl->_Work_started();
+}
+
+inline void executor::work_finished() noexcept
+{
+  _M_impl->_Work_finished();
+}
+
+template <class _Func, class _Alloc>
+void executor::dispatch(_Func&& __f, const _Alloc& a)
 {
   if (static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<system_executor>::_Create())
      || static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<unspecified_executor>::_Create()))
-    system_executor().dispatch(forward<_Func>(__f));
+    system_executor().dispatch(forward<_Func>(__f), a);
   else
     _M_impl->_Dispatch(__function_ptr(forward<_Func>(__f)));
 }
 
-inline executor::work executor::make_work()
+template <class _Func, class _Alloc>
+inline void executor::post(_Func&& __f, const _Alloc&)
 {
-  return work(_M_impl->_Make_work());
+  _M_impl->_Post(__function_ptr(forward<_Func>(__f)));
+}
+
+template <class _Func, class _Alloc>
+inline void executor::defer(_Func&& __f, const _Alloc&)
+{
+  _M_impl->_Defer(__function_ptr(forward<_Func>(__f)));
 }
 
 template <class _Func>
-inline auto executor::wrap(_Func&& __f)
+inline auto executor::wrap(_Func&& __f) const
 {
   return (wrap_with_executor)(forward<_Func>(__f), *this);
-}
-
-inline execution_context& executor::context()
-{
-  return _M_impl->_Context();
 }
 
 inline executor::operator bool() const noexcept
@@ -641,16 +537,6 @@ inline const _Executor* executor::target() const noexcept
   return static_cast<_Executor*>(_M_impl->_Target());
 }
 
-inline executor make_executor(const executor& __e)
-{
-  return __e;
-}
-
-inline executor make_executor(executor&& __e)
-{
-  return std::move(__e);
-}
-
 inline bool operator==(const executor& __e, nullptr_t) noexcept
 {
   return !static_cast<bool>(__e);
@@ -669,137 +555,6 @@ inline bool operator!=(const executor& __e, nullptr_t) noexcept
 inline bool operator!=(nullptr_t, const executor& __e) noexcept
 {
   return static_cast<bool>(__e);
-}
-
-inline executor::work::work() noexcept
-  : _M_impl(__bad_work_impl::_Create())
-{
-}
-
-inline executor::work::work(nullptr_t) noexcept
-  : _M_impl(__bad_work_impl::_Create())
-{
-}
-
-inline executor::work::work(const work& __w)
-  : _M_impl(__w._M_impl->_Clone())
-{
-}
-
-inline executor::work::work(work&& __w)
-  : _M_impl(__w._M_impl)
-{
-  __w._M_impl = __bad_work_impl::_Create();
-}
-
-template <class _Work>
-inline executor::work::work(_Work __w)
-  : _M_impl(__work_impl<_Work>::_Create(__w))
-{
-}
-
-template <class _Alloc>
-inline executor::work::work(allocator_arg_t, const _Alloc&) noexcept
-  : _M_impl(__bad_work_impl::_Create())
-{
-}
-
-template <class _Alloc>
-inline executor::work::work(allocator_arg_t, const _Alloc&, nullptr_t) noexcept
-  : _M_impl(__bad_work_impl::_Create())
-{
-}
-
-template <class _Alloc>
-inline executor::work::work(allocator_arg_t, const _Alloc&, const work& __w)
-    : _M_impl(__w._M_impl->_Clone())
-{
-}
-
-template <class _Alloc>
-inline executor::work::work(allocator_arg_t, const _Alloc&, work&& __w)
-  : _M_impl(__w._M_impl)
-{
-  __w._M_impl = __bad_work_impl::_Create();
-}
-
-template <class _Work, class _Alloc>
-inline executor::work::work(allocator_arg_t, const _Alloc&, _Work __w)
-  : _M_impl(__work_impl<_Work>::_Create(__w))
-{
-}
-
-inline executor::work::~work()
-{
-  _M_impl->_Destroy();
-}
-
-inline executor::work& executor::work::operator=(const work& __w)
-{
-  __work_impl_base* __tmp = _M_impl;
-  _M_impl = __w._M_impl->_Clone();
-  __tmp->_Destroy();
-  return *this;
-}
-
-inline executor::work& executor::work::operator=(work&& __w)
-{
-  __work_impl_base* __tmp = _M_impl;
-  _M_impl = __w._M_impl->_Clone();
-  __tmp->_Destroy();
-  __w._M_impl = __bad_work_impl::_Create();
-  return *this;
-}
-
-inline executor::work& executor::work::operator=(nullptr_t)
-{
-  _M_impl->_Destroy();
-  _M_impl = __bad_work_impl::_Create();
-  return *this;
-}
-
-template <class _Work>
-inline executor::work& executor::work::operator=(_Work&& __w)
-{
-  __work_impl_base* __tmp = _M_impl;
-  _M_impl = __work_impl<typename decay<_Work>::type>::_Create(forward<_Work>(__w));
-  __tmp->_Destroy();
-  return *this;
-}
-
-inline executor::work::operator bool() const noexcept
-{
-  return _M_impl != __bad_work_impl::_Create();
-}
-
-inline executor make_executor(const executor::work& __w)
-{
-  return executor(__w._M_impl->_Get_executor());
-}
-
-inline executor make_executor(executor::work&& __w)
-{
-  return executor(__w._M_impl->_Get_executor());
-}
-
-inline bool operator==(const executor::work& __w, nullptr_t) noexcept
-{
-  return !static_cast<bool>(__w);
-}
-
-inline bool operator==(nullptr_t, const executor::work& __w) noexcept
-{
-  return !static_cast<bool>(__w);
-}
-
-inline bool operator!=(const executor::work& __w, nullptr_t) noexcept
-{
-  return static_cast<bool>(__w);
-}
-
-inline bool operator!=(nullptr_t, const executor::work& __w) noexcept
-{
-  return static_cast<bool>(__w);
 }
 
 } // namespace experimental

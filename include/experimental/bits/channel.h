@@ -64,7 +64,7 @@ class channel<_T, _Cont>::_PutOp
 public:
   template <class _U, class _H> explicit _PutOp(_U&& __u, _H&& __h)
     : _Op(forward<_U>(__u)), _M_handler(forward<_H>(__h)),
-      _M_work(make_executor(_M_handler).make_work())
+      _M_work(get_executor(_M_handler))
   {
   }
 
@@ -78,11 +78,11 @@ public:
     else if (this->_M_result == __channel_op::_Result::__broken_pipe)
       __ec = make_error_code(errc::broken_pipe);
 
-    typename decltype(make_executor(declval<_Handler>()))::work __work(std::move(_M_work));
-    auto __executor(make_executor(__work));
+    executor_work<_Executor> __work(std::move(_M_work));
+    _Executor __executor(__work.get_executor());
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec));
     __op.reset();
-    __executor.post(std::move(__i));
+    __executor.post(std::move(__i), std::allocator<void>());
   }
 
   virtual void _Destroy()
@@ -92,7 +92,8 @@ public:
 
 private:
   _Handler _M_handler;
-  typename decltype(make_executor(declval<_Handler>()))::work _M_work;
+  typedef decltype(get_executor(declval<_Handler>())) _Executor;
+  executor_work<_Executor> _M_work;
 };
 
 template <class _T, class _Cont> template <class _Handler>
@@ -101,7 +102,7 @@ class channel<_T, _Cont>::_GetOp
 {
 public:
   template <class _H> explicit _GetOp(_H&& __h)
-    : _M_handler(forward<_H>(__h)), _M_work(make_executor(_M_handler).make_work())
+    : _M_handler(forward<_H>(__h)), _M_work(get_executor(_M_handler))
   {
   }
 
@@ -115,11 +116,11 @@ public:
     else if (this->_M_result == __channel_op::_Result::__broken_pipe)
       __ec = make_error_code(errc::broken_pipe);
 
-    typename decltype(make_executor(declval<_Handler>()))::work __work(std::move(_M_work));
-    auto __executor(make_executor(__work));
+    executor_work<_Executor> __work(std::move(_M_work));
+    _Executor __executor(__work.get_executor());
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec, this->_Get_value()));
     __op.reset();
-    __executor.post(std::move(__i));
+    __executor.post(std::move(__i), std::allocator<void>());
   }
 
   virtual void _Destroy()
@@ -129,7 +130,8 @@ public:
 
 private:
   _Handler _M_handler;
-  typename decltype(make_executor(declval<_Handler>()))::work _M_work;
+  typedef decltype(get_executor(declval<_Handler>())) _Executor;
+  executor_work<_Executor> _M_work;
 };
 
 template <class _T, class _Cont>

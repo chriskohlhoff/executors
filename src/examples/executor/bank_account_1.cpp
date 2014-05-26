@@ -1,7 +1,6 @@
 #include <experimental/thread_pool>
 #include <iostream>
 
-using std::experimental::make_executor;
 using std::experimental::post;
 using std::experimental::thread_pool;
 
@@ -12,7 +11,7 @@ class bank_account
 {
   int balance_ = 0;
   thread_pool pool_{1};
-  mutable thread_pool::executor ex_ = make_executor(pool_);
+  mutable thread_pool::executor_type ex_ = pool_.get_executor();
 
 public:
   void deposit(int amount)

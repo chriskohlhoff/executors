@@ -40,6 +40,11 @@ inline thread_pool::~thread_pool()
   shutdown();
 }
 
+inline thread_pool::executor_type thread_pool::get_executor() const noexcept
+{
+  return executor_type(const_cast<thread_pool*>(this));
+}
+
 inline void thread_pool::stop()
 {
   _Stop();
@@ -56,100 +61,60 @@ inline void thread_pool::join()
   }
 }
 
-inline thread_pool::executor::executor(
-  const thread_pool::executor& __e)
+inline thread_pool::executor_type::executor_type(
+  const thread_pool::executor_type& __e) noexcept
     : _M_pool(__e._M_pool)
 {
 }
 
-inline thread_pool::executor&
-  thread_pool::executor::operator=(const executor& __e)
+inline thread_pool::executor_type&
+  thread_pool::executor_type::operator=(const executor_type& __e) noexcept
 {
   _M_pool = __e._M_pool;
   return *this;
 }
 
-inline thread_pool::executor::~executor()
+inline thread_pool::executor_type::~executor_type()
 {
 }
 
-template <class _Func> void thread_pool::executor::post(_Func&& __f)
-{
-  _M_pool->_Post(forward<_Func>(__f));
-}
-
-template <class _Func> void thread_pool::executor::dispatch(_Func&& __f)
-{
-  _M_pool->_Dispatch(forward<_Func>(__f));
-}
-
-inline thread_pool::executor::work thread_pool::executor::make_work()
-{
-  return work(_M_pool);
-}
-
-template <class _Func>
-inline auto thread_pool::executor::wrap(_Func&& __f)
-{
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
-}
-
-inline execution_context& thread_pool::executor::context()
+inline execution_context& thread_pool::executor_type::context()
 {
   return *_M_pool;
 }
 
-inline thread_pool::executor::work::work(thread_pool* __p)
-  : _M_pool(__p)
+inline void thread_pool::executor_type::work_started() noexcept
 {
   _M_pool->_Work_started();
 }
 
-inline thread_pool::executor::work::work(
-  const thread_pool::executor::work& __w)
-    : _M_pool(__w._M_pool)
-{
-  _M_pool->_Work_started();
-}
-
-inline thread_pool::executor::work&
-  thread_pool::executor::work::operator=(const work& __w)
-{
-  thread_pool* __tmp = _M_pool;
-  _M_pool = __w._M_pool;
-  _M_pool->_Work_started();
-  __tmp->_Work_finished();
-  return *this;
-}
-
-inline thread_pool::executor::work::~work()
+inline void thread_pool::executor_type::work_finished() noexcept
 {
   _M_pool->_Work_finished();
 }
 
-inline thread_pool::executor make_executor(thread_pool& __p)
+template <class _Func, class _Alloc>
+void thread_pool::executor_type::dispatch(_Func&& __f, const _Alloc&)
 {
-  return thread_pool::executor(&__p);
+  _M_pool->_Dispatch(forward<_Func>(__f));
 }
 
-inline thread_pool::executor make_executor(const thread_pool::executor& __e)
+template <class _Func, class _Alloc>
+void thread_pool::executor_type::post(_Func&& __f, const _Alloc&)
 {
-  return __e;
+  _M_pool->_Post(forward<_Func>(__f));
 }
 
-inline thread_pool::executor make_executor(thread_pool::executor&& __e)
+template <class _Func, class _Alloc>
+void thread_pool::executor_type::defer(_Func&& __f, const _Alloc&)
 {
-  return std::move(__e);
+  _M_pool->_Defer(forward<_Func>(__f));
 }
 
-inline thread_pool::executor make_executor(const thread_pool::executor::work& __w)
+template <class _Func>
+inline auto thread_pool::executor_type::wrap(_Func&& __f) const
 {
-  return thread_pool::executor(__w._M_pool);
-}
-
-inline thread_pool::executor make_executor(thread_pool::executor::work&& __w)
-{
-  return thread_pool::executor(__w._M_pool);
+  return (wrap_with_executor)(forward<_Func>(__f), *this);
 }
 
 } // namespace experimental
