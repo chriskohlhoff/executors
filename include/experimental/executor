@@ -347,7 +347,7 @@ template <class... _CompletionTokens>
     dispatch(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    dispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
+    dispatch(const _Executor& __e, _CompletionTokens&&... __tokens);
 
 // Schedule a function to run later.
 
@@ -356,7 +356,7 @@ template <class... _CompletionTokens>
     post(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    post(_Executor&& __e, _CompletionTokens&&... __tokens);
+    post(const _Executor& __e, _CompletionTokens&&... __tokens);
 
 // Schedule a function to run later, treating the function as a continuation of the caller.
 
@@ -365,7 +365,7 @@ template <class... _CompletionTokens>
     defer(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    defer(_Executor&& __e, _CompletionTokens&&... __tokens);
+    defer(const _Executor& __e, _CompletionTokens&&... __tokens);
 
 // Schedule functions to run now if possible, run concurrently later otherwise.
 
@@ -374,7 +374,7 @@ template <class... _CompletionTokens>
     codispatch(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    codispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
+    codispatch(const _Executor& __e, _CompletionTokens&&... __tokens);
 
 // Schedule functions to run concurrently later.
 
@@ -383,7 +383,7 @@ template <class... _CompletionTokens>
     copost(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    copost(_Executor&& __e, _CompletionTokens&&... __tokens);
+    copost(const _Executor& __e, _CompletionTokens&&... __tokens);
 
 // Schedule functions to run concurrently later.
 
@@ -392,7 +392,7 @@ template <class... _CompletionTokens>
     codefer(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    codefer(_Executor&& __e, _CompletionTokens&&... __tokens);
+    codefer(const _Executor& __e, _CompletionTokens&&... __tokens);
 
 } // namespace experimental
 

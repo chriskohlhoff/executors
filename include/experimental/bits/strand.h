@@ -155,8 +155,8 @@ inline strand<_Executor>::strand(strand<_OtherExecutor>&& __s)
 }
 
 template <class _Executor>
-inline strand<_Executor>::strand(_Executor&& __e, const shared_ptr<__strand_impl>& __i)
-  : _M_executor(forward<_Executor>(__e)), _M_impl(__i)
+inline strand<_Executor>::strand(const _Executor& __e, const shared_ptr<__strand_impl>& __i)
+  : _M_executor(__e), _M_impl(__i)
 {
 }
 

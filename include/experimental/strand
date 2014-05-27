@@ -61,7 +61,7 @@ public:
 private:
   template <class> friend class strand;
   friend class work;
-  strand(_Executor&& __e, const shared_ptr<__strand_impl>& __i);
+  strand(const _Executor& __e, const shared_ptr<__strand_impl>& __i);
   _Executor _M_executor;
   shared_ptr<__strand_impl> _M_impl;
 };

@@ -35,7 +35,7 @@ typename __invoke_without_executor<_CompletionTokens...>::_Result
 
 template <class _Executor, class... _CompletionTokens>
 typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-  dispatch(_Executor&& __e, _CompletionTokens&&... __tokens)
+  dispatch(const _Executor& __e, _CompletionTokens&&... __tokens)
 {
   static_assert(sizeof...(_CompletionTokens) > 0,
     "dispatch() must be called with one or more completion tokens");
@@ -43,7 +43,8 @@ typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
   __invoker_head<void(), _CompletionTokens...> __head(__tokens...);
   async_result<__invoker_head<void(), _CompletionTokens...>> __result(__head);
 
-  __e.dispatch(std::move(__head), std::allocator<void>());
+  _Executor __completion_executor(__e);
+  __completion_executor.dispatch(std::move(__head), std::allocator<void>());
 
   return __result.get();
 }
