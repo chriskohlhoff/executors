@@ -20,6 +20,9 @@ nobase_include_HEADERS = \
 	experimental/bits/coinvoker.h \
 	experimental/bits/continuation.h \
 	experimental/bits/copost.h \
+	experimental/bits/defer.h \
+	experimental/bits/defer_at.h \
+	experimental/bits/defer_after.h \
 	experimental/bits/dispatch.h \
 	experimental/bits/dispatch_at.h \
 	experimental/bits/dispatch_after.h \
