@@ -15,6 +15,7 @@ nobase_include_HEADERS = \
 	experimental/bits/chain.h \
 	experimental/bits/channel.h \
 	experimental/bits/channel_void.h \
+	experimental/bits/codefer.h \
 	experimental/bits/codispatch.h \
 	experimental/bits/coinvoker.h \
 	experimental/bits/continuation.h \

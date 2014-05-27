@@ -366,7 +366,16 @@ template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     defer(_Executor&& __e, _CompletionTokens&&... __tokens);
 
-// Schedule two functions to run concurrently later.
+// Schedule functions to run now if possible, run concurrently later otherwise.
+
+template <class... _CompletionTokens>
+  typename __coinvoke_without_executor<_CompletionTokens...>::_Result
+    codispatch(_CompletionTokens&&... __tokens);
+template <class _Executor, class... _CompletionTokens>
+  typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
+    codispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
+
+// Schedule functions to run concurrently later.
 
 template <class... _CompletionTokens>
   typename __coinvoke_without_executor<_CompletionTokens...>::_Result
@@ -375,14 +384,14 @@ template <class _Executor, class... _CompletionTokens>
   typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
     copost(_Executor&& __e, _CompletionTokens&&... __tokens);
 
-// Schedule two functions to run now if possible, run concurrently later otherwise.
+// Schedule functions to run concurrently later.
 
 template <class... _CompletionTokens>
   typename __coinvoke_without_executor<_CompletionTokens...>::_Result
-    codispatch(_CompletionTokens&&... __tokens);
+    codefer(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    codispatch(_Executor&& __e, _CompletionTokens&&... __tokens);
+    codefer(_Executor&& __e, _CompletionTokens&&... __tokens);
 
 } // namespace experimental
 
@@ -403,7 +412,8 @@ template<class _Alloc>
 #include <experimental/bits/dispatch.h>
 #include <experimental/bits/post.h>
 #include <experimental/bits/defer.h>
-#include <experimental/bits/copost.h>
 #include <experimental/bits/codispatch.h>
+#include <experimental/bits/copost.h>
+#include <experimental/bits/codefer.h>
 
 #endif
