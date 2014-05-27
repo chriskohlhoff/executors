@@ -28,7 +28,6 @@ inline loop_scheduler::loop_scheduler(size_t __concurrency_hint)
 
 inline loop_scheduler::~loop_scheduler()
 {
-  shutdown();
 }
 
 inline loop_scheduler::executor_type loop_scheduler::get_executor() const noexcept

@@ -36,10 +36,11 @@ public:
 
   ~__system_executor_impl()
   {
-    shutdown();
     _M_scheduler._Work_finished();
+    _M_scheduler._Stop();
     for (auto& __t: _M_threads)
       __t.join();
+    shutdown_context();
   }
 
   static __system_executor_impl& _Instance()

@@ -52,7 +52,8 @@ protected:
 
   // execution context operations:
 
-  void shutdown();
+  void shutdown_context();
+  void destroy_context();
 
 private:
   template <class _Service> friend _Service& use_service(execution_context& __c);

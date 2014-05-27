@@ -37,7 +37,6 @@ inline thread_pool::~thread_pool()
 {
   _Stop();
   join();
-  shutdown();
 }
 
 inline thread_pool::executor_type thread_pool::get_executor() const noexcept

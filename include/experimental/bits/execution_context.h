@@ -26,15 +26,11 @@ inline execution_context::execution_context()
 
 inline execution_context::~execution_context()
 {
-  while (_M_first_service)
-  {
-    service* __s = _M_first_service->_M_next;
-    delete _M_first_service;
-    _M_first_service = __s;
-  }
+  shutdown_context();
+  destroy_context();
 }
 
-inline void execution_context::shutdown()
+inline void execution_context::shutdown_context()
 {
   _M_mutex.lock();
   execution_context::service* const __first = _M_first_service;
@@ -45,6 +41,16 @@ inline void execution_context::shutdown()
   {
     __s->shutdown_service();
     __s = __s->_M_next;
+  }
+}
+
+inline void execution_context::destroy_context()
+{
+  while (_M_first_service)
+  {
+    service* __s = _M_first_service->_M_next;
+    delete _M_first_service;
+    _M_first_service = __s;
   }
 }
 
