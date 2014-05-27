@@ -7,7 +7,7 @@ using namespace std::experimental;
 const int chains = 4;
 const int iterations = 1000000;
 
-void chain(loop_scheduler::executor ex, int i)
+void chain(loop_scheduler::executor_type ex, int i)
 {
   if (i < iterations)
     post(ex.wrap([=]{ chain(ex, i + 1); }));
@@ -16,7 +16,7 @@ void chain(loop_scheduler::executor ex, int i)
 int main()
 {
   loop_scheduler s(1);
-  auto ex = make_executor(s);
+  auto ex = s.get_executor();
 
   for (int c = 0; c < chains; ++c)
     dispatch(ex.wrap([=]{ chain(ex, 0); }));

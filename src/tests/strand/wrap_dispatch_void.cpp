@@ -57,8 +57,8 @@ int main()
   handler3 h3;
 
   std::experimental::loop_scheduler scheduler;
-  auto ex = make_strand(make_executor(scheduler));
-  std::experimental::executor::work w = ex.make_work();
+  auto ex = make_strand(scheduler.get_executor());
+  std::experimental::executor_work<decltype(ex)> w(ex);
   std::thread t([&](){ scheduler.run(); });
 
   std::experimental::dispatch(ex.wrap(function1), handler1);
@@ -131,13 +131,7 @@ int main()
   std::future<void> fut7 = std::experimental::dispatch(ex.wrap(std::move(f3)), std::experimental::use_future);
   fut7.get();
 
-  w = nullptr;
-  assert(!w);
-  assert(w == nullptr);
-  assert(nullptr == w);
-  assert(!(w != nullptr));
-  assert(!(nullptr != w));
-
+  w.reset();
   t.join();
 
   assert(function_count == 56);

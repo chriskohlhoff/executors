@@ -11,13 +11,13 @@ const int iterations = 1000000;
 int main()
 {
   loop_scheduler s(1);
-  auto ex = make_executor(s);
+  auto ex = s.get_executor();
 
   for (int c = 0; c < chains; ++c)
   {
     dispatch(
       ex.wrap(
-        [](basic_yield_context<loop_scheduler::executor> yield)
+        [](basic_yield_context<loop_scheduler::executor_type> yield)
         {
           for (int i = 0; i < iterations; ++i)
           {

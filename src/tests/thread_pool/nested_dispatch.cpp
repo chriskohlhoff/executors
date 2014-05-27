@@ -5,14 +5,14 @@
 int main()
 {
   std::experimental::thread_pool pool(1);
-  auto ex = make_executor(pool);
+  auto ex = pool.get_executor();
 
   int count = 0;
-  ex.post(
+  std::experimental::post(ex,
     [&]()
     {
       int count_before_dispatch = count;
-      ex.dispatch([&](){ ++count; });
+      std::experimental::dispatch(ex, [&](){ ++count; });
       assert(count == count_before_dispatch + 1);
     });
 

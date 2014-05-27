@@ -10,11 +10,11 @@ int count = 0;
 int main()
 {
   std::experimental::loop_scheduler scheduler;
-  auto ex = make_strand(make_executor(scheduler));
+  auto ex = make_strand(scheduler.get_executor());
 
   for (int i = 0; i < 10; ++i)
   {
-    ex.post([]
+    std::experimental::post(ex, []
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         ++count;

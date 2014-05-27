@@ -11,14 +11,14 @@ const int iterations = 100000;
 int main()
 {
   loop_scheduler s(1);
-  auto ex = make_executor(s);
+  auto ex = s.get_executor();
 
   channel<int> ch1(s);
   channel<int> ch2(s);
 
   dispatch(
     ex.wrap(
-      [&](basic_yield_context<loop_scheduler::executor> yield)
+      [&](basic_yield_context<loop_scheduler::executor_type> yield)
       {
         for (int i = 0; i < iterations; ++i)
         {
@@ -29,7 +29,7 @@ int main()
 
   dispatch(
     ex.wrap(
-      [&](basic_yield_context<loop_scheduler::executor> yield)
+      [&](basic_yield_context<loop_scheduler::executor_type> yield)
       {
         for (int i = 0; i < iterations; ++i)
         {

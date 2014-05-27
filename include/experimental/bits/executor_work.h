@@ -55,6 +55,16 @@ executor_work<_Executor>::get_executor() const noexcept
   return _M_executor;
 }
 
+template <class _Executor>
+inline void executor_work<_Executor>::reset() noexcept
+{
+  if (_M_owns)
+  {
+    _M_executor.work_finished();
+    _M_owns = false;
+  }
+}
+
 } // namespace experimental
 } // namespace std
 

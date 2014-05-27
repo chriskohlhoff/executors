@@ -201,6 +201,7 @@ public:
   // executor work operations:
 
   executor_type get_executor() const noexcept;
+  void reset() noexcept;
 
 private:
   executor_type _M_executor;

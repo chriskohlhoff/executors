@@ -55,7 +55,7 @@ int main()
   handler3 h3;
 
   std::experimental::loop_scheduler scheduler;
-  std::experimental::executor ex = make_executor(scheduler);
+  std::experimental::executor ex = scheduler.get_executor();
 
   ex = std::experimental::system_executor();
   assert(&ex.context() == &std::experimental::system_executor().context());

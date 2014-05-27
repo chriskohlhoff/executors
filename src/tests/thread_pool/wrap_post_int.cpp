@@ -56,7 +56,7 @@ int main()
   handler3 h3;
 
   std::experimental::thread_pool pool;
-  auto ex = make_executor(pool);
+  auto ex = pool.get_executor();
 
   std::experimental::post(ex.wrap(function1), handler1);
   std::experimental::post(ex.wrap(function1), &handler1);
