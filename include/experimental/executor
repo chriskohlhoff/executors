@@ -332,6 +332,13 @@ bool operator==(nullptr_t, const executor& __e) noexcept;
 bool operator!=(const executor& __e, nullptr_t) noexcept;
 bool operator!=(nullptr_t, const executor& __e) noexcept;
 
+// Create a continuation function object from a list of completion tokens.
+
+template <class... _CompletionTokens>
+  auto chain(_CompletionTokens&&... __tokens);
+template <class _Signature, class... _CompletionTokens>
+  auto chain(_CompletionTokens&&... __tokens);
+
 // Schedule a function to run now if possible, later otherwise.
 
 template <class... _CompletionTokens>
@@ -350,7 +357,7 @@ template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     post(_Executor&& __e, _CompletionTokens&&... __tokens);
 
-// Schedule a function to run later, treating the function a continuation of the caller.
+// Schedule a function to run later, treating the function as a continuation of the caller.
 
 template <class... _CompletionTokens>
   typename __invoke_without_executor<_CompletionTokens...>::_Result
@@ -392,6 +399,7 @@ template<class _Alloc>
 #include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/executor_work.h>
 #include <experimental/bits/executor.h>
+#include <experimental/bits/chain.h>
 #include <experimental/bits/dispatch.h>
 #include <experimental/bits/post.h>
 #include <experimental/bits/defer.h>

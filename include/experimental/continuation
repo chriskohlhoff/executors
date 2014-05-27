@@ -160,13 +160,6 @@ template <class _Signature>
 template <class _Signature>
   continuation<_Signature> dynamic_continuation_cast(continuation<>&& __c);
 
-// Create a continuation function object from a list of completion tokens.
-
-template <class... _CompletionTokens>
-  auto chain(_CompletionTokens&&... __tokens);
-template <class _Signature, class... _CompletionTokens>
-  auto chain(_CompletionTokens&&... __tokens);
-
 } // namespace experimental
 
 template<class _R, class... _Args, class _Alloc>
@@ -180,6 +173,5 @@ template<class _Alloc>
 } // namespace std
 
 #include <experimental/bits/continuation.h>
-#include <experimental/bits/chain.h>
 
 #endif
