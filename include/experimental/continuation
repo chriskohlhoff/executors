@@ -84,8 +84,8 @@ private:
   unique_ptr<__continuation_impl_base<_R(_Args...)>> _M_impl;
 };
 
-template <class _R, class... _Args>
-  struct continuation_of<continuation<_R(_Args...)>>;
+template <class _R, class... _Args, class... _Args2>
+  struct continuation_of<continuation<_R(_Args...)>(_Args2...)>;
 
 template <class _R, class... _Args>
   bool operator==(const continuation<_R(_Args...)>& __c, nullptr_t) noexcept;

@@ -72,7 +72,7 @@ class __coinvoker_tail<tuple<_HeadTokens...>, tuple<_TailToken>>
 {
 public:
   typedef __signature_cat_t<typename continuation_of<
-    handler_type_t<_HeadTokens, void()>>::signature...> _TailSignature;
+    handler_type_t<_HeadTokens, void()>()>::signature...> _TailSignature;
   typedef __active_invoker<_TailSignature, _TailToken> _Invoker;
   typedef typename _Invoker::_TerminalHandler _TerminalHandler;
   typedef typename _Invoker::executor_type executor_type;
@@ -133,7 +133,7 @@ private:
   }
 
   tuple<__coinvoker_result<typename continuation_of<
-    handler_type_t<_HeadTokens, void()>>::signature>...> _M_results;
+    handler_type_t<_HeadTokens, void()>()>::signature>...> _M_results;
   atomic<size_t> _M_pending;
   _Invoker _M_invoker;
 };
@@ -201,7 +201,7 @@ public:
 
   void operator()() &&
   {
-    continuation_of<_Handler>::chain(std::move(_M_handler), std::move(_M_tail))();
+    continuation_of<_Handler()>::chain(std::move(_M_handler), std::move(_M_tail))();
   }
 
   executor_type get_executor() const

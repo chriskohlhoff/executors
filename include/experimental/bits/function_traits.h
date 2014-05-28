@@ -215,10 +215,10 @@ using __last_argument_t = typename __last_argument<_Signature>::type;
 
 // __function_continuation_of: Helper for determining the signature of a continuation.
 
-template <class _T>
+template <class _T, class... _Args>
 struct __function_continuation_of
 {
-  typedef __make_signature_t<void, __result_t<__signature_t<_T>>> signature;
+  typedef __make_signature_t<void, typename result_of<_T(_Args...)>::type> signature;
 };
 
 // __chain: Chains a normal function to a continuation.

@@ -64,7 +64,7 @@ public:
   static_assert(__is_callable_with<_Continuation, void(_Args...)>::value,
     "continuation must be callable with the specified arguments");
 
-  static_assert(__is_callable_with<typename continuation_of<_Continuation>::signature,
+  static_assert(__is_callable_with<typename continuation_of<_Continuation(_Args...)>::signature,
     __make_signature_t<void, _R>>::value,
     "continuation's continuation must accept specified return value");
 
@@ -81,7 +81,7 @@ public:
   virtual void _Call_with_continuation(_Args... __args,
     continuation<__make_signature_t<void, _R>>&& __c)
   {
-    continuation_of<_Continuation>::chain(
+    continuation_of<_Continuation(_Args...)>::chain(
       std::move(_M_continuation), std::move(__c))(
         forward<_Args>(__args)...);
   }
@@ -232,8 +232,8 @@ struct __continuation_chain
   }
 };
 
-template <class _R, class... _Args>
-struct continuation_of<continuation<_R(_Args...)>>
+template <class _R, class... _Args, class... _Args2>
+struct continuation_of<continuation<_R(_Args...)>(_Args2...)>
 {
   typedef __make_signature_t<void, _R> signature;
 
@@ -450,8 +450,8 @@ struct __continuation_launcher
   }
 };
 
-template <class _Func, class _Signature>
-struct continuation_of<__continuation_launcher<_Func, _Signature>>
+template <class _Func, class _Signature, class... _Args>
+struct continuation_of<__continuation_launcher<_Func, _Signature>(_Args...)>
 {
   typedef _Signature signature;
 

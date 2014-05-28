@@ -84,7 +84,7 @@ class __passive_invoker<_Result(_Args...), _CompletionToken>
 {
 public:
   typedef handler_type_t<_CompletionToken, _Result(_Args...)> _Handler;
-  typedef typename continuation_of<_Handler>::signature _TailSignature;
+  typedef typename continuation_of<_Handler(_Args...)>::signature _TailSignature;
   typedef _Handler _TerminalHandler;
   typedef decltype(__get_executor_helper(declval<_Handler>())) _HandlerExecutor;
   typedef _HandlerExecutor executor_type;
@@ -139,7 +139,7 @@ class __passive_invoker<_Result(_Args...), _HeadToken, _TailTokens...>
 {
 public:
   typedef handler_type_t<_HeadToken, _Result(_Args...)> _Handler;
-  typedef typename continuation_of<_Handler>::signature _TailSignature;
+  typedef typename continuation_of<_Handler(_Args...)>::signature _TailSignature;
   typedef __active_invoker<_TailSignature, _TailTokens...> _Tail;
   typedef typename _Tail::_TerminalHandler _TerminalHandler;
   typedef decltype(__get_executor_helper(declval<_Handler>())) _HandlerExecutor;
@@ -159,7 +159,7 @@ public:
 
   void operator()(_Args... __args) &&
   {
-    continuation_of<_Handler>::chain(std::move(_M_handler), std::move(_M_tail))(forward<_Args>(__args)...);
+    continuation_of<_Handler(_Args...)>::chain(std::move(_M_handler), std::move(_M_tail))(forward<_Args>(__args)...);
   }
 
   _TerminalHandler& _Get_terminal_handler()
@@ -205,11 +205,10 @@ private:
   _Tail _M_tail;
 };
 
-template <class _Result, class... _Args, class... _CompletionTokens>
-struct continuation_of<__active_invoker<_Result(_Args...), _CompletionTokens...>>
+template <class _Result, class... _Args, class... _CompletionTokens, class... _Args2>
+struct continuation_of<__active_invoker<_Result(_Args...), _CompletionTokens...>(_Args2...)>
 {
-  typedef typename continuation_of<typename __active_invoker<
-    _Result(_Args...), _CompletionTokens...>::_TerminalHandler>::signature signature;
+  typedef typename __active_invoker<_Result(_Args...), _CompletionTokens...>::_TailSignature signature;
 
   template <class _C>
   static auto chain(__active_invoker<_Result(_Args...), _CompletionTokens...>&& __f, _C&& __c)

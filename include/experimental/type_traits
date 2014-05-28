@@ -120,6 +120,8 @@ struct async_completion
   async_result<handler_type> result;
 };
 
+template <class> struct continuation_of; // Not defined.
+
 // The continuation_of template enables customisation of function invocation
 // and passing of the result to a continuation.
 //
@@ -127,10 +129,11 @@ struct async_completion
 // the specialization is a user-defined type.
 //
 // Specializations of continuation_of shall satisfy the requirements in the
-// table below. In this table, C is a specialization of continuation_of for
-// the template parameter _Func; f is an lvalue or rvalue of type _Func; and c
-// is an lvalue or rvalue of function object type meeting MoveConstructible
-// requirements and callable with an argument of type C::result_type.
+// table below. In this table, C is the template specialization
+// continuation_of<_Func(_Args...)>; f is an lvalue or rvalue of type _Func;
+// and c is an lvalue or rvalue of function object type meeting
+// MoveConstructible requirements and callable with an argument of type
+// C::result_type.
 //
 // +--------------------------------------------------------------------------+
 // | Expression       Return type         Note                                |
@@ -138,6 +141,7 @@ struct async_completion
 // | C::signature                         The required signature for a        |
 // |                                      function object that receives the   |
 // |                                      result of a function of type _Func. |
+// |                                      when invoked with arguments _Args.  |
 // +--------------------------------------------------------------------------+
 // | C::chain(f, c)   Function object                                         |
 // |                  type meeting                                            |
@@ -148,24 +152,23 @@ struct async_completion
 // |                  f.                                                      |
 // +--------------------------------------------------------------------------+
 
-template <class _Func, class = void>
-struct continuation_of
+template <class _Func, class... _Args>
+struct continuation_of<_Func(_Args...)>
 {
-  // Type: void(R), where R is determined as follows:
+  // Type:
   //
-  // - if _Func and decay<_Func>::type are different types,
-  //   continuation_of<typename decay<_Func>::type>::type;
+  // - If _Func and decay<_Func>::type are different types,
+  //   continuation_of<typename decay<_Func>::type(_Args...)>::signature;
   //
-  // - if _Func is a function pointer type, the return type;
+  // - Let _R be the type produced by typename result_of<_Func(_Args...)>::type.
+  //   If _R is void, void(). If _R is non-void, void(_R).
   //
-  // - if _Func is a function object type with a single, non-template overload
-  //   of operator(), the return type of operator();
-  //
-  // - otherwise, the program is ill-formed.
+  // - Otherwise, if result_of<_Func(_Args...)> does not contain a nested type
+  //   named type, the program is ill-formed.
   typedef typename conditional<
     is_same<_Func, typename decay<_Func>::type>::value,
-    __function_continuation_of<_Func>,
-    continuation_of<typename decay<_Func>::type>
+    __function_continuation_of<_Func, _Args...>,
+    continuation_of<typename decay<_Func>::type(_Args...)>
   >::type::signature signature;
 
   // If _Func and decay<_Func>::type are different types, returns
