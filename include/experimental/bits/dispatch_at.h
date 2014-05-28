@@ -27,7 +27,7 @@ typename __invoke_without_executor<_CompletionTokens...>::_Result
     "dispatch_at() must be called with one or more completion tokens");
 
   __timed_invoker<_Clock, _CompletionTokens...> __head(__tokens...);
-  async_result<__invoker_tail<void(), _CompletionTokens...>> __result(__head._Get_tail());
+  async_result<__active_invoker<void(), _CompletionTokens...>> __result(__head._Get_tail());
 
   auto __completion_executor(__head._Get_tail().get_executor());
   __head._Start(__completion_executor, __abs_time);
@@ -44,7 +44,7 @@ typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     "dispatch_at() must be called with one or more completion tokens");
 
   __timed_invoker<_Clock, _CompletionTokens...> __head(__tokens...);
-  async_result<__invoker_tail<void(), _CompletionTokens...>> __result(__head._Get_tail());
+  async_result<__active_invoker<void(), _CompletionTokens...>> __result(__head._Get_tail());
 
   __head._Start(__e, __abs_time);
 

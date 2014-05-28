@@ -39,14 +39,14 @@ public:
     std::move(_M_tail)();
   }
 
-  __invoker_tail<void(), _CompletionTokens...>& _Get_tail()
+  __active_invoker<void(), _CompletionTokens...>& _Get_tail()
   {
     return _M_tail;
   }
 
 private:
   unique_ptr<basic_timer<_Clock>> _M_timer;
-  __invoker_tail<void(), _CompletionTokens...> _M_tail;
+  __active_invoker<void(), _CompletionTokens...> _M_tail;
 };
 
 } // namespace experimental

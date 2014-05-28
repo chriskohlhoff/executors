@@ -23,7 +23,7 @@ auto chain(_CompletionTokens&&... __tokens)
   static_assert(sizeof...(_CompletionTokens) > 0,
     "chain() must be called with one or more completion tokens");
 
-  return __invoker_tail<void(), _CompletionTokens...>(__tokens...);
+  return __active_invoker<void(), _CompletionTokens...>(__tokens...);
 }
 
 template <class _Signature, class... _CompletionTokens>
@@ -32,7 +32,7 @@ auto chain(_CompletionTokens&&... __tokens)
   static_assert(sizeof...(_CompletionTokens) > 0,
     "chain() must be called with one or more completion tokens");
 
-  return __invoker_tail<_Signature, _CompletionTokens...>(__tokens...);
+  return __active_invoker<_Signature, _CompletionTokens...>(__tokens...);
 }
 
 } // namespace experimental
