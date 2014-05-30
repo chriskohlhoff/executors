@@ -28,7 +28,8 @@ typename __invoke_without_executor<_CompletionTokens...>::_Result
   async_result<__passive_invoker<void(), _CompletionTokens...>> __result(__head);
 
   auto __completion_executor(__head.get_executor());
-  __completion_executor.post(std::move(__head), std::allocator<void>());
+  auto __completion_allocator(__head.get_allocator());
+  __completion_executor.post(std::move(__head), __completion_allocator);
 
   return __result.get();
 }
@@ -44,7 +45,8 @@ typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
   async_result<__passive_invoker<void(), _CompletionTokens...>> __result(__head);
 
   _Executor __completion_executor(__e);
-  __completion_executor.post(std::move(__head), std::allocator<void>());
+  auto __completion_allocator(__head.get_allocator());
+  __completion_executor.post(std::move(__head), __completion_allocator);
 
   return __result.get();
 }

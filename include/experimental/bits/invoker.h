@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_INVOKER_H
 #define EXECUTORS_EXPERIMENTAL_BITS_INVOKER_H
 
+#include <experimental/memory>
 #include <experimental/bits/function_traits.h>
 #include <experimental/bits/get_executor.h>
 #include <experimental/bits/tuple_utils.h>
@@ -32,6 +33,7 @@ public:
   typedef typename _Passive::_TerminalHandler _TerminalHandler;
   typedef typename _Passive::_HandlerExecutor _HandlerExecutor;
   typedef typename _Passive::executor_type executor_type;
+  typedef typename _Passive::allocator_type allocator_type;
 
   explicit __active_invoker(typename remove_reference<_CompletionTokens>::type&... __tokens)
     : _M_passive(__tokens...), _M_work(_M_passive._Get_handler_executor())
@@ -45,10 +47,9 @@ public:
 
   void operator()(_Args... __args) &&
   {
-    _HandlerExecutor ex(_M_work.get_executor());
-    ex.dispatch(_Make_tuple_invoker(
-      std::move(_M_passive), forward<_Args>(__args)...),
-        std::allocator<void>());
+    _HandlerExecutor __ex(_M_work.get_executor());
+    allocator_type __alloc(_M_passive.get_allocator());
+    __ex.dispatch(_Make_tuple_invoker(std::move(_M_passive), forward<_Args>(__args)...), __alloc);
   }
 
   _TerminalHandler& _Get_terminal_handler()
@@ -59,6 +60,11 @@ public:
   executor_type get_executor() const noexcept
   {
     return _M_passive.get_executor();
+  }
+
+  allocator_type get_allocator() const noexcept
+  {
+    return _M_passive.get_allocator();
   }
 
   template <class _C> auto _Chain(_C&& __c)
@@ -88,6 +94,8 @@ public:
   typedef _Handler _TerminalHandler;
   typedef decltype(__get_executor_helper(declval<_Handler>())) _HandlerExecutor;
   typedef _HandlerExecutor executor_type;
+  typedef decltype(__get_allocator_helper(declval<_Handler>())) _HandlerAllocator;
+  typedef _HandlerAllocator allocator_type;
 
   static_assert(__is_callable_with<_Handler, _Result(_Args...)>::value,
     "function object must be callable with the specified signature");
@@ -115,6 +123,11 @@ public:
   executor_type get_executor() const noexcept
   {
     return __get_executor_helper(_M_handler);
+  }
+
+  allocator_type get_allocator() const noexcept
+  {
+    return __get_allocator_helper(_M_handler);
   }
 
   template <class _C> auto _Chain(_C&& __c)
@@ -145,6 +158,9 @@ public:
   typedef decltype(__get_executor_helper(declval<_Handler>())) _HandlerExecutor;
   typedef typename conditional<is_same<_HandlerExecutor, unspecified_executor>::value,
     typename _Tail::executor_type, _HandlerExecutor>::type executor_type;
+  typedef decltype(__get_allocator_helper(declval<_Handler>())) _HandlerAllocator;
+  typedef typename conditional<__is_unspecified_allocator<_HandlerAllocator>::value,
+    typename _Tail::allocator_type, _HandlerAllocator>::type allocator_type;
 
   __passive_invoker(typename remove_reference<_HeadToken>::type& __head,
     typename remove_reference<_TailTokens>::type&... __tail)
@@ -177,6 +193,11 @@ public:
     return get_executor(is_same<_HandlerExecutor, unspecified_executor>());
   }
 
+  allocator_type get_allocator() const noexcept
+  {
+    return get_allocator(__is_unspecified_allocator<_HandlerAllocator>());
+  }
+
   template <class _C> auto _Chain(_C&& __c)
   {
     return __passive_invoker<_Result(_Args...), _HeadToken, _TailTokens..., _C>(
@@ -199,6 +220,16 @@ private:
   _HandlerExecutor get_executor(false_type) const noexcept
   {
     return __get_executor_helper(_M_handler);
+  }
+
+  typename _Tail::allocator_type get_allocator(true_type) const noexcept
+  {
+    return _M_tail.get_allocator();
+  }
+
+  _HandlerAllocator get_allocator(false_type) const noexcept
+  {
+    return __get_allocator_helper(_M_handler);
   }
 
   _Handler _M_handler;

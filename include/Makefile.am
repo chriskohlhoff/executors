@@ -5,6 +5,7 @@ nobase_include_HEADERS = \
 	experimental/executor \
 	experimental/future \
 	experimental/loop_scheduler \
+	experimental/memory \
 	experimental/strand \
 	experimental/timer \
 	experimental/type_traits \
@@ -32,6 +33,7 @@ nobase_include_HEADERS = \
 	experimental/bits/executor_work.h \
 	experimental/bits/executor_wrapper.h \
 	experimental/bits/function_traits.h \
+	experimental/bits/get_allocator.h \
 	experimental/bits/get_executor.h \
 	experimental/bits/invoker.h \
 	experimental/bits/loop_scheduler.h \
@@ -50,6 +52,7 @@ nobase_include_HEADERS = \
 	experimental/bits/timer.h \
 	experimental/bits/timer_queue.h \
 	experimental/bits/tuple_utils.h \
+	experimental/bits/unspecified_allocator.h \
 	experimental/bits/unspecified_executor.h \
 	experimental/bits/wait_op.h \
 	experimental/bits/yield_context.h

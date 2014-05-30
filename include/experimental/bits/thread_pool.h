@@ -93,21 +93,21 @@ inline void thread_pool::executor_type::work_finished() noexcept
 }
 
 template <class _Func, class _Alloc>
-void thread_pool::executor_type::dispatch(_Func&& __f, const _Alloc&)
+void thread_pool::executor_type::dispatch(_Func&& __f, const _Alloc& __a)
 {
-  _M_pool->_Dispatch(forward<_Func>(__f));
+  _M_pool->_Dispatch(forward<_Func>(__f), __a);
 }
 
 template <class _Func, class _Alloc>
-void thread_pool::executor_type::post(_Func&& __f, const _Alloc&)
+void thread_pool::executor_type::post(_Func&& __f, const _Alloc& __a)
 {
-  _M_pool->_Post(forward<_Func>(__f));
+  _M_pool->_Post(forward<_Func>(__f), __a);
 }
 
 template <class _Func, class _Alloc>
-void thread_pool::executor_type::defer(_Func&& __f, const _Alloc&)
+void thread_pool::executor_type::defer(_Func&& __f, const _Alloc& __a)
 {
-  _M_pool->_Defer(forward<_Func>(__f));
+  _M_pool->_Defer(forward<_Func>(__f), __a);
 }
 
 template <class _Func>

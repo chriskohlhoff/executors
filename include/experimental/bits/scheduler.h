@@ -85,9 +85,9 @@ public:
   {
   }
 
-  template <class _F> void _Dispatch(_F&& __f);
-  template <class _F> void _Post(_F&& __f);
-  template <class _F> void _Defer(_F&& __f);
+  template <class _F, class _A> void _Dispatch(_F&& __f, const _A& __a);
+  template <class _F, class _A> void _Post(_F&& __f, const _A& __a);
+  template <class _F, class _A> void _Defer(_F&& __f, const _A& __a);
 
   void _Work_started()
   {
@@ -279,7 +279,7 @@ private:
   const bool _M_one_thread;
 };
 
-template <class _Func>
+template <class _Func, class _Allocator>
 class __scheduler_op
   : public __operation
 {
@@ -287,13 +287,13 @@ public:
   __scheduler_op(const __scheduler_op&) = delete;
   __scheduler_op& operator=(const __scheduler_op&) = delete;
 
-  template <class _F> __scheduler_op(_F&& __f)
-    : _M_func(forward<_F>(__f))
+  template <class _F> __scheduler_op(_F&& __f, const _Allocator& __a)
+    : _M_func(forward<_F>(__f)), _M_allocator(__a)
   {
   }
 
   __scheduler_op(__scheduler_op&& __s)
-    : _M_func(std::move(__s._M_func))
+    : _M_func(std::move(__s._M_func)), _M_allocator(std::move(__s._M_allocator))
   {
   }
 
@@ -316,9 +316,10 @@ public:
 
 private:
   _Func _M_func;
+  _Allocator _M_allocator;
 };
 
-template <class _F> void __scheduler::_Dispatch(_F&& __f)
+template <class _F, class _A> void __scheduler::_Dispatch(_F&& __f, const _A& __a)
 {
   typedef typename decay<_F>::type _Func;
   if (_Call_stack::_Contains(this))
@@ -327,15 +328,15 @@ template <class _F> void __scheduler::_Dispatch(_F&& __f)
   }
   else
   {
-    this->_Post(forward<_F>(__f));
+    this->_Post(forward<_F>(__f), __a);
   }
 }
 
-template <class _F> void __scheduler::_Post(_F&& __f)
+template <class _F, class _A> void __scheduler::_Post(_F&& __f, const _A& __a)
 {
   typedef typename decay<_F>::type _Func;
-  __small_block_recycler<>::_Unique_ptr<__scheduler_op<_Func>> __op(
-    __small_block_recycler<>::_Create<__scheduler_op<_Func>>(forward<_F>(__f)));
+  __small_block_recycler<>::_Unique_ptr<__scheduler_op<_Func, _A>> __op(
+    __small_block_recycler<>::_Create<__scheduler_op<_Func, _A>>(forward<_F>(__f), __a));
 
   _Context* __ctx = _Call_stack::_Contains(this);
   if (__ctx == nullptr)
@@ -368,11 +369,11 @@ template <class _F> void __scheduler::_Post(_F&& __f)
   __op.release();
 }
 
-template <class _F> void __scheduler::_Defer(_F&& __f)
+template <class _F, class _A> void __scheduler::_Defer(_F&& __f, const _A& __a)
 {
   typedef typename decay<_F>::type _Func;
-  __small_block_recycler<>::_Unique_ptr<__scheduler_op<_Func>> __op(
-    __small_block_recycler<>::_Create<__scheduler_op<_Func>>(forward<_F>(__f)));
+  __small_block_recycler<>::_Unique_ptr<__scheduler_op<_Func, _A>> __op(
+    __small_block_recycler<>::_Create<__scheduler_op<_Func, _A>>(forward<_F>(__f), __a));
 
   _Context* __ctx = _Call_stack::_Contains(this);
   if (__ctx == nullptr)

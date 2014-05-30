@@ -12,9 +12,9 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_WAIT_OP_H
 #define EXECUTORS_EXPERIMENTAL_BITS_WAIT_OP_H
 
-#include <memory>
 #include <system_error>
 #include <experimental/executor>
+#include <experimental/memory>
 #include <experimental/bits/get_executor.h>
 #include <experimental/bits/operation.h>
 #include <experimental/bits/tuple_utils.h>
@@ -45,9 +45,10 @@ public:
     __small_block_recycler<>::_Unique_ptr<__wait_op> __op(this);
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
+    auto __alloc(__get_allocator_helper(_M_func));
     auto __i(_Make_tuple_invoker(std::move(_M_func), _M_ec));
     __op.reset();
-    __executor.post(std::move(__i), std::allocator<void>());
+    __executor.post(std::move(__i), __alloc);
   }
 
   virtual void _Destroy()

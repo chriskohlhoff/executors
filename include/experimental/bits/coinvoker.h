@@ -14,8 +14,8 @@
 
 #include <atomic>
 #include <cassert>
-#include <memory>
 #include <type_traits>
+#include <experimental/memory>
 #include <experimental/bits/get_executor.h>
 #include <experimental/bits/invoker.h>
 #include <experimental/bits/tuple_utils.h>
@@ -76,6 +76,7 @@ public:
   typedef __active_invoker<_TailSignature, _TailToken> _Invoker;
   typedef typename _Invoker::_TerminalHandler _TerminalHandler;
   typedef typename _Invoker::executor_type executor_type;
+  typedef typename _Invoker::allocator_type allocator_type;
 
   explicit __coinvoker_tail(typename remove_reference<_TailToken>::type& __tail)
       : _M_pending(0), _M_invoker(__tail)
@@ -125,6 +126,11 @@ public:
     return _M_invoker.get_executor();
   }
 
+  allocator_type get_allocator() const noexcept
+  {
+    return _M_invoker.get_allocator();
+  }
+
 private:
   template <size_t... _Index>
   void _Dispatch(_Index_sequence<_Index...>)
@@ -143,6 +149,7 @@ class __coinvoker_tail_ptr
 {
 public:
   typedef typename __coinvoker_tail<_Head, _Tail>::executor_type executor_type;
+  typedef typename __coinvoker_tail<_Head, _Tail>::allocator_type allocator_type;
 
   __coinvoker_tail_ptr(const __coinvoker_tail_ptr&) = delete;
   __coinvoker_tail_ptr& operator=(const __coinvoker_tail_ptr&) = delete;
@@ -177,6 +184,11 @@ public:
     return _M_tail->get_executor();
   }
 
+  allocator_type get_allocator() const noexcept
+  {
+    return _M_tail->get_allocator();
+  }
+
 private:
   __coinvoker_tail<_Head, _Tail>* _M_tail;
 };
@@ -192,6 +204,11 @@ public:
   typedef typename conditional<
     is_same<_HeadExecutor, unspecified_executor>::value,
       _TailExecutor, _HeadExecutor>::type executor_type;
+  typedef decltype(__get_allocator_helper(declval<_Handler>())) _HeadAllocator;
+  typedef typename __coinvoker_tail<_Head, _Tail>::allocator_type _TailAllocator;
+  typedef typename conditional<
+    __is_unspecified_allocator<_HeadAllocator>::value,
+      _TailAllocator, _HeadAllocator>::type allocator_type;
 
   __coinvoker_head(typename remove_reference<_HeadToken>::type& __token,
     __coinvoker_tail<_Head, _Tail>* __tail)
@@ -209,6 +226,11 @@ public:
     return get_executor(is_same<_HeadExecutor, unspecified_executor>());
   }
 
+  allocator_type get_allocator() const
+  {
+    return get_allocator(__is_unspecified_allocator<_HeadExecutor>());
+  }
+
 private:
   _TailExecutor get_executor(true_type) const
   {
@@ -218,6 +240,16 @@ private:
   _HeadExecutor get_executor(false_type) const
   {
     return __get_executor_helper(_M_handler);
+  }
+
+  _TailAllocator get_allocator(true_type) const
+  {
+    return _M_tail.get_allocator();
+  }
+
+  _HeadAllocator get_allocator(false_type) const
+  {
+    return __get_allocator_helper(_M_handler);
   }
 
   _Handler _M_handler;
@@ -270,8 +302,9 @@ private:
   template <class _Action, class _Invoker, class... _Invokers>
   static void _Go_2(_Action __a, _Invoker&& __i, _Invokers&&... __j)
   {
-    auto __e(__i.get_executor());
-    __a(__e, std::move(__i));
+    auto __executor(__i.get_executor());
+    auto __allocator(__i.get_allocator());
+    __a(__executor, std::move(__i), __allocator);
     (_Go_2)(__a, forward<_Invokers>(__j)...);
   }
 

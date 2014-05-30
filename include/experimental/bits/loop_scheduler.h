@@ -117,21 +117,21 @@ inline void loop_scheduler::executor_type::work_finished() noexcept
 }
 
 template <class _Func, class _Alloc>
-void loop_scheduler::executor_type::dispatch(_Func&& __f, const _Alloc&)
+void loop_scheduler::executor_type::dispatch(_Func&& __f, const _Alloc& __a)
 {
-  _M_scheduler->_Dispatch(forward<_Func>(__f));
+  _M_scheduler->_Dispatch(forward<_Func>(__f), __a);
 }
 
 template <class _Func, class _Alloc>
-void loop_scheduler::executor_type::post(_Func&& __f, const _Alloc&)
+void loop_scheduler::executor_type::post(_Func&& __f, const _Alloc& __a)
 {
-  _M_scheduler->_Post(forward<_Func>(__f));
+  _M_scheduler->_Post(forward<_Func>(__f), __a);
 }
 
 template <class _Func, class _Alloc>
-void loop_scheduler::executor_type::defer(_Func&& __f, const _Alloc&)
+void loop_scheduler::executor_type::defer(_Func&& __f, const _Alloc& __a)
 {
-  _M_scheduler->_Defer(forward<_Func>(__f));
+  _M_scheduler->_Defer(forward<_Func>(__f), __a);
 }
 
 template <class _Func>

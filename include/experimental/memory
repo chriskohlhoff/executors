@@ -1,0 +1,57 @@
+//
+// memory
+// ~~~~~~
+// Function to obtain a function objects associated allocator.
+//
+// Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
+#ifndef EXECUTORS_EXPERIMENTAL_MEMORY_HEADER
+#define EXECUTORS_EXPERIMENTAL_MEMORY_HEADER
+
+#include <memory>
+
+namespace std {
+namespace experimental {
+
+template <class, class = void> struct __get_allocator_impl;
+
+// The unspecified allocator is used for objects that do not explicitly specify
+// an associated allocator. It is implemented in terms of std::allocator<void>.
+
+template <class _T> class unspecified_allocator
+  : std::allocator<_T>
+{
+public:
+  unspecified_allocator() noexcept;
+  unspecified_allocator(const unspecified_allocator& __a) noexcept;
+  template <class _U> unspecified_allocator(const unspecified_allocator<_U>& __a) noexcept;
+
+  template <class _U> struct rebind { typedef unspecified_allocator<_U> other; };
+};
+
+// Function to obtain an object's associated allocator. For function objects,
+// this is the allocator that would be used to allocate any memory associated
+// with the function's eventual invocation by an executor. This default
+// implementation behaves as follows
+//
+// - if the object type has a nested type @c allocator_type, returns the
+//   result of the object's @c get_allocator() member function;
+//
+// - if the object is callable, returns an @c unspecified_allocator object;
+//
+// - otherwise, this function does not participate in overload resolution.
+
+template <class _T> typename __get_allocator_impl<_T>::_Type
+  get_allocator(const _T&) noexcept;
+
+} // namespace experimental
+} // namespace std
+
+#include <experimental/bits/unspecified_allocator.h>
+#include <experimental/bits/get_allocator.h>
+
+#endif

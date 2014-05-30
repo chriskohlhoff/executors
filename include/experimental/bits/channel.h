@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_H
 #define EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_H
 
+#include <experimental/memory>
 #include <experimental/bits/tuple_utils.h>
 
 namespace std {
@@ -80,9 +81,10 @@ public:
 
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
+    auto __allocator(__get_allocator_helper(_M_handler));
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec));
     __op.reset();
-    __executor.post(std::move(__i), std::allocator<void>());
+    __executor.post(std::move(__i), __allocator);
   }
 
   virtual void _Destroy()
@@ -118,9 +120,10 @@ public:
 
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
+    auto __allocator(__get_allocator_helper(_M_handler));
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec, this->_Get_value()));
     __op.reset();
-    __executor.post(std::move(__i), std::allocator<void>());
+    __executor.post(std::move(__i), __allocator);
   }
 
   virtual void _Destroy()

@@ -140,6 +140,80 @@ private:
 template <unsigned char __max>
 thread_local __small_block_recycler<__max> __small_block_recycler<__max>::_S_instance;
 
+template <class _T>
+class __small_block_allocator
+{
+  template <class _U>
+  struct rebind
+  {
+    typedef __small_block_allocator<_U> other;
+  };
+
+  __small_block_allocator()
+  {
+  }
+
+  template <class _U>
+  __small_block_allocator(const __small_block_allocator<_U>&)
+  {
+  }
+
+  template <class _U>
+  __small_block_allocator(const allocator<_U>&)
+  {
+  }
+
+  _T* allocate(std::size_t __n)
+  {
+    return static_cast<_T*>(__small_block_recycler<>::_Instance()._Allocate(__n * sizeof(_T)));
+  }
+
+  void deallocate(_T* __p, std::size_t __n)
+  {
+    __small_block_recycler<>::_Instance()._Deallocate(__p, __n * sizeof(_T));
+  }
+};
+
+template <>
+class __small_block_allocator<void>
+{
+public:
+  template <class _U>
+  struct rebind
+  {
+    typedef __small_block_allocator<_U> other;
+  };
+
+  __small_block_allocator()
+  {
+  }
+
+  template <class _U>
+  __small_block_allocator(const __small_block_allocator<_U>&)
+  {
+  }
+
+  template <class _U>
+  __small_block_allocator(const allocator<_U>&)
+  {
+  }
+};
+
+template <class _Allocator, class _U>
+struct __small_block_rebind
+{
+  typedef typename _Allocator::template rebind<_U>::other _Type;
+};
+
+template <class _T, class _U>
+struct __small_block_rebind<allocator<_T>, _U>
+{
+  typedef __small_block_allocator<_U> _Type;
+};
+
+template <class _Allocator, class _U>
+using __small_block_rebind_t = typename __small_block_rebind<_Allocator, _U>::_Type;
+
 } // namespace experimental
 } // namespace std
 

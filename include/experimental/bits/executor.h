@@ -14,6 +14,7 @@
 
 #include <atomic>
 #include <memory>
+#include <experimental/bits/small_block_recycler.h>
 
 namespace std {
 namespace experimental {
@@ -109,17 +110,17 @@ public:
 
   virtual void _Dispatch(__function_ptr&& __f)
   {
-    _M_executor.dispatch(std::move(__f), std::allocator<void>());
+    _M_executor.dispatch(std::move(__f), __small_block_allocator<void>());
   }
 
   virtual void _Post(__function_ptr&& __f)
   {
-    _M_executor.post(std::move(__f), std::allocator<void>());
+    _M_executor.post(std::move(__f), __small_block_allocator<void>());
   }
 
   virtual void _Defer(__function_ptr&& __f)
   {
-    _M_executor.defer(std::move(__f), std::allocator<void>());
+    _M_executor.defer(std::move(__f), __small_block_allocator<void>());
   }
 
   virtual const type_info& _Target_type()
@@ -186,17 +187,17 @@ public:
 
   virtual void _Dispatch(__function_ptr&& __f)
   {
-    _M_executor.dispatch(std::move(__f), std::allocator<void>());
+    _M_executor.dispatch(std::move(__f), __small_block_allocator<void>());
   }
 
   virtual void _Post(__function_ptr&& __f)
   {
-    _M_executor.post(std::move(__f), std::allocator<void>());
+    _M_executor.post(std::move(__f), __small_block_allocator<void>());
   }
 
   virtual void _Defer(__function_ptr&& __f)
   {
-    _M_executor.defer(std::move(__f), std::allocator<void>());
+    _M_executor.defer(std::move(__f), __small_block_allocator<void>());
   }
 
   virtual const type_info& _Target_type()
@@ -262,17 +263,17 @@ public:
 
   virtual void _Dispatch(__function_ptr&& __f)
   {
-    _M_executor.dispatch(std::move(__f), std::allocator<void>());
+    _M_executor.dispatch(std::move(__f), __small_block_allocator<void>());
   }
 
   virtual void _Post(__function_ptr&& __f)
   {
-    _M_executor.post(std::move(__f), std::allocator<void>());
+    _M_executor.post(std::move(__f), __small_block_allocator<void>());
   }
 
   virtual void _Defer(__function_ptr&& __f)
   {
-    _M_executor.defer(std::move(__f), std::allocator<void>());
+    _M_executor.defer(std::move(__f), __small_block_allocator<void>());
   }
 
   virtual const type_info& _Target_type()
