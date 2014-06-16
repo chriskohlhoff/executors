@@ -27,14 +27,14 @@ Future / Promise | Any thread. Capture any exceptions thrown by the function obj
 
 To inject a function object into an executor, we can use a **post** operation:
 
-    void f1()
-    {
-      std::cout << "Hello, world!\n";
-    }
-
-    // ...
-
-    ex.post(f1);
+```cxx
+void f1()
+{
+    std::cout << "Hello, world!\n";
+}
+// ...
+ex.post(f1);
+```
 
 This submits the function object for later execution, according to the rules of the executor:
 
@@ -47,7 +47,9 @@ Future / Promise | Wraps the function object in a try/catch block, and adds it t
 
 Alternatively, we may want execute a function object according to the rules, but in the cheapest way possible. For this, we use a **dispatch** operation:
 
-    ex.dispatch(f1);
+```cxx
+ex.dispatch(f1);
+```
 
 By performing a dispatch operation, we are giving the executor the option of having `dispatch()` run the function object before it returns. Whether an executor does this depends on its rules:
 
