@@ -1,7 +1,7 @@
 //
-// enter_one_order.cpp
-// ~~~~~~~~~~~~~~~~~~~
-// Program to enter a single order.
+// market_data_dump.cpp
+// ~~~~~~~~~~~~~~~~~~~~
+// Client program to dump market data messages.
 //
 // Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
