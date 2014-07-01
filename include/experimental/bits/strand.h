@@ -93,7 +93,7 @@ private:
   __strand_impl* _M_first;
 };
 
-__strand_impl::__strand_impl(__strand_service& __s)
+inline __strand_impl::__strand_impl(__strand_service& __s)
   : _M_service(&__s)
 {
   lock_guard<mutex> __lock(_M_service->_M_mutex);
@@ -104,7 +104,7 @@ __strand_impl::__strand_impl(__strand_service& __s)
   _M_service->_M_first = this;
 }
 
-__strand_impl::~__strand_impl()
+inline __strand_impl::~__strand_impl()
 {
   lock_guard<mutex> __lock(_M_service->_M_mutex);
 
