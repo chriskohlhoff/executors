@@ -10,12 +10,14 @@
 //
 
 #include "price_time_order_book.hpp"
+#include <iostream>
 #include <tuple>
 #include "market_data_bus.hpp"
 
 price_time_order_book::price_time_order_book(const std::string& s, market_data_bus& bus)
   : order_book(s), market_data_bus_(bus), next_time_(0)
 {
+  std::cerr << "Maintaining a price-time priority order book for " << symbol() << std::endl;
 }
 
 void price_time_order_book::handle_event(order_management::new_order o)
