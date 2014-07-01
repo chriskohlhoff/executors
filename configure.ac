@@ -68,6 +68,7 @@ AC_OUTPUT([
   src/examples/channel/Makefile
   src/examples/executor/Makefile
   src/examples/timer/Makefile
+  src/examples/trading/Makefile
   src/tests/Makefile
   src/tests/execution_context/Makefile
   src/tests/executor/Makefile
