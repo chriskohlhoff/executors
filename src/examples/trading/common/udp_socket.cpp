@@ -1,3 +1,14 @@
+//
+// udp_socket.cpp
+// ~~~~~~~~~~~~~~
+// Simple UDP socket wrapper.
+//
+// Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
 #include "udp_socket.hpp"
 #include <cassert>
 #include <system_error>
@@ -31,6 +42,14 @@ udp_socket::udp_socket(unsigned short port)
     std::error_code ec(errno, std::generic_category());
     ::close(socket_);
     throw std::system_error(ec, "udp_socket bind");
+  }
+
+  int opt = 1;
+  if (::setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+  {
+    std::error_code ec(errno, std::generic_category());
+    ::close(socket_);
+    throw std::system_error(ec, "udp_socket setsockopt");
   }
 }
 
@@ -67,7 +86,7 @@ void udp_socket::connect(const std::string& ip, unsigned short port)
   if (::connect(socket_, &addr.base, sizeof(addr.v4)) == -1)
   {
     std::error_code ec(errno, std::generic_category());
-    throw std::system_error(ec, "udp_socket bind");
+    throw std::system_error(ec, "udp_socket connect");
   }
 }
 
@@ -76,7 +95,7 @@ void udp_socket::send(const void* data, std::size_t length)
   for (;;)
   {
     ssize_t n = ::send(socket_, data, length, 0);
-    if (n == -1 && errno != EINTR)
+    if (n >= 0 || (n == -1 && errno != EINTR))
       break;
   }
 }
