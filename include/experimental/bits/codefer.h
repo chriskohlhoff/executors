@@ -39,7 +39,7 @@ inline typename __coinvoke_without_executor<_CompletionTokens...>::_Result
 template <class _Executor>
 struct __coinvoke_defer_ex
 {
-  typename remove_reference<_Executor>::type& __e;
+  typename remove_reference<_Executor>::type __e;
 
   template <class _E, class _F, class _A>
   void operator()(_E&, _F&& __f, const _A& __a)
