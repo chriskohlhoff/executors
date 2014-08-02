@@ -60,24 +60,12 @@ inline void thread_pool::join()
   }
 }
 
-inline thread_pool::executor_type::executor_type(
-  const thread_pool::executor_type& __e) noexcept
-    : _M_pool(__e._M_pool)
+inline bool thread_pool::executor_type::running_in_this_thread() const noexcept
 {
+  return _M_pool->_Running_in_this_thread();
 }
 
-inline thread_pool::executor_type&
-  thread_pool::executor_type::operator=(const executor_type& __e) noexcept
-{
-  _M_pool = __e._M_pool;
-  return *this;
-}
-
-inline thread_pool::executor_type::~executor_type()
-{
-}
-
-inline execution_context& thread_pool::executor_type::context()
+inline thread_pool& thread_pool::executor_type::context() noexcept
 {
   return *_M_pool;
 }
@@ -111,9 +99,21 @@ void thread_pool::executor_type::defer(_Func&& __f, const _Alloc& __a)
 }
 
 template <class _Func>
-inline auto thread_pool::executor_type::wrap(_Func&& __f) const
+inline executor_wrapper<typename decay<_Func>::type, thread_pool::executor_type>
+thread_pool::executor_type::wrap(_Func&& __f) const
 {
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
+  return executor_wrapper<typename decay<_Func>::type,
+    thread_pool::executor_type>(forward<_Func>(__f), *this);
+}
+
+inline bool operator==(const thread_pool::executor_type& __a, const thread_pool::executor_type& __b) noexcept
+{
+  return __a._M_pool == __b._M_pool;
+}
+
+inline bool operator!=(const thread_pool::executor_type& __a, const thread_pool::executor_type& __b) noexcept
+{
+  return !(__a == __b);
 }
 
 } // namespace experimental

@@ -3,6 +3,7 @@ noinst_PROGRAMS = \
 	chain_int_int \
 	chain_int_void \
 	chain_void \
+	comparisons \
 	dispatch_int \
 	dispatch_void \
 	dispatch_after_int \
@@ -25,6 +26,7 @@ TESTS = \
 	chain_int_int \
 	chain_int_void \
 	chain_void \
+	comparisons \
 	dispatch_int \
 	dispatch_void \
 	dispatch_after_int \
@@ -48,6 +50,7 @@ chain_int_SOURCES = chain_int.cpp
 chain_int_int_SOURCES = chain_int_int.cpp
 chain_int_void_SOURCES = chain_int_void.cpp
 chain_void_SOURCES = chain_void.cpp
+comparisons_SOURCES = comparisons.cpp
 dispatch_int_SOURCES = dispatch_int.cpp
 dispatch_void_SOURCES = dispatch_void.cpp
 dispatch_after_int_SOURCES = dispatch_after_int.cpp

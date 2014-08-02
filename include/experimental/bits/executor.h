@@ -62,9 +62,10 @@ public:
   virtual void _Dispatch(__function_ptr&& __f) = 0;
   virtual void _Post(__function_ptr&& __f) = 0;
   virtual void _Defer(__function_ptr&& __f) = 0;
-  virtual const type_info& _Target_type() = 0;
+  virtual const type_info& _Target_type() const = 0;
   virtual void* _Target() = 0;
   virtual const void* _Target() const = 0;
+  virtual bool _Equals(const __executor_impl_base* __e) const noexcept = 0;
 
 protected:
   virtual ~__executor_impl_base() {}
@@ -123,7 +124,7 @@ public:
     _M_executor.defer(std::move(__f), __small_block_allocator<void>());
   }
 
-  virtual const type_info& _Target_type()
+  virtual const type_info& _Target_type() const
   {
     return typeid(_M_executor);
   }
@@ -136,6 +137,15 @@ public:
   virtual const void* _Target() const
   {
     return &_M_executor;
+  }
+
+  virtual bool _Equals(const __executor_impl_base* __e) const noexcept
+  {
+    if (this == __e)
+      return true;
+    if (_Target_type() != __e->_Target_type())
+      return false;
+    return _M_executor == *static_cast<const _Executor*>(__e->_Target());
   }
 
 private:
@@ -200,7 +210,7 @@ public:
     _M_executor.defer(std::move(__f), __small_block_allocator<void>());
   }
 
-  virtual const type_info& _Target_type()
+  virtual const type_info& _Target_type() const
   {
     return typeid(system_executor);
   }
@@ -213,6 +223,11 @@ public:
   virtual const void* _Target() const
   {
     return &_M_executor;
+  }
+
+  virtual bool _Equals(const __executor_impl_base* __e) const noexcept
+  {
+    return __e == _Create();
   }
 
 protected:
@@ -276,7 +291,7 @@ public:
     _M_executor.defer(std::move(__f), __small_block_allocator<void>());
   }
 
-  virtual const type_info& _Target_type()
+  virtual const type_info& _Target_type() const
   {
     return typeid(unspecified_executor);
   }
@@ -289,6 +304,11 @@ public:
   virtual const void* _Target() const
   {
     return &_M_executor;
+  }
+
+  virtual bool _Equals(const __executor_impl_base* __e) const noexcept
+  {
+    return __e == _Create();
   }
 
 protected:
@@ -357,7 +377,7 @@ public:
     throw bad_executor();
   }
 
-  virtual const type_info& _Target_type()
+  virtual const type_info& _Target_type() const
   {
     return typeid(void);
   }
@@ -370,6 +390,11 @@ public:
   virtual const void* _Target() const
   {
     return nullptr;
+  }
+
+  virtual bool _Equals(const __executor_impl_base*) const noexcept
+  {
+    return false;
   }
 
 private:
@@ -465,7 +490,7 @@ inline executor& executor::operator=(nullptr_t) noexcept
 }
 
 template <class _Executor>
-inline executor& executor::operator=(_Executor&& __e)
+inline executor& executor::operator=(_Executor __e)
 {
   __executor_impl_base* __tmp = _M_impl;
   _M_impl = __executor_impl<typename decay<_Executor>::type>::_Create(forward<_Executor>(__e));
@@ -473,7 +498,7 @@ inline executor& executor::operator=(_Executor&& __e)
   return *this;
 }
 
-inline execution_context& executor::context()
+inline execution_context& executor::context() noexcept
 {
   return _M_impl->_Context();
 }
@@ -511,9 +536,9 @@ inline void executor::defer(_Func&& __f, const _Alloc&)
 }
 
 template <class _Func>
-inline auto executor::wrap(_Func&& __f) const
+inline executor_wrapper<typename decay<_Func>::type, executor> executor::wrap(_Func&& __f) const
 {
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
+  return executor_wrapper<typename decay<_Func>::type, executor>(forward<_Func>(__f), *this);
 }
 
 inline executor::operator bool() const noexcept
@@ -538,6 +563,11 @@ inline const _Executor* executor::target() const noexcept
   return static_cast<_Executor*>(_M_impl->_Target());
 }
 
+inline bool operator==(const executor& __a, const executor& __b) noexcept
+{
+  return __a._M_impl->_Equals(__b._M_impl);
+}
+
 inline bool operator==(const executor& __e, nullptr_t) noexcept
 {
   return !static_cast<bool>(__e);
@@ -546,6 +576,11 @@ inline bool operator==(const executor& __e, nullptr_t) noexcept
 inline bool operator==(nullptr_t, const executor& __e) noexcept
 {
   return !static_cast<bool>(__e);
+}
+
+inline bool operator!=(const executor& __a, const executor& __b) noexcept
+{
+  return !(__a == __b);
 }
 
 inline bool operator!=(const executor& __e, nullptr_t) noexcept

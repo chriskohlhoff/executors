@@ -198,13 +198,19 @@ inline strand<_Executor>::~strand()
 }
 
 template <class _Executor>
-inline typename strand<_Executor>::executor_type strand<_Executor>::get_executor() const noexcept
+inline typename strand<_Executor>::inner_executor_type strand<_Executor>::get_inner_executor() const noexcept
 {
   return _M_executor;
 }
 
 template <class _Executor>
-inline execution_context& strand<_Executor>::context()
+inline bool strand<_Executor>::running_in_this_thread() const noexcept
+{
+  return __call_stack<__strand_impl>::_Contains(_M_impl.get());
+}
+
+template <class _Executor>
+inline execution_context& strand<_Executor>::context() noexcept
 {
   return _M_executor.context();
 }
@@ -369,9 +375,21 @@ inline void strand<_Executor>::defer(_Func&& __f, const _Alloc& a)
 }
 
 template <class _Executor> template <class _Func>
-inline auto strand<_Executor>::wrap(_Func&& __f) const
+inline executor_wrapper<typename decay<_Func>::type, strand<_Executor>> strand<_Executor>::wrap(_Func&& __f) const
 {
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
+  return executor_wrapper<typename decay<_Func>::type, strand<_Executor>>(forward<_Func>(__f), *this);
+}
+
+template <class _Executor>
+inline bool operator==(const strand<_Executor>& __a, const strand<_Executor>& __b) noexcept
+{
+  return __a._M_impl == __b._M_impl;
+}
+
+template <class _Executor>
+inline bool operator!=(const strand<_Executor>& __a, const strand<_Executor>& __b) noexcept
+{
+  return !(__a == __b);
 }
 
 template <class _T> inline auto make_strand(_T&& __t)

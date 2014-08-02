@@ -85,6 +85,11 @@ public:
   {
   }
 
+  bool _Running_in_this_thread() const noexcept
+  {
+    return _Call_stack::_Contains(const_cast<__scheduler*>(this)) != nullptr;
+  }
+
   template <class _F, class _A> void _Dispatch(_F&& __f, const _A& __a);
   template <class _F, class _A> void _Post(_F&& __f, const _A& __a);
   template <class _F, class _A> void _Defer(_F&& __f, const _A& __a);

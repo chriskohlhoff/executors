@@ -138,7 +138,7 @@ private:
 };
 
 template <class _T, class _Executor>
-inline auto wrap_with_executor(_T&& __t, const _Executor& __e)
+inline auto __wrap_with_executor(_T&& __t, const _Executor& __e)
 {
   typedef typename decay<_T>::type _DecayT;
   return executor_wrapper<_DecayT, _Executor>(forward<_T>(__t), __e);
@@ -161,7 +161,7 @@ struct continuation_of<executor_wrapper<_T, _Executor>(_Args...)>
   template <class _C>
   static auto chain(executor_wrapper<_T, _Executor>&& __f, _C&& __c)
   {
-    return wrap_with_executor(
+    return __wrap_with_executor(
       _Wrapped_continuation_of::chain(std::move(__f.unwrap()),
         forward<_C>(__c)), __f.get_executor());
   }

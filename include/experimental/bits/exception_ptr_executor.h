@@ -47,7 +47,7 @@ struct __exception_ptr_executor
   {
   }
 
-  execution_context& context()
+  execution_context& context() noexcept
   {
     return _M_executor.context();
   }
@@ -81,9 +81,19 @@ struct __exception_ptr_executor
   }
 
   template <class _Func>
-  inline auto wrap(_Func&& __f) const
+  inline executor_wrapper<typename decay<_Func>::type, __exception_ptr_executor> wrap(_Func&& __f) const
   {
-    return (wrap_with_executor)(forward<_Func>(__f), *this);
+    return executor_wrapper<typename decay<_Func>::type, __exception_ptr_executor>(forward<_Func>(__f), *this);
+  }
+
+  friend bool operator==(const __exception_ptr_executor& __a, const __exception_ptr_executor& __b) noexcept
+  {
+    return __a._M_exception == __b._M_exception;
+  }
+
+  friend bool operator!=(const __exception_ptr_executor& __a, const __exception_ptr_executor& __b) noexcept
+  {
+    return __a._M_exception != __b._M_exception;
   }
 };
 

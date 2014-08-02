@@ -50,7 +50,7 @@ struct __promise_executor
 {
   shared_ptr<_Promise> _M_promise;
 
-  execution_context& context()
+  execution_context& context() noexcept
   {
     return system_executor().context();
   }
@@ -84,9 +84,19 @@ struct __promise_executor
   }
 
   template <class _Func>
-  inline auto wrap(_Func&& __f) const
+  inline executor_wrapper<typename decay<_Func>::type, __promise_executor> wrap(_Func&& __f) const
   {
-    return (wrap_with_executor)(forward<_Func>(__f), *this);
+    return executor_wrapper<typename decay<_Func>::type, __promise_executor>(forward<_Func>(__f), *this);
+  }
+
+  friend bool operator==(const __promise_executor& __a, const __promise_executor& __b) noexcept
+  {
+    return __a._M_promise == __b._M_promise;
+  }
+
+  friend bool operator!=(const __promise_executor& __a, const __promise_executor& __b) noexcept
+  {
+    return __a._M_promise != __b._M_promise;
   }
 };
 

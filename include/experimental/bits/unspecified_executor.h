@@ -15,8 +15,7 @@
 namespace std {
 namespace experimental {
 
-
-inline execution_context& unspecified_executor::context()
+inline execution_context& unspecified_executor::context() noexcept
 {
   return system_executor().context();
 }
@@ -50,9 +49,19 @@ inline void unspecified_executor::defer(_Func&& __f, const _Alloc& a)
 }
 
 template <class _Func>
-inline auto unspecified_executor::wrap(_Func&& __f) const
+inline executor_wrapper<typename decay<_Func>::type, unspecified_executor> unspecified_executor::wrap(_Func&& __f) const
 {
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
+  return executor_wrapper<typename decay<_Func>::type, unspecified_executor>(forward<_Func>(__f), *this);
+}
+
+inline bool operator==(const unspecified_executor&, const unspecified_executor&) noexcept
+{
+  return true;
+}
+
+inline bool operator!=(const unspecified_executor&, const unspecified_executor&) noexcept
+{
+  return false;
 }
 
 } // namespace experimental

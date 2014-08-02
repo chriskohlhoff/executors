@@ -25,7 +25,7 @@ template <class _Executor>
 class strand
 {
 public:
-  typedef _Executor executor_type;
+  typedef _Executor inner_executor_type;
 
   // construct / copy / destroy:
 
@@ -46,25 +46,39 @@ public:
 
   // executor operations:
 
-  executor_type get_executor() const noexcept;
-  execution_context& context();
+  inner_executor_type get_inner_executor() const noexcept;
+
+  bool running_in_this_thread() const noexcept;
+
+  execution_context& context() noexcept;
 
   void work_started() noexcept;
   void work_finished() noexcept;
 
-  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void defer(_Func&& __f, const _Alloc& a);
 
-  template <class _Func> auto wrap(_Func&& __f) const;
+  template <class _Func>
+    executor_wrapper<typename decay<_Func>::type, strand<_Executor>>
+      wrap(_Func&& __f) const;
 
 private:
   template <class> friend class strand;
+  template <class _E> friend bool operator==(const strand<_E>&, const strand<_E>&) noexcept;
   friend class work;
   strand(const _Executor& __e, const shared_ptr<__strand_impl>& __i);
   _Executor _M_executor;
   shared_ptr<__strand_impl> _M_impl;
 };
+
+template <class _Executor>
+  bool operator==(const strand<_Executor>& __a, const strand<_Executor>& __b) noexcept;
+template <class _Executor>
+  bool operator!=(const strand<_Executor>& __a, const strand<_Executor>& __b) noexcept;
 
 template <class _Executor> struct is_executor<strand<_Executor>> : true_type {};
 

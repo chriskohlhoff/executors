@@ -207,14 +207,6 @@ template <class _T, class _Executor, class _Signature>
 template <class _T, class _Executor>
   class async_result<executor_wrapper<_T, _Executor>>;
 
-// Associate an object of type _T with an executor of type _Executor. If
-// uses_executor<_T, _Executor>::value is false, returns an object of type
-// executor_wrapper<_T, _Executor>. Otherwise, returns a copy of __t
-// constructed as _T(executor_arg, __e, __t).
-
-template <class _T, class _Executor>
-  auto wrap_with_executor(_T&& __t, const _Executor& __e);
-
 // An object of class executor_work controls ownership of executor work within
 // a scope.
 
@@ -254,17 +246,25 @@ class system_executor
 public:
   // executor operations:
 
-  execution_context& context();
+  execution_context& context() noexcept;
 
   void work_started() noexcept;
   void work_finished() noexcept;
 
-  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void defer(_Func&& __f, const _Alloc& a);
 
-  template <class _Func> auto wrap(_Func&& __f) const;
+  template <class _Func>
+    executor_wrapper<typename decay<_Func>::type, system_executor>
+      wrap(_Func&& __f) const;
 };
+
+bool operator==(const system_executor&, const system_executor&) noexcept;
+bool operator!=(const system_executor&, const system_executor&) noexcept;
 
 template <> struct is_executor<system_executor> : true_type {};
 
@@ -277,17 +277,25 @@ class unspecified_executor
 public:
   // executor operations:
 
-  execution_context& context();
+  execution_context& context() noexcept;
 
   void work_started() noexcept;
   void work_finished() noexcept;
 
-  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void defer(_Func&& __f, const _Alloc& a);
 
-  template <class _Func> auto wrap(_Func&& __f) const;
+  template <class _Func>
+    executor_wrapper<typename decay<_Func>::type, unspecified_executor>
+      wrap(_Func&& __f) const;
 };
+
+bool operator==(const unspecified_executor&, const unspecified_executor&) noexcept;
+bool operator!=(const unspecified_executor&, const unspecified_executor&) noexcept;
 
 template <> struct is_executor<unspecified_executor> : true_type {};
 
@@ -329,22 +337,27 @@ public:
   executor& operator=(const executor& __e) noexcept;
   executor& operator=(executor&& __e) noexcept;
   executor& operator=(nullptr_t) noexcept;
-  template <class _Executor> executor& operator=(_Executor&& __e);
+  template <class _Executor> executor& operator=(_Executor __e);
 
   ~executor();
 
   // executor operations:
 
-  execution_context& context();
+  execution_context& context() noexcept;
 
   void work_started() noexcept;
   void work_finished() noexcept;
 
-  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void defer(_Func&& __f, const _Alloc& a);
 
-  template <class _Func> auto wrap(_Func&& __f) const;
+  template <class _Func>
+    executor_wrapper<typename decay<_Func>::type, executor>
+      wrap(_Func&& __f) const;
 
   // executor capacity:
 
@@ -357,14 +370,17 @@ public:
   template <class _Executor> const _Executor* target() const noexcept;
 
 private:
+  friend bool operator==(const executor&, const executor&) noexcept;
   explicit executor(__executor_impl_base* __i) : _M_impl(__i) {}
   __executor_impl_base* _M_impl;
 };
 
 template <> struct is_executor<executor> : true_type {};
 
+bool operator==(const executor& __a, const executor& __b) noexcept;
 bool operator==(const executor& __e, nullptr_t) noexcept;
 bool operator==(nullptr_t, const executor& __e) noexcept;
+bool operator!=(const executor& __a, const executor& __b) noexcept;
 bool operator!=(const executor& __e, nullptr_t) noexcept;
 bool operator!=(nullptr_t, const executor& __e) noexcept;
 
