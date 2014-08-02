@@ -429,31 +429,6 @@ inline executor::executor(_Executor __e)
 {
 }
 
-template <class _Alloc>
-inline executor::executor(allocator_arg_t, const _Alloc&) noexcept
-  : _M_impl(__bad_executor_impl::_Create())
-{
-}
-
-template <class _Alloc>
-inline executor::executor(allocator_arg_t, const _Alloc&, nullptr_t) noexcept
-  : _M_impl(__bad_executor_impl::_Create())
-{
-}
-
-template <class _Alloc>
-inline executor::executor(allocator_arg_t, const _Alloc&, const executor& __e)
-  : _M_impl(__e._M_impl->_Clone())
-{
-}
-
-template <class _Alloc>
-inline executor::executor(allocator_arg_t, const _Alloc&, executor&& __e)
-  : _M_impl(__e._M_impl)
-{
-  __e._M_impl = __bad_executor_impl::_Create();
-}
-
 template <class _Executor, class _Alloc>
 inline executor::executor(allocator_arg_t, const _Alloc&, _Executor __e)
   : _M_impl(__executor_impl<_Executor>::_Create(std::move(__e)))

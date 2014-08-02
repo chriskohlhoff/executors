@@ -327,10 +327,6 @@ public:
   executor(const executor& __e) noexcept;
   executor(executor&& __e) noexcept;
   template <class _Executor> executor(_Executor __e);
-  template <class _Alloc> executor(allocator_arg_t, const _Alloc&) noexcept;
-  template <class _Alloc> executor(allocator_arg_t, const _Alloc&, nullptr_t) noexcept;
-  template <class _Alloc> executor(allocator_arg_t, const _Alloc&, const executor& __e);
-  template <class _Alloc> executor(allocator_arg_t, const _Alloc&, executor&& __e);
   template <class _Executor, class _Alloc>
     executor(allocator_arg_t, const _Alloc& __a, _Executor __e);
 
