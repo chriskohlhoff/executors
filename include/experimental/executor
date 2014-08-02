@@ -147,32 +147,53 @@ class executor_wrapper
     public __executor_wrapper_base_wrapped<_T>
 {
 public:
+  typedef _T wrapped_type;
   typedef _Executor executor_type;
+  // typedef ... result_type;
+  // typedef ... argument_type;
+  // typedef ... first_argument_type;
+  // typedef ... second_argument_type;
 
   // construct / copy / destroy:
 
-  executor_wrapper(const executor_wrapper& __w);
-  executor_wrapper(executor_wrapper&& __w);
-  template <class _U> executor_wrapper(const executor_wrapper<_U, _Executor>& __w);
-  template <class _U> executor_wrapper(executor_wrapper<_U, _Executor>&& __w);
-  template <class _U> executor_wrapper(executor_arg_t, const _Executor& __e, _U&& __u);
-  executor_wrapper(executor_arg_t, const _Executor& __e, const executor_wrapper& __w);
-  executor_wrapper(executor_arg_t, const _Executor& __e, executor_wrapper&& __w);
-  template <class _U> executor_wrapper(executor_arg_t, const _Executor& __e,
-    const executor_wrapper<_U, _Executor>& __w);
-  template <class _U> executor_wrapper(executor_arg_t, const _Executor& __e,
-    executor_wrapper<_U, _Executor>&& __w);
+  executor_wrapper(_T __t, const _Executor& __ex);
+  executor_wrapper(const executor_wrapper& __w) = default;
+  executor_wrapper(executor_wrapper&& __w) = default;
+  template <class _U, class _OtherExecutor>
+    executor_wrapper(const executor_wrapper<_U, _OtherExecutor>& __w);
+  template <class _U, class _OtherExecutor>
+    executor_wrapper(executor_wrapper<_U, _OtherExecutor>&& __w);
+  template <class _U, class _OtherExecutor>
+    executor_wrapper(executor_arg_t, const _Executor& __ex,
+      const executor_wrapper<_U, _OtherExecutor>& __w);
+  template <class _U, class _OtherExecutor>
+    executor_wrapper(executor_arg_t, const _Executor& __ex,
+      executor_wrapper<_U, _OtherExecutor>&& __w);
 
   ~executor_wrapper();
 
   // executor wrapper operations:
 
+  _T& unwrap() noexcept;
+  const _T& unwrap() const noexcept;
   executor_type get_executor() const noexcept;
+
+  template <class... _Args>
+    typename result_of<_T&(_Args&&...)>::type
+      operator()(_Args&&... __args) &;
+  template <class... _Args>
+    typename result_of<const _T&(_Args&&...)>::type
+      operator()(_Args&&... __args) const &;
+  template <class... _Args>
+    typename result_of<_T&&(_Args&&...)>::type
+      operator()(_Args&&... __args) &&;
+  template <class... _Args>
+    typename result_of<const _T&&(_Args&&...)>::type
+      operator()(_Args&&... __args) const &&;
 
 private:
   template <class _U, class _E> friend class executor_wrapper;
-  friend class async_result<executor_wrapper>;
-  template <class _E, class _U> executor_wrapper(_E&& __e, _U&& __u);
+  template <class _E, class _U> executor_wrapper(int, _E&& __e, _U&& __u);
   template <class _E, class _U> executor_wrapper(_E&& __e, _U&& __u, true_type);
   template <class _E, class _U> executor_wrapper(_E&& __e, _U&& __u, false_type);
 };

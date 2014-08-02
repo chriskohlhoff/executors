@@ -16,70 +16,39 @@ namespace std {
 namespace experimental {
 
 template <class _T, class _Executor>
-inline executor_wrapper<_T, _Executor>::executor_wrapper(const executor_wrapper& __w)
-  : __executor_wrapper_base_executor<_Executor>(__w._M_executor),
-    __executor_wrapper_base_wrapped<_T>(__w._Wrapped())
+inline executor_wrapper<_T, _Executor>::executor_wrapper(_T __t, const _Executor& __ex)
+  : executor_wrapper(0, __ex, std::move(__t))
 {
 }
 
-template <class _T, class _Executor>
-inline executor_wrapper<_T, _Executor>::executor_wrapper(executor_wrapper&& __w)
-  : __executor_wrapper_base_executor<_Executor>(std::move(__w._M_executor)),
-    __executor_wrapper_base_wrapped<_T>(std::move(__w._Wrapped()))
+template <class _T, class _Executor> template <class _U, class _OtherExecutor>
+inline executor_wrapper<_T, _Executor>::executor_wrapper(const executor_wrapper<_U, _OtherExecutor>& __w)
+  : executor_wrapper(0, __w._M_executor, __w._M_wrapped)
 {
 }
 
-template <class _T, class _Executor> template <class _U>
-inline executor_wrapper<_T, _Executor>::executor_wrapper(
-  const executor_wrapper<_U, _Executor>& __w)
-    : executor_wrapper(__w._M_executor, __w._Wrapped())
+template <class _T, class _Executor> template <class _U, class _OtherExecutor>
+inline executor_wrapper<_T, _Executor>::executor_wrapper(executor_wrapper<_U, _OtherExecutor>&& __w)
+  : executor_wrapper(0, __w._M_executor, std::move(__w._M_wrapped))
 {
 }
 
-template <class _T, class _Executor> template <class _U>
-inline executor_wrapper<_T, _Executor>::executor_wrapper(
-  executor_wrapper<_U, _Executor>&& __w)
-    : executor_wrapper(std::move(__w._M_executor), std::move(__w._Wrapped()))
-{
-}
-
-template <class _T, class _Executor> template <class _U>
-inline executor_wrapper<_T, _Executor>::executor_wrapper(
-  executor_arg_t, const _Executor& __e, _U&& __u)
-    : executor_wrapper(__e, forward<_U>(__u))
-{
-}
-
-template <class _T, class _Executor>
-inline executor_wrapper<_T, _Executor>::executor_wrapper(
-  executor_arg_t, const _Executor& __e, const executor_wrapper& __w)
-    : executor_wrapper(__e, __w._Wrapped())
-{
-}
-
-template <class _T, class _Executor>
-inline executor_wrapper<_T, _Executor>::executor_wrapper(
-  executor_arg_t, const _Executor& __e, executor_wrapper&& __w)
-    : executor_wrapper(__e, std::move(__w._Wrapped()))
-{
-}
-
-template <class _T, class _Executor> template <class _U>
+template <class _T, class _Executor> template <class _U, class _OtherExecutor>
 inline executor_wrapper<_T, _Executor>::executor_wrapper(executor_arg_t,
-  const _Executor& __e, const executor_wrapper<_U, _Executor>& __w)
-    : executor_wrapper(__e, __w._Wrapped())
+  const _Executor& __ex, const executor_wrapper<_U, _OtherExecutor>& __w)
+    : executor_wrapper(0, __ex, __w._M_wrapped)
 {
 }
 
-template <class _T, class _Executor> template <class _U>
+template <class _T, class _Executor> template <class _U, class _OtherExecutor>
 inline executor_wrapper<_T, _Executor>::executor_wrapper(executor_arg_t,
-  const _Executor& __e, executor_wrapper<_U, _Executor>&& __w)
-    : executor_wrapper(__e, std::move(__w._Wrapped()))
+  const _Executor& __ex, executor_wrapper<_U, _OtherExecutor>&& __w)
+    : executor_wrapper(0, __ex, std::move(__w._M_wrapped))
 {
 }
 
 template <class _T, class _Executor> template <class _E, class _U>
-inline executor_wrapper<_T, _Executor>::executor_wrapper(_E&& __e, _U&& __u)
+inline executor_wrapper<_T, _Executor>::executor_wrapper(int, _E&& __e, _U&& __u)
   : executor_wrapper(forward<_E>(__e), forward<_U>(__u), uses_executor<_T, _Executor>())
 {
 }
@@ -104,10 +73,50 @@ inline executor_wrapper<_T, _Executor>::~executor_wrapper()
 }
 
 template <class _T, class _Executor>
+inline _T& executor_wrapper<_T, _Executor>::unwrap() noexcept
+{
+  return this->_M_wrapped;
+}
+
+template <class _T, class _Executor>
+inline const _T& executor_wrapper<_T, _Executor>::unwrap() const noexcept
+{
+  return this->_M_wrapped;
+}
+
+template <class _T, class _Executor>
 inline typename executor_wrapper<_T, _Executor>::executor_type
 executor_wrapper<_T, _Executor>::get_executor() const noexcept
 {
   return this->_M_executor;
+}
+
+template <class _T, class _Executor> template <class... _Args>
+inline typename result_of<_T&(_Args&&...)>::type
+executor_wrapper<_T, _Executor>::operator()(_Args&&... __args) &
+{
+  return this->_M_wrapped(forward<_Args>(__args)...);
+}
+
+template <class _T, class _Executor> template <class... _Args>
+inline typename result_of<const _T&(_Args&&...)>::type
+executor_wrapper<_T, _Executor>::operator()(_Args&&... __args) const &
+{
+  return this->_M_wrapped(forward<_Args>(__args)...);
+}
+
+template <class _T, class _Executor> template <class... _Args>
+inline typename result_of<_T&&(_Args&&...)>::type
+executor_wrapper<_T, _Executor>::operator()(_Args&&... __args) &&
+{
+  return std::move(this->_M_wrapped)(forward<_Args>(__args)...);
+}
+
+template <class _T, class _Executor> template <class... _Args>
+inline typename result_of<const _T&&(_Args&&...)>::type
+executor_wrapper<_T, _Executor>::operator()(_Args&&... __args) const &&
+{
+  return std::move(this->_M_wrapped)(forward<_Args>(__args)...);
 }
 
 template <class _T, class _Executor, class _Signature>
@@ -121,7 +130,7 @@ class async_result<executor_wrapper<_T, _Executor>>
 {
 public:
   typedef typename async_result<_T>::type type;
-  explicit async_result(executor_wrapper<_T, _Executor>& __w) : _M_wrapped(__w._Wrapped()) {}
+  explicit async_result(executor_wrapper<_T, _Executor>& __w) : _M_wrapped(__w.unwrap()) {}
   type get() { return _M_wrapped.get(); }
 
 private:
@@ -132,9 +141,7 @@ template <class _T, class _Executor>
 inline auto wrap_with_executor(_T&& __t, const _Executor& __e)
 {
   typedef typename decay<_T>::type _DecayT;
-  typedef typename conditional<uses_executor<_DecayT, _Executor>::value,
-    _DecayT, executor_wrapper<_DecayT, _Executor>>::type _Wrapper;
-  return _Wrapper(executor_arg, __e, forward<_T>(__t));
+  return executor_wrapper<_DecayT, _Executor>(forward<_T>(__t), __e);
 }
 
 template <class _T>
@@ -142,6 +149,23 @@ struct __is_executor_wrapper : false_type {};
 
 template <class _T, class _Executor>
 struct __is_executor_wrapper<executor_wrapper<_T, _Executor>> : true_type {};
+
+template <class _T, class _Executor, class... _Args>
+struct continuation_of<executor_wrapper<_T, _Executor>(_Args...)>
+{
+  typedef continuation_of<
+    typename executor_wrapper<_T, _Executor>::wrapped_type(_Args...)> _Wrapped_continuation_of;
+
+  typedef typename _Wrapped_continuation_of::signature signature;
+
+  template <class _C>
+  static auto chain(executor_wrapper<_T, _Executor>&& __f, _C&& __c)
+  {
+    return wrap_with_executor(
+      _Wrapped_continuation_of::chain(std::move(__f.unwrap()),
+        forward<_C>(__c)), __f.get_executor());
+  }
+};
 
 } // namespace experimental
 } // namespace std
