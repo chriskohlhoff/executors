@@ -23,7 +23,7 @@ connection_handler::connection_handler(unsigned short port, order_management_bus
 
 void connection_handler::start()
 {
-  std::experimental::defer(thread_pool_.get_executor(),
+  std::experimental::defer(thread_pool_,
       [this]
       {
         receive_and_dispatch();
