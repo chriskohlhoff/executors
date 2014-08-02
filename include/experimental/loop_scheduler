@@ -37,22 +37,31 @@ public:
   loop_scheduler& operator=(const loop_scheduler&) = delete;
   ~loop_scheduler();
 
-  // scheduler operations:
+  // loop_scheduler operations:
 
   executor_type get_executor() const noexcept;
 
   size_t run();
-  size_t run_one();
   template <class _Rep, class _Period>
     size_t run_for(const chrono::duration<_Rep, _Period>& __rel_time);
   template <class _Clock, class _Duration>
     size_t run_until(const chrono::time_point<_Clock, _Duration>& __abs_time);
+
+  size_t run_one();
+  template <class _Rep, class _Period>
+    size_t run_one_for(const chrono::duration<_Rep, _Period>& __rel_time);
+  template <class _Clock, class _Duration>
+    size_t run_one_until(const chrono::time_point<_Clock, _Duration>& __abs_time);
+
   size_t poll();
+
   size_t poll_one();
 
   void stop();
+
   bool stopped() const;
-  void reset();
+
+  void restart();
 };
 
 class loop_scheduler::executor_type

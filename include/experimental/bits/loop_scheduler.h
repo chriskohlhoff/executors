@@ -41,11 +41,6 @@ inline size_t loop_scheduler::run()
   return _Run();
 }
 
-inline size_t loop_scheduler::run_one()
-{
-  return _Run_one();
-}
-
 template <class _Rep, class _Period>
 size_t loop_scheduler::run_for(
   const chrono::duration<_Rep, _Period>& __rel_time)
@@ -58,6 +53,25 @@ size_t loop_scheduler::run_until(
   const chrono::time_point<_Clock, _Duration>& __abs_time)
 {
   return this->_Run_until(__abs_time);
+}
+
+inline size_t loop_scheduler::run_one()
+{
+  return _Run_one();
+}
+
+template <class _Rep, class _Period>
+size_t loop_scheduler::run_one_for(
+  const chrono::duration<_Rep, _Period>& __rel_time)
+{
+  return this->_Run_one_for(__rel_time);
+}
+
+template <class _Clock, class _Duration>
+size_t loop_scheduler::run_one_until(
+  const chrono::time_point<_Clock, _Duration>& __abs_time)
+{
+  return this->_Run_one_until(__abs_time);
 }
 
 inline size_t loop_scheduler::poll()
@@ -80,9 +94,9 @@ inline bool loop_scheduler::stopped() const
   return _Stopped();
 }
 
-inline void loop_scheduler::reset()
+inline void loop_scheduler::restart()
 {
-  _Reset();
+  _Restart();
 }
 
 inline bool loop_scheduler::executor_type::running_in_this_thread() const noexcept

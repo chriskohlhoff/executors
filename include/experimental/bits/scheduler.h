@@ -120,7 +120,7 @@ public:
     return _M_stopped;
   }
 
-  void _Reset()
+  void _Restart()
   {
     lock_guard<mutex> __lock(_M_mutex);
     _M_stopped = false;
@@ -162,6 +162,12 @@ public:
     return this->_Run_until(chrono::steady_clock::now() + __rel_time);
   }
 
+  template <class _Rep, class _Period>
+  size_t _Run_one_for(const chrono::duration<_Rep, _Period>& __rel_time)
+  {
+    return this->_Run_one_until(chrono::steady_clock::now() + __rel_time);
+  }
+
   template <class _Clock, class _Duration>
   size_t _Run_until(const chrono::time_point<_Clock, _Duration>& __abs_time)
   {
@@ -178,6 +184,20 @@ public:
       if (__n != (numeric_limits<size_t>::max)())
         ++__n;
     return __n;
+  }
+
+  template <class _Clock, class _Duration>
+  size_t _Run_one_until(const chrono::time_point<_Clock, _Duration>& __abs_time)
+  {
+    if (_M_outstanding_work == 0)
+    {
+      _Stop();
+      return 0;
+    }
+
+    _Context __ctx(this);
+
+    return _Do_run_one_until(__ctx, __abs_time);
   }
 
   size_t _Poll()
