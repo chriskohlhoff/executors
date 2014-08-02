@@ -12,7 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_FUTURE_HEADER
 #define EXECUTORS_EXPERIMENTAL_FUTURE_HEADER
 
-#include <experimental/type_traits>
+#include <experimental/executor>
 #include <future>
 #include <new>
 

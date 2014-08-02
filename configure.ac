@@ -1,5 +1,5 @@
 AC_INIT(executors, [0.0.1])
-AC_CONFIG_SRCDIR(include/experimental/type_traits)
+AC_CONFIG_SRCDIR(include/experimental/executor)
 AM_MAINTAINER_MODE
 AM_INIT_AUTOMAKE([tar-ustar])
 

@@ -15,7 +15,6 @@
 #include <memory>
 #include <system_error>
 #include <experimental/executor>
-#include <experimental/type_traits>
 
 namespace std {
 namespace experimental {

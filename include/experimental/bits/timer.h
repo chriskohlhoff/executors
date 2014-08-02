@@ -15,7 +15,6 @@
 #include <chrono>
 #include <memory>
 #include <thread>
-#include <experimental/type_traits>
 #include <experimental/bits/invoker.h>
 #include <experimental/bits/reactor.h>
 #include <experimental/bits/timer_queue.h>
