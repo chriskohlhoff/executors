@@ -18,6 +18,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 // Loop scheduler.
 
@@ -99,6 +100,7 @@ bool operator!=(const loop_scheduler::executor_type& __a,
 
 template <> struct is_executor<loop_scheduler::executor_type> : true_type {};
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

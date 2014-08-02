@@ -14,6 +14,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Key, class _Value = unsigned char>
 class __call_stack
@@ -77,6 +78,7 @@ template <class _Key, class _Value>
   thread_local typename __call_stack<_Key, _Value>::__context*
     __call_stack<_Key, _Value>::_S_top;
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

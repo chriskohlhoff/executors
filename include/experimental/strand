@@ -18,6 +18,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 struct __strand_impl;
 
@@ -84,6 +85,7 @@ template <class _Executor> struct is_executor<strand<_Executor>> : true_type {};
 
 template <class _T> auto make_strand(_T&& __t);
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

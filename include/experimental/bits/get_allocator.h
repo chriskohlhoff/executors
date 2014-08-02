@@ -17,6 +17,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class>
 struct __get_allocator_check
@@ -75,6 +76,7 @@ template <class _T>
 struct __is_unspecified_allocator<unspecified_allocator<_T>>
   : true_type {};
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

@@ -19,6 +19,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 inline execution_context::execution_context()
   : _M_first_service(nullptr)
@@ -239,6 +240,7 @@ template <class _Service> bool has_service(execution_context& __c) noexcept
   return false;
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

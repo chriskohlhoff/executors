@@ -19,6 +19,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __timer_queue_base
 {
@@ -332,6 +333,7 @@ private:
   __timer_queue_base* _M_first;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

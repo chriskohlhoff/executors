@@ -18,6 +18,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 struct __yield_context_caller;
 struct __yield_context_callee;
@@ -58,6 +59,7 @@ template <class _Executor, class _R, class... _Args>
 
 typedef basic_yield_context<executor> yield_context;
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

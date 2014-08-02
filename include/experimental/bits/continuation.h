@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class bad_continuation
   : public std::exception
@@ -515,6 +516,7 @@ struct handler_type<_Func, _R(_Args...),
   typedef __continuation_launcher<_DecayFunc, _Signature> type;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

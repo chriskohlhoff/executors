@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class... _CompletionTokens>
 auto chain(_CompletionTokens&&... __tokens)
@@ -35,6 +36,7 @@ auto chain(_CompletionTokens&&... __tokens)
   return __active_invoker<_Signature, _CompletionTokens...>(__tokens...);
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

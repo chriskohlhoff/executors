@@ -17,6 +17,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class>
 struct __get_executor_check
@@ -67,6 +68,7 @@ inline auto __get_executor_helper(const _T& __t)
   return get_executor(__t);
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

@@ -22,6 +22,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Signature>
 class __coinvoker_result
@@ -337,6 +338,7 @@ struct __coinvoke_with_executor
 {
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

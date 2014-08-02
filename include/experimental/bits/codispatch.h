@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 struct __coinvoke_dispatch
 {
@@ -58,6 +59,7 @@ inline typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Resu
   return __coinvoker_launcher<_Head, _Tail>(__tokens...)._Go(__coinvoke_dispatch_ex<_Executor>{__e}, __tokens...);
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

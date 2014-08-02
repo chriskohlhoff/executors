@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Clock, class... _CompletionTokens>
 class __timed_invoker
@@ -49,6 +50,7 @@ private:
   __active_invoker<void(), _CompletionTokens...> _M_tail;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

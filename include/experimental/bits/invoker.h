@@ -19,6 +19,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Signature, class... _CompletionTokens> class __passive_invoker;
 template <class _Signature, class... _CompletionTokens> class __active_invoker;
@@ -308,6 +309,7 @@ struct __invoke_with_execution_context
 {
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

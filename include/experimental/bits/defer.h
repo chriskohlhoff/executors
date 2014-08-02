@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class... _CompletionTokens>
 typename __invoke_with_token<_CompletionTokens...>::_Result
@@ -68,6 +69,7 @@ typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...
   return __result.get();
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

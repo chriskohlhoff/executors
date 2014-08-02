@@ -20,6 +20,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __strand_service;
 
@@ -396,6 +397,7 @@ template <class _T> inline auto make_strand(_T&& __t)
   return strand<typename decay<_T>::type>(forward<_T>(__t));
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

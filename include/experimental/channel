@@ -19,6 +19,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _T,
   class _Cont = typename conditional<is_same<_T, void>::value, void, deque<_T>>::type>
@@ -117,6 +118,7 @@ private:
   size_t _M_buffered;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

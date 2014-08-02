@@ -14,6 +14,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _T, class _Executor>
 inline executor_wrapper<_T, _Executor>::executor_wrapper(_T __t, const _Executor& __ex)
@@ -167,6 +168,7 @@ struct continuation_of<executor_wrapper<_T, _Executor>(_Args...)>
   }
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

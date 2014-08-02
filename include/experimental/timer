@@ -19,6 +19,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Clock, class _TimerTraits>
 class __timer_service;
@@ -137,6 +138,7 @@ template <class _Rep, class _Period, class _Executor, class... _CompletionTokens
     defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
       const _Executor& __e, _CompletionTokens&&... __tokens);
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

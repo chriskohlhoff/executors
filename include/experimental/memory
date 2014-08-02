@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class, class = void> struct __get_allocator_impl;
 
@@ -48,6 +49,7 @@ public:
 template <class _T> typename __get_allocator_impl<_T>::_Type
   get_allocator(const _T&) noexcept;
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

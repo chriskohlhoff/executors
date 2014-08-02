@@ -19,6 +19,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 // Thread pool.
 
@@ -93,6 +94,7 @@ bool operator!=(const thread_pool::executor_type& __a,
 
 template <> struct is_executor<thread_pool::executor_type> : true_type {};
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

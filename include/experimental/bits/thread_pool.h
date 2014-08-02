@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 inline thread_pool::thread_pool()
   : thread_pool(thread::hardware_concurrency())
@@ -116,6 +117,7 @@ inline bool operator!=(const thread_pool::executor_type& __a, const thread_pool:
   return !(__a == __b);
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

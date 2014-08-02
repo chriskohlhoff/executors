@@ -17,6 +17,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __continuation;
 template <class> class __continuation_impl_base;
@@ -160,6 +161,7 @@ template <class _Signature>
 template <class _Signature>
   continuation<_Signature> dynamic_continuation_cast(continuation<>&& __c);
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 
 template<class _R, class... _Args, class _Alloc>

@@ -18,6 +18,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <unsigned char __max = UCHAR_MAX>
 class __small_block_recycler
@@ -214,6 +215,7 @@ struct __small_block_rebind<allocator<_T>, _U>
 template <class _Allocator, class _U>
 using __small_block_rebind_t = typename __small_block_rebind<_Allocator, _U>::_Type;
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

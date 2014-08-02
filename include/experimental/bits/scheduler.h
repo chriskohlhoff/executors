@@ -27,6 +27,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __scheduler
 {
@@ -403,6 +404,7 @@ template <class _F, class _A> void __scheduler::_Defer(_F&& __f, const _A& __a)
   __op.release();
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

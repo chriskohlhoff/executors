@@ -14,6 +14,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _T>
 inline unspecified_allocator<_T>::unspecified_allocator() noexcept
@@ -34,6 +35,7 @@ inline unspecified_allocator<_T>::unspecified_allocator(
 {
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

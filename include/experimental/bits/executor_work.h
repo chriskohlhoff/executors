@@ -17,6 +17,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Executor>
 inline executor_work<_Executor>::executor_work(const executor_type& __e) noexcept
@@ -65,6 +66,7 @@ inline void executor_work<_Executor>::reset() noexcept
   }
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

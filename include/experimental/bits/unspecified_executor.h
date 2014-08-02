@@ -14,6 +14,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 inline execution_context& unspecified_executor::context() noexcept
 {
@@ -64,6 +65,7 @@ inline bool operator!=(const unspecified_executor&, const unspecified_executor&)
   return false;
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

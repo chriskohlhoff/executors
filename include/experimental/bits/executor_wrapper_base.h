@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Executor>
 class __executor_wrapper_base_executor
@@ -41,6 +42,7 @@ protected:
   _T _M_wrapped;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Func>
 struct __exception_ptr_call_wrapper
@@ -100,6 +101,7 @@ struct __exception_ptr_executor
 template <class _Executor>
 struct is_executor<__exception_ptr_executor<_Executor>> : true_type {};
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

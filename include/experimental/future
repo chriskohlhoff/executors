@@ -18,6 +18,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 // The class template use_future_t defines a set of completion token types for
 // use with asynchronous operations.
@@ -58,6 +59,7 @@ constexpr use_future_t<> use_future;
 template <class _Alloc, class _R, class... _Args>
   struct handler_type<use_future_t<_Alloc>, _R(_Args...)>;
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

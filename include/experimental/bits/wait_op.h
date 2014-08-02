@@ -21,6 +21,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __wait_op_base
   : public __operation
@@ -62,6 +63,7 @@ private:
   executor_work<_Executor> _M_work;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

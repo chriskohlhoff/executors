@@ -28,6 +28,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Executor> template <class _OtherExecutor>
 basic_yield_context<_Executor>::basic_yield_context(const basic_yield_context<_OtherExecutor>& __c)
@@ -382,6 +383,7 @@ struct continuation_of<__yield_context_launcher<_Executor, _Func>(_Args...)>
   }
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

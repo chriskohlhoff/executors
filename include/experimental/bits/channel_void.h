@@ -18,6 +18,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Cont> template <class _Handler>
 class channel<void, _Cont>::_Op
@@ -369,6 +370,7 @@ void channel<void, _Cont>::_Start_get(__channel_op* __getter)
   }
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 
