@@ -16,7 +16,7 @@ AC_ARG_WITH(boost,
     CPPFLAGS="$CPPFLAGS -DEXECUTORS_NO_BOOST=1"
   else
     CPPFLAGS="$CPPFLAGS -I${withval}"
-    LIBS="$LIBS -L${withval}/stage/lib -lboost_coroutine -lboost_context -lboost_system"
+    LIBS="$LIBS -L${withval}/stage/lib -lboost_coroutine -lboost_context -lboost_thread -lboost_system"
   fi
 ],
 [

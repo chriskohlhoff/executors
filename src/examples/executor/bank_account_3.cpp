@@ -12,14 +12,13 @@ using std::experimental::use_future;
 class bank_account
 {
   int balance_ = 0;
-  thread_pool pool_{1};
-  mutable thread_pool::executor_type ex_ = pool_.get_executor();
+  mutable thread_pool pool_{1};
 
 public:
   template <class CompletionToken>
   auto deposit(int amount, CompletionToken&& token)
   {
-    return post(ex_, [=]
+    return post(pool_, [=]
       {
         balance_ += amount;
       },
@@ -29,7 +28,7 @@ public:
   template <class CompletionToken>
   auto withdraw(int amount, CompletionToken&& token)
   {
-    return post(ex_, [=]
+    return post(pool_, [=]
       {
         if (balance_ >= amount)
           balance_ -= amount;
@@ -40,7 +39,7 @@ public:
   template <class CompletionToken>
   auto balance(CompletionToken&& token) const
   {
-    return post(ex_, [=]
+    return post(pool_, [=]
       {
         return balance_;
       },

@@ -19,7 +19,7 @@ namespace std {
 namespace experimental {
 
 template <class _Rep, class _Period, class... _CompletionTokens>
-typename __invoke_without_executor<_CompletionTokens...>::_Result
+typename __invoke_with_token<_CompletionTokens...>::_Result
   dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
     _CompletionTokens&&... __tokens)
 {

@@ -29,8 +29,9 @@ template <class, class = void> struct __get_executor_impl;
 class __executor_impl_base;
 template <class> class __executor_impl;
 
-template <class...> struct __invoke_without_executor;
+template <class...> struct __invoke_with_token;
 template <class, class...> struct __invoke_with_executor;
+template <class, class...> struct __invoke_with_execution_context;
 template <class...> struct __coinvoke_without_executor;
 template <class, class...> struct __coinvoke_with_executor;
 
@@ -343,29 +344,38 @@ template <class _Signature, class... _CompletionTokens>
 // Schedule a function to run now if possible, later otherwise.
 
 template <class... _CompletionTokens>
-  typename __invoke_without_executor<_CompletionTokens...>::_Result
+  typename __invoke_with_token<_CompletionTokens...>::_Result
     dispatch(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     dispatch(const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _ExecutionContext, class... _CompletionTokens>
+  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+    dispatch(_ExecutionContext& __c, _CompletionTokens&&... __tokens);
 
 // Schedule a function to run later.
 
 template <class... _CompletionTokens>
-  typename __invoke_without_executor<_CompletionTokens...>::_Result
+  typename __invoke_with_token<_CompletionTokens...>::_Result
     post(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     post(const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _ExecutionContext, class... _CompletionTokens>
+  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+    post(_ExecutionContext& __c, _CompletionTokens&&... __tokens);
 
 // Schedule a function to run later, treating the function as a continuation of the caller.
 
 template <class... _CompletionTokens>
-  typename __invoke_without_executor<_CompletionTokens...>::_Result
+  typename __invoke_with_token<_CompletionTokens...>::_Result
     defer(_CompletionTokens&&... __tokens);
 template <class _Executor, class... _CompletionTokens>
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     defer(const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _ExecutionContext, class... _CompletionTokens>
+  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+    defer(_ExecutionContext& __c, _CompletionTokens&&... __tokens);
 
 // Schedule functions to run now if possible, run concurrently later otherwise.
 

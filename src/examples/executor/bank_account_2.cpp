@@ -12,13 +12,12 @@ using std::experimental::use_future;
 class bank_account
 {
   int balance_ = 0;
-  thread_pool pool_{1};
-  mutable thread_pool::executor_type ex_ = pool_.get_executor();
+  mutable thread_pool pool_{1};
 
 public:
   void deposit(int amount)
   {
-    post(ex_, [=]
+    post(pool_, [=]
       {
         balance_ += amount;
       },
@@ -27,7 +26,7 @@ public:
 
   void withdraw(int amount)
   {
-    post(ex_, [=]
+    post(pool_, [=]
       {
         if (balance_ >= amount)
           balance_ -= amount;
@@ -37,7 +36,7 @@ public:
 
   int balance() const
   {
-    return post(ex_, [=]
+    return post(pool_, [=]
       {
         return balance_;
       },

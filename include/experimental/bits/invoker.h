@@ -273,6 +273,11 @@ template <class... _T> struct __is_executor;
 template <class _T, class... _U> struct __is_executor<_T, _U...>
   : is_executor<typename remove_reference<_T>::type> {};
 
+template <class... _T> struct __is_execution_context;
+
+template <class _T, class... _U> struct __is_execution_context<_T, _U...>
+  : is_convertible<typename remove_reference<_T>::type&, execution_context&> {};
+
 template <class... _CompletionTokens>
 struct __invoke_result
 {
@@ -282,15 +287,23 @@ struct __invoke_result
 struct __invoke_no_result {};
 
 template <class... _CompletionTokens>
-struct __invoke_without_executor
-  : conditional<__is_executor<_CompletionTokens...>::value,
-    __invoke_no_result, __invoke_result<_CompletionTokens...>>::type
+struct __invoke_with_token
+  : conditional<!__is_executor<_CompletionTokens...>::value
+      && !__is_execution_context<_CompletionTokens...>::value,
+    __invoke_result<_CompletionTokens...>, __invoke_no_result>::type
 {
 };
 
 template <class _Executor, class... _CompletionTokens>
 struct __invoke_with_executor
   : conditional<__is_executor<_Executor>::value,
+    __invoke_result<_CompletionTokens...>, __invoke_no_result>::type
+{
+};
+
+template <class _ExecutionContext, class... _CompletionTokens>
+struct __invoke_with_execution_context
+  : conditional<__is_execution_context<_ExecutionContext>::value,
     __invoke_result<_CompletionTokens...>, __invoke_no_result>::type
 {
 };
