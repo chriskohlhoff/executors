@@ -41,8 +41,8 @@ typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
   static_assert(sizeof...(_CompletionTokens) > 0,
     "defer() must be called with one or more completion tokens");
 
-  __passive_invoker<void(), _CompletionTokens...> __head(__tokens...);
-  async_result<__passive_invoker<void(), _CompletionTokens...>> __result(__head);
+  __active_invoker<void(), _CompletionTokens...> __head(__tokens...);
+  async_result<__active_invoker<void(), _CompletionTokens...>> __result(__head);
 
   _Executor __completion_executor(__e);
   auto __completion_allocator(__head.get_allocator());
@@ -58,8 +58,8 @@ typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...
   static_assert(sizeof...(_CompletionTokens) > 0,
     "defer() must be called with one or more completion tokens");
 
-  __passive_invoker<void(), _CompletionTokens...> __head(__tokens...);
-  async_result<__passive_invoker<void(), _CompletionTokens...>> __result(__head);
+  __active_invoker<void(), _CompletionTokens...> __head(__tokens...);
+  async_result<__active_invoker<void(), _CompletionTokens...>> __result(__head);
 
   auto __completion_executor(__c.get_executor());
   auto __completion_allocator(__head.get_allocator());
