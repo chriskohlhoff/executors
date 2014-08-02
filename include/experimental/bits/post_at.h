@@ -19,7 +19,7 @@ namespace std {
 namespace experimental {
 
 template <class _Clock, class _Duration, class... _CompletionTokens>
-typename __invoke_without_executor<_CompletionTokens...>::_Result
+typename __invoke_with_token<_CompletionTokens...>::_Result
   post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
     _CompletionTokens&&... __tokens)
 {
