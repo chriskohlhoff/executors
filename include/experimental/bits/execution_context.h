@@ -15,6 +15,7 @@
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
+#include <vector>
 
 namespace std {
 namespace experimental {
@@ -28,6 +29,34 @@ inline execution_context::~execution_context()
 {
   shutdown_context();
   destroy_context();
+}
+
+inline void execution_context::notify_fork(fork_event __e)
+{
+  // Make a copy of all of the services while holding the lock. We don't want
+  // to hold the lock while calling into each service, as it may try to call
+  // back into this class.
+  vector<service*> __services;
+  {
+    lock_guard<mutex> __lock(_M_mutex);
+    service* __service = _M_first_service;
+    while (__service)
+    {
+      __services.push_back(__service);
+      __service = __service->_M_next;
+    }
+  }
+
+  // If processing the prepare event, we want to go in reverse order of service
+  // registration, which happens to be the existing order of the services in
+  // the vector. For the other events we want to go in the other direction.
+  size_t __num_services = __services.size();
+  if (__e == fork_event::prepare)
+    for (size_t __i = 0; __i < __num_services; ++__i)
+      __services[__i]->notify_fork(__e);
+  else
+    for (size_t __i = __num_services; __i > 0; --__i)
+      __services[__i - 1]->notify_fork(__e);
 }
 
 inline void execution_context::shutdown_context()
@@ -63,9 +92,13 @@ inline execution_context::service::~service()
 {
 }
 
-inline execution_context& execution_context::service::context()
+inline execution_context& execution_context::service::context() noexcept
 {
   return _M_context;
+}
+
+inline void execution_context::service::notify_fork(fork_event)
+{
 }
 
 class service_already_exists

@@ -37,6 +37,13 @@ template <class, class...> struct __coinvoke_with_executor;
 
 // Execution context.
 
+enum class fork_event
+{
+  prepare,
+  parent,
+  child
+};
+
 class execution_context
 {
 public:
@@ -49,9 +56,13 @@ public:
   execution_context& operator=(const execution_context&) = delete;
   virtual ~execution_context();
 
+  // execution context operations:
+
+  void notify_fork(fork_event __e);
+
 protected:
 
-  // execution context operations:
+  // execution context protected operations:
 
   void shutdown_context();
   void destroy_context();
@@ -73,12 +84,14 @@ protected:
   explicit service(execution_context& __c);
   virtual ~service();
 
-  execution_context& context();
+  execution_context& context() noexcept;
 
 private:
-  virtual void shutdown_service() = 0;
-
   friend class execution_context;
+
+  virtual void shutdown_service() = 0;
+  virtual void notify_fork(fork_event __e);
+
   template <class _Service> friend _Service& use_service(execution_context& __c);
   template <class _Service, class... _Args> friend _Service&
     make_service(execution_context& __c, _Args&&... __args);
