@@ -38,6 +38,7 @@ nobase_include_HEADERS = \
 	experimental/bits/invoker.h \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/operation.h \
+	experimental/bits/packaged_task.h \
 	experimental/bits/post.h \
 	experimental/bits/post_at.h \
 	experimental/bits/post_after.h \

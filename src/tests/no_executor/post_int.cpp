@@ -150,4 +150,15 @@ int main()
   {
     assert(e.what() == std::string("oops"));
   }
+
+  std::future<int> fut9 = std::experimental::post(std::experimental::package(function_throw));
+  try
+  {
+    fut9.get();
+    assert(0);
+  }
+  catch (std::exception& e)
+  {
+    assert(e.what() == std::string("oops"));
+  }
 }
