@@ -19,6 +19,15 @@
 
 namespace market_data {
 
+struct heartbeat
+{
+  std::uint64_t sequence_number;
+  std::uint64_t time;
+};
+
+std::istream& operator>>(std::istream& is, heartbeat& h);
+std::ostream& operator<<(std::ostream& os, const heartbeat& h);
+
 struct new_order
 {
   std::uint64_t sequence_number;

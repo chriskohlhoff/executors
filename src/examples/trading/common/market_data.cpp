@@ -15,6 +15,21 @@
 
 namespace market_data {
 
+std::istream& operator>>(std::istream& is, heartbeat& h)
+{
+  if (is.get() == 'H')
+    is >> h.sequence_number >> h.time;
+  else
+    is.setstate(std::ios::badbit);
+  return is;
+}
+
+std::ostream& operator<<(std::ostream& os, const heartbeat& h)
+{
+  os << 'H' << ' ' << h.sequence_number << ' ' << h.time;
+  return os;
+}
+
 std::istream& operator>>(std::istream& is, new_order& o)
 {
   if (is.get() == 'O')

@@ -15,12 +15,25 @@
 #include "common/market_data.hpp"
 #include "common/udp_socket.hpp"
 
+void handle_heartbeat(std::istream& is)
+{
+  market_data::heartbeat heartbeat;
+  if (is >> heartbeat)
+  {
+    std::cout << "." << std::flush;
+  }
+  else
+  {
+    std::cout << "Invalid heartbeat message\n";
+  }
+}
+
 void handle_new_order(std::istream& is)
 {
   market_data::new_order new_order;
   if (is >> new_order)
   {
-    std::cout << "New order: ";
+    std::cout << "\nNew order: ";
     std::cout << (new_order.side == order_side::buy ? "Buy " : "Sell ");
     std::cout << new_order.symbol << " ";
     std::cout << new_order.quantity << "@";
@@ -37,7 +50,7 @@ void handle_trade(std::istream& is)
   market_data::trade trade;
   if (is >> trade)
   {
-    std::cout << "Trade: ";
+    std::cout << "\nTrade: ";
     std::cout << trade.symbol << " ";
     std::cout << trade.quantity << "@";
     std::cout << trade.price << "\n";
@@ -64,7 +77,9 @@ int main(int argc, char* argv[])
     if (std::size_t length = sock.receive(buffer, sizeof(buffer)))
     {
       std::istringstream is(std::string(buffer, length));
-      if (buffer[0] == 'O')
+      if (buffer[0] == 'H')
+        handle_heartbeat(is);
+      else if (buffer[0] == 'O')
         handle_new_order(is);
       else if (buffer[0] == 'T')
         handle_trade(is);
