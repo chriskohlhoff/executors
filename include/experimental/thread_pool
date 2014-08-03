@@ -19,6 +19,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 // Thread pool.
 
@@ -53,31 +54,47 @@ class thread_pool::executor_type
 public:
   // construct / copy / destroy:
 
-  executor_type(const executor_type& __e) noexcept;
-  executor_type& operator=(const executor_type& __e) noexcept;
-  ~executor_type();
+  executor_type(const executor_type& __e) noexcept = default;
+  executor_type(executor_type&& __e) noexcept = default;
+  executor_type& operator=(const executor_type& __e) noexcept = default;
+  executor_type& operator=(executor_type&& __e) noexcept = default;
+  ~executor_type() = default;
 
   // executor operations:
 
-  execution_context& context();
+  bool running_in_this_thread() const noexcept;
+
+  thread_pool& context() noexcept;
 
   void work_started() noexcept;
   void work_finished() noexcept;
 
-  template <class _Func, class _Alloc> void dispatch(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void post(_Func&& __f, const _Alloc& a);
-  template <class _Func, class _Alloc> void defer(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void dispatch(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void post(_Func&& __f, const _Alloc& a);
+  template <class _Func, class _Alloc>
+    void defer(_Func&& __f, const _Alloc& a);
 
-  template <class _Func> auto wrap(_Func&& __f) const;
+  template <class _Func>
+    executor_wrapper<typename decay<_Func>::type, executor_type>
+      wrap(_Func&& __f) const;
 
 private:
   friend class thread_pool;
+  friend bool operator==(const executor_type&, const executor_type&) noexcept;
   explicit executor_type(thread_pool* __p) : _M_pool(__p) {}
   thread_pool* _M_pool;
 };
 
+bool operator==(const thread_pool::executor_type& __a,
+                const thread_pool::executor_type& __b) noexcept;
+bool operator!=(const thread_pool::executor_type& __a,
+                const thread_pool::executor_type& __b) noexcept;
+
 template <> struct is_executor<thread_pool::executor_type> : true_type {};
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

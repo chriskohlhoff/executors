@@ -27,6 +27,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __scheduler
 {
@@ -85,6 +86,11 @@ public:
   {
   }
 
+  bool _Running_in_this_thread() const noexcept
+  {
+    return _Call_stack::_Contains(const_cast<__scheduler*>(this)) != nullptr;
+  }
+
   template <class _F, class _A> void _Dispatch(_F&& __f, const _A& __a);
   template <class _F, class _A> void _Post(_F&& __f, const _A& __a);
   template <class _F, class _A> void _Defer(_F&& __f, const _A& __a);
@@ -114,7 +120,7 @@ public:
     return _M_stopped;
   }
 
-  void _Reset()
+  void _Restart()
   {
     lock_guard<mutex> __lock(_M_mutex);
     _M_stopped = false;
@@ -156,6 +162,12 @@ public:
     return this->_Run_until(chrono::steady_clock::now() + __rel_time);
   }
 
+  template <class _Rep, class _Period>
+  size_t _Run_one_for(const chrono::duration<_Rep, _Period>& __rel_time)
+  {
+    return this->_Run_one_until(chrono::steady_clock::now() + __rel_time);
+  }
+
   template <class _Clock, class _Duration>
   size_t _Run_until(const chrono::time_point<_Clock, _Duration>& __abs_time)
   {
@@ -172,6 +184,20 @@ public:
       if (__n != (numeric_limits<size_t>::max)())
         ++__n;
     return __n;
+  }
+
+  template <class _Clock, class _Duration>
+  size_t _Run_one_until(const chrono::time_point<_Clock, _Duration>& __abs_time)
+  {
+    if (_M_outstanding_work == 0)
+    {
+      _Stop();
+      return 0;
+    }
+
+    _Context __ctx(this);
+
+    return _Do_run_one_until(__ctx, __abs_time);
   }
 
   size_t _Poll()
@@ -398,6 +424,7 @@ template <class _F, class _A> void __scheduler::_Defer(_F&& __f, const _A& __a)
   __op.release();
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

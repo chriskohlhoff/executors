@@ -17,6 +17,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Clock, class _Duration, class... _CompletionTokens>
 typename __invoke_with_token<_CompletionTokens...>::_Result
@@ -26,10 +27,12 @@ typename __invoke_with_token<_CompletionTokens...>::_Result
   static_assert(sizeof...(_CompletionTokens) > 0,
     "defer_at() must be called with one or more completion tokens");
 
-  __timed_invoker<_Clock, _CompletionTokens...> __head(__tokens...);
-  async_result<__active_invoker<void(), _CompletionTokens...>> __result(__head._Get_tail());
+  typedef __timed_invoker<_Clock, _CompletionTokens...> _Invoker;
 
-  auto __completion_executor(__head._Get_tail().get_executor());
+  _Invoker __head(__tokens...);
+  async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
+
+  auto __completion_executor(associated_executor<typename _Invoker::_Tail>::get(__head._Get_tail()));
   __head._Start(__completion_executor, __abs_time);
 
   return __result.get();
@@ -43,14 +46,35 @@ typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
   static_assert(sizeof...(_CompletionTokens) > 0,
     "defer_at() must be called with one or more completion tokens");
 
-  __timed_invoker<_Clock, _CompletionTokens...> __head(__tokens...);
-  async_result<__active_invoker<void(), _CompletionTokens...>> __result(__head._Get_tail());
+  typedef __timed_invoker<_Clock, _CompletionTokens...> _Invoker;
+
+  _Invoker __head(__tokens...);
+  async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
 
   __head._Start(__e, __abs_time);
 
   return __result.get();
 }
 
+template <class _Clock, class _Duration, class _ExecutionContext, class... _CompletionTokens>
+typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+  defer_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    const _ExecutionContext& __c, _CompletionTokens&&... __tokens)
+{
+  static_assert(sizeof...(_CompletionTokens) > 0,
+    "defer_at() must be called with one or more completion tokens");
+
+  typedef __timed_invoker<_Clock, _CompletionTokens...> _Invoker;
+
+  _Invoker __head(__tokens...);
+  async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
+
+  __head._Start(__c.get_executor(), __abs_time);
+
+  return __result.get();
+}
+
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

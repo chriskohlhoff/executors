@@ -16,11 +16,14 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Clock, class... _CompletionTokens>
 class __timed_invoker
 {
 public:
+  typedef __active_invoker<void(), _CompletionTokens...> _Tail;
+
   __timed_invoker(typename remove_reference<_CompletionTokens>::type&... __tokens)
     : _M_tail(__tokens...)
   {
@@ -39,16 +42,17 @@ public:
     std::move(_M_tail)();
   }
 
-  __active_invoker<void(), _CompletionTokens...>& _Get_tail()
+  _Tail& _Get_tail() noexcept
   {
     return _M_tail;
   }
 
 private:
   unique_ptr<basic_timer<_Clock>> _M_timer;
-  __active_invoker<void(), _CompletionTokens...> _M_tail;
+  _Tail _M_tail;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

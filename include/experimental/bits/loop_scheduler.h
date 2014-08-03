@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 inline loop_scheduler::loop_scheduler()
 {
@@ -40,11 +41,6 @@ inline size_t loop_scheduler::run()
   return _Run();
 }
 
-inline size_t loop_scheduler::run_one()
-{
-  return _Run_one();
-}
-
 template <class _Rep, class _Period>
 size_t loop_scheduler::run_for(
   const chrono::duration<_Rep, _Period>& __rel_time)
@@ -57,6 +53,25 @@ size_t loop_scheduler::run_until(
   const chrono::time_point<_Clock, _Duration>& __abs_time)
 {
   return this->_Run_until(__abs_time);
+}
+
+inline size_t loop_scheduler::run_one()
+{
+  return _Run_one();
+}
+
+template <class _Rep, class _Period>
+size_t loop_scheduler::run_one_for(
+  const chrono::duration<_Rep, _Period>& __rel_time)
+{
+  return this->_Run_one_for(__rel_time);
+}
+
+template <class _Clock, class _Duration>
+size_t loop_scheduler::run_one_until(
+  const chrono::time_point<_Clock, _Duration>& __abs_time)
+{
+  return this->_Run_one_until(__abs_time);
 }
 
 inline size_t loop_scheduler::poll()
@@ -79,29 +94,17 @@ inline bool loop_scheduler::stopped() const
   return _Stopped();
 }
 
-inline void loop_scheduler::reset()
+inline void loop_scheduler::restart()
 {
-  _Reset();
+  _Restart();
 }
 
-inline loop_scheduler::executor_type::executor_type(
-  const loop_scheduler::executor_type& __e) noexcept
-    : _M_scheduler(__e._M_scheduler)
+inline bool loop_scheduler::executor_type::running_in_this_thread() const noexcept
 {
+  return _M_scheduler->_Running_in_this_thread();
 }
 
-inline loop_scheduler::executor_type&
-  loop_scheduler::executor_type::operator=(const executor_type& __e) noexcept
-{
-  _M_scheduler = __e._M_scheduler;
-  return *this;
-}
-
-inline loop_scheduler::executor_type::~executor_type()
-{
-}
-
-inline execution_context& loop_scheduler::executor_type::context()
+inline loop_scheduler& loop_scheduler::executor_type::context() noexcept
 {
   return *_M_scheduler;
 }
@@ -135,11 +138,24 @@ void loop_scheduler::executor_type::defer(_Func&& __f, const _Alloc& __a)
 }
 
 template <class _Func>
-inline auto loop_scheduler::executor_type::wrap(_Func&& __f) const
+inline executor_wrapper<typename decay<_Func>::type, loop_scheduler::executor_type>
+loop_scheduler::executor_type::wrap(_Func&& __f) const
 {
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
+  return executor_wrapper<typename decay<_Func>::type,
+    loop_scheduler::executor_type>(forward<_Func>(__f), *this);
 }
 
+inline bool operator==(const loop_scheduler::executor_type& __a, const loop_scheduler::executor_type& __b) noexcept
+{
+  return __a._M_scheduler == __b._M_scheduler;
+}
+
+inline bool operator!=(const loop_scheduler::executor_type& __a, const loop_scheduler::executor_type& __b) noexcept
+{
+  return !(__a == __b);
+}
+
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

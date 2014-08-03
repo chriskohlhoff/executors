@@ -18,6 +18,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __channel_service;
 
@@ -236,6 +237,7 @@ inline bool __channel_base::_Ready() const
   return _M_get_state != __channel_state::block;
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

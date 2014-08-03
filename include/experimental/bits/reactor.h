@@ -20,6 +20,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __reactor
   : public execution_context::service
@@ -122,6 +123,7 @@ private:
   bool _M_stopped;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

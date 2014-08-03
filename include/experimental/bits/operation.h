@@ -14,6 +14,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Operation> class __op_queue;
 
@@ -97,6 +98,7 @@ private:
   template <class _OtherOperation> friend class __op_queue;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

@@ -18,6 +18,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 // The handler_type trait is used to determine the handler type for an
 // asynchronous operation. A handler is a function object ([function.objects])
@@ -201,6 +202,7 @@ private:
   }
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

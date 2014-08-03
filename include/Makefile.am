@@ -11,6 +11,8 @@ nobase_include_HEADERS = \
 	experimental/type_traits \
 	experimental/thread_pool \
 	experimental/yield \
+	experimental/bits/associated_allocator.h \
+	experimental/bits/associated_executor.h \
 	experimental/bits/await_context.h \
 	experimental/bits/call_stack.h \
 	experimental/bits/chain.h \
@@ -33,11 +35,10 @@ nobase_include_HEADERS = \
 	experimental/bits/executor_work.h \
 	experimental/bits/executor_wrapper.h \
 	experimental/bits/function_traits.h \
-	experimental/bits/get_allocator.h \
-	experimental/bits/get_executor.h \
 	experimental/bits/invoker.h \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/operation.h \
+	experimental/bits/packaged_task.h \
 	experimental/bits/post.h \
 	experimental/bits/post_at.h \
 	experimental/bits/post_after.h \
@@ -52,8 +53,6 @@ nobase_include_HEADERS = \
 	experimental/bits/timer.h \
 	experimental/bits/timer_queue.h \
 	experimental/bits/tuple_utils.h \
-	experimental/bits/unspecified_allocator.h \
-	experimental/bits/unspecified_executor.h \
 	experimental/bits/wait_op.h \
 	experimental/bits/yield_context.h
 

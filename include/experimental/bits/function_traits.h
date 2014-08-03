@@ -17,6 +17,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 // __is_callable: Used to determine if a type is a function or function object.
 
@@ -256,6 +257,7 @@ private:
   _Continuation _M_continuation;
 };
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

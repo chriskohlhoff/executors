@@ -16,6 +16,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 // _Index_sequence: Used to expand tuples.
 
@@ -164,6 +165,7 @@ using __tuple_split_first = typename __tuple_split<_Tuple, _N>::first;
 template <class _Tuple, size_t _N>
 using __tuple_split_second = typename __tuple_split<_Tuple, _N>::second;
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

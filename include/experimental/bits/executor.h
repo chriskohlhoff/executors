@@ -18,6 +18,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __executor_impl_base;
 
@@ -62,9 +63,10 @@ public:
   virtual void _Dispatch(__function_ptr&& __f) = 0;
   virtual void _Post(__function_ptr&& __f) = 0;
   virtual void _Defer(__function_ptr&& __f) = 0;
-  virtual const type_info& _Target_type() = 0;
+  virtual const type_info& _Target_type() const = 0;
   virtual void* _Target() = 0;
   virtual const void* _Target() const = 0;
+  virtual bool _Equals(const __executor_impl_base* __e) const noexcept = 0;
 
 protected:
   virtual ~__executor_impl_base() {}
@@ -123,7 +125,7 @@ public:
     _M_executor.defer(std::move(__f), __small_block_allocator<void>());
   }
 
-  virtual const type_info& _Target_type()
+  virtual const type_info& _Target_type() const
   {
     return typeid(_M_executor);
   }
@@ -136,6 +138,15 @@ public:
   virtual const void* _Target() const
   {
     return &_M_executor;
+  }
+
+  virtual bool _Equals(const __executor_impl_base* __e) const noexcept
+  {
+    if (this == __e)
+      return true;
+    if (_Target_type() != __e->_Target_type())
+      return false;
+    return _M_executor == *static_cast<const _Executor*>(__e->_Target());
   }
 
 private:
@@ -200,7 +211,7 @@ public:
     _M_executor.defer(std::move(__f), __small_block_allocator<void>());
   }
 
-  virtual const type_info& _Target_type()
+  virtual const type_info& _Target_type() const
   {
     return typeid(system_executor);
   }
@@ -215,86 +226,15 @@ public:
     return &_M_executor;
   }
 
+  virtual bool _Equals(const __executor_impl_base* __e) const noexcept
+  {
+    return __e == _Create();
+  }
+
 protected:
   __executor_impl() {}
   ~__executor_impl() {}
   system_executor _M_executor;
-};
-
-template <>
-class __executor_impl<unspecified_executor>
-  : public __executor_impl_base
-{
-public:
-  static __executor_impl_base* _Create()
-  {
-    static __executor_impl* __e = new __executor_impl;
-    return __e;
-  }
-
-  static __executor_impl_base* _Create(const unspecified_executor&)
-  {
-    return _Create();
-  }
-
-  virtual __executor_impl_base* _Clone() const noexcept
-  {
-    return const_cast<__executor_impl*>(this);
-  }
-
-  virtual void _Destroy() noexcept
-  {
-  }
-
-  virtual execution_context& _Context()
-  {
-    return _M_executor.context();
-  }
-
-  virtual void _Work_started() noexcept
-  {
-    _M_executor.work_started();
-  }
-
-  virtual void _Work_finished() noexcept
-  {
-    _M_executor.work_started();
-  }
-
-  virtual void _Dispatch(__function_ptr&& __f)
-  {
-    _M_executor.dispatch(std::move(__f), __small_block_allocator<void>());
-  }
-
-  virtual void _Post(__function_ptr&& __f)
-  {
-    _M_executor.post(std::move(__f), __small_block_allocator<void>());
-  }
-
-  virtual void _Defer(__function_ptr&& __f)
-  {
-    _M_executor.defer(std::move(__f), __small_block_allocator<void>());
-  }
-
-  virtual const type_info& _Target_type()
-  {
-    return typeid(unspecified_executor);
-  }
-
-  virtual void* _Target()
-  {
-    return &_M_executor;
-  }
-
-  virtual const void* _Target() const
-  {
-    return &_M_executor;
-  }
-
-protected:
-  __executor_impl() {}
-  ~__executor_impl() {}
-  unspecified_executor _M_executor;
 };
 
 class bad_executor
@@ -316,8 +256,8 @@ class __bad_executor_impl
 public:
   static __executor_impl_base* _Create() noexcept
   {
-    static __bad_executor_impl __e;
-    return &__e;
+    static __bad_executor_impl* __e = new __bad_executor_impl;
+    return __e;
   }
 
   virtual __executor_impl_base* _Clone() const noexcept
@@ -357,7 +297,7 @@ public:
     throw bad_executor();
   }
 
-  virtual const type_info& _Target_type()
+  virtual const type_info& _Target_type() const
   {
     return typeid(void);
   }
@@ -370,6 +310,11 @@ public:
   virtual const void* _Target() const
   {
     return nullptr;
+  }
+
+  virtual bool _Equals(const __executor_impl_base*) const noexcept
+  {
+    return false;
   }
 
 private:
@@ -402,31 +347,6 @@ template <class _Executor>
 inline executor::executor(_Executor __e)
   : _M_impl(__executor_impl<_Executor>::_Create(std::move(__e)))
 {
-}
-
-template <class _Alloc>
-inline executor::executor(allocator_arg_t, const _Alloc&) noexcept
-  : _M_impl(__bad_executor_impl::_Create())
-{
-}
-
-template <class _Alloc>
-inline executor::executor(allocator_arg_t, const _Alloc&, nullptr_t) noexcept
-  : _M_impl(__bad_executor_impl::_Create())
-{
-}
-
-template <class _Alloc>
-inline executor::executor(allocator_arg_t, const _Alloc&, const executor& __e)
-  : _M_impl(__e._M_impl->_Clone())
-{
-}
-
-template <class _Alloc>
-inline executor::executor(allocator_arg_t, const _Alloc&, executor&& __e)
-  : _M_impl(__e._M_impl)
-{
-  __e._M_impl = __bad_executor_impl::_Create();
 }
 
 template <class _Executor, class _Alloc>
@@ -465,7 +385,7 @@ inline executor& executor::operator=(nullptr_t) noexcept
 }
 
 template <class _Executor>
-inline executor& executor::operator=(_Executor&& __e)
+inline executor& executor::operator=(_Executor __e)
 {
   __executor_impl_base* __tmp = _M_impl;
   _M_impl = __executor_impl<typename decay<_Executor>::type>::_Create(forward<_Executor>(__e));
@@ -473,7 +393,7 @@ inline executor& executor::operator=(_Executor&& __e)
   return *this;
 }
 
-inline execution_context& executor::context()
+inline execution_context& executor::context() noexcept
 {
   return _M_impl->_Context();
 }
@@ -491,8 +411,7 @@ inline void executor::work_finished() noexcept
 template <class _Func, class _Alloc>
 void executor::dispatch(_Func&& __f, const _Alloc& a)
 {
-  if (static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<system_executor>::_Create())
-     || static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<unspecified_executor>::_Create()))
+  if (static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<system_executor>::_Create()))
     system_executor().dispatch(forward<_Func>(__f), a);
   else
     _M_impl->_Dispatch(__function_ptr(forward<_Func>(__f)));
@@ -511,9 +430,9 @@ inline void executor::defer(_Func&& __f, const _Alloc&)
 }
 
 template <class _Func>
-inline auto executor::wrap(_Func&& __f) const
+inline executor_wrapper<typename decay<_Func>::type, executor> executor::wrap(_Func&& __f) const
 {
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
+  return executor_wrapper<typename decay<_Func>::type, executor>(forward<_Func>(__f), *this);
 }
 
 inline executor::operator bool() const noexcept
@@ -538,6 +457,11 @@ inline const _Executor* executor::target() const noexcept
   return static_cast<_Executor*>(_M_impl->_Target());
 }
 
+inline bool operator==(const executor& __a, const executor& __b) noexcept
+{
+  return __a._M_impl->_Equals(__b._M_impl);
+}
+
 inline bool operator==(const executor& __e, nullptr_t) noexcept
 {
   return !static_cast<bool>(__e);
@@ -546,6 +470,11 @@ inline bool operator==(const executor& __e, nullptr_t) noexcept
 inline bool operator==(nullptr_t, const executor& __e) noexcept
 {
   return !static_cast<bool>(__e);
+}
+
+inline bool operator!=(const executor& __a, const executor& __b) noexcept
+{
+  return !(__a == __b);
 }
 
 inline bool operator!=(const executor& __e, nullptr_t) noexcept
@@ -558,6 +487,7 @@ inline bool operator!=(nullptr_t, const executor& __e) noexcept
   return static_cast<bool>(__e);
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

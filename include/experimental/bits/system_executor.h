@@ -21,6 +21,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __system_executor_impl
   : public execution_context
@@ -64,7 +65,7 @@ private:
   vector<thread> _M_threads;
 };
 
-inline execution_context& system_executor::context()
+inline execution_context& system_executor::context() noexcept
 {
   return __system_executor_impl::_Instance();
 }
@@ -99,11 +100,22 @@ inline void system_executor::defer(_Func&& __f, const _Alloc& __a)
 }
 
 template <class _Func>
-inline auto system_executor::wrap(_Func&& __f) const
+inline executor_wrapper<typename decay<_Func>::type, system_executor> system_executor::wrap(_Func&& __f) const
 {
-  return (wrap_with_executor)(forward<_Func>(__f), *this);
+  return executor_wrapper<typename decay<_Func>::type, system_executor>(forward<_Func>(__f), *this);
 }
 
+inline bool operator==(const system_executor&, const system_executor&) noexcept
+{
+  return true;
+}
+
+inline bool operator!=(const system_executor&, const system_executor&) noexcept
+{
+  return false;
+}
+
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

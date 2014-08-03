@@ -22,6 +22,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Clock, class _Duration>
 typename _Clock::duration __safe_subtract(
@@ -254,6 +255,7 @@ auto basic_timer<_Clock, _TimerTraits>::wait(_CompletionToken&& __token)
   return __completion.result.get();
 }
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

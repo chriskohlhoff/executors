@@ -19,6 +19,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 template <class _Clock, class _TimerTraits>
 class __timer_service;
@@ -91,6 +92,10 @@ template <class _Clock, class _Duration, class _Executor, class... _CompletionTo
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
       const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _Clock, class _Duration, class _ExecutionContext, class... _CompletionTokens>
+  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+    dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+      const _ExecutionContext& __c, _CompletionTokens&&... __tokens);
 
 template <class _Clock, class _Duration, class... _CompletionTokens>
   typename __invoke_with_token<_CompletionTokens...>::_Result
@@ -100,6 +105,10 @@ template <class _Clock, class _Duration, class _Executor, class... _CompletionTo
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
       const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _Clock, class _Duration, class _ExecutionContext, class... _CompletionTokens>
+  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+    post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+      const _ExecutionContext& __c, _CompletionTokens&&... __tokens);
 
 template <class _Clock, class _Duration, class... _CompletionTokens>
   typename __invoke_with_token<_CompletionTokens...>::_Result
@@ -109,6 +118,10 @@ template <class _Clock, class _Duration, class _Executor, class... _CompletionTo
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     defer_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
       const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _Clock, class _Duration, class _ExecutionContext, class... _CompletionTokens>
+  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+    defer_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+      const _ExecutionContext& __c, _CompletionTokens&&... __tokens);
 
 template <class _Rep, class _Period, class... _CompletionTokens>
   typename __invoke_with_token<_CompletionTokens...>::_Result
@@ -118,6 +131,10 @@ template <class _Rep, class _Period, class _Executor, class... _CompletionTokens
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
       const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _Rep, class _Period, class _ExecutionContext, class... _CompletionTokens>
+  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+    dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
+      const _ExecutionContext& __c, _CompletionTokens&&... __tokens);
 
 template <class _Rep, class _Period, class... _CompletionTokens>
   typename __invoke_with_token<_CompletionTokens...>::_Result
@@ -127,6 +144,10 @@ template <class _Rep, class _Period, class _Executor, class... _CompletionTokens
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     post_after(const chrono::duration<_Rep, _Period>& __rel_time,
       const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _Rep, class _Period, class _ExecutionContext, class... _CompletionTokens>
+  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+    post_after(const chrono::duration<_Rep, _Period>& __rel_time,
+      const _ExecutionContext& __c, _CompletionTokens&&... __tokens);
 
 template <class _Rep, class _Period, class... _CompletionTokens>
   typename __invoke_with_token<_CompletionTokens...>::_Result
@@ -136,7 +157,12 @@ template <class _Rep, class _Period, class _Executor, class... _CompletionTokens
   typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
     defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
       const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _Rep, class _Period, class _ExecutionContext, class... _CompletionTokens>
+  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
+    defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
+      const _ExecutionContext& __c, _CompletionTokens&&... __tokens);
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 

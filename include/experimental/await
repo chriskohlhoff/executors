@@ -19,6 +19,7 @@
 
 namespace std {
 namespace experimental {
+inline namespace concurrency_v1 {
 
 class __await_context_impl_base;
 class __coroutine;
@@ -73,6 +74,7 @@ template <class _Executor, class _R, class... _Args>
 
 typedef basic_await_context<executor> await_context;
 
+} // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 
