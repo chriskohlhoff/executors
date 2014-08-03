@@ -25,11 +25,13 @@ typename __invoke_with_token<_CompletionTokens...>::_Result
   static_assert(sizeof...(_CompletionTokens) > 0,
     "dispatch() must be called with one or more completion tokens");
 
-  __passive_invoker<void(), _CompletionTokens...> __head(__tokens...);
-  async_result<__passive_invoker<void(), _CompletionTokens...>> __result(__head);
+  typedef __passive_invoker<void(), _CompletionTokens...> _Invoker;
 
-  auto __completion_executor(__head.get_executor());
-  auto __completion_allocator(__head.get_allocator());
+  _Invoker __head(__tokens...);
+  async_result<_Invoker> __result(__head);
+
+  auto __completion_executor(associated_executor<_Invoker>::get(__head));
+  auto __completion_allocator(associated_allocator<_Invoker>::get(__head));
   __completion_executor.dispatch(std::move(__head), __completion_allocator);
 
   return __result.get();
@@ -42,11 +44,13 @@ typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
   static_assert(sizeof...(_CompletionTokens) > 0,
     "dispatch() must be called with one or more completion tokens");
 
-  __active_invoker<void(), _CompletionTokens...> __head(__tokens...);
-  async_result<__active_invoker<void(), _CompletionTokens...>> __result(__head);
+  typedef __active_invoker<void(), _CompletionTokens...> _Invoker;
 
-  _Executor __completion_executor(__e);
-  auto __completion_allocator(__head.get_allocator());
+  _Invoker __head(__tokens...);
+  async_result<_Invoker> __result(__head);
+
+  auto __completion_executor(__e);
+  auto __completion_allocator(associated_allocator<_Invoker>::get(__head));
   __completion_executor.dispatch(std::move(__head), __completion_allocator);
 
   return __result.get();
@@ -59,11 +63,13 @@ typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...
   static_assert(sizeof...(_CompletionTokens) > 0,
     "dispatch() must be called with one or more completion tokens");
 
-  __active_invoker<void(), _CompletionTokens...> __head(__tokens...);
-  async_result<__active_invoker<void(), _CompletionTokens...>> __result(__head);
+  typedef __active_invoker<void(), _CompletionTokens...> _Invoker;
+
+  _Invoker __head(__tokens...);
+  async_result<_Invoker> __result(__head);
 
   auto __completion_executor(__c.get_executor());
-  auto __completion_allocator(__head.get_allocator());
+  auto __completion_allocator(associated_allocator<_Invoker>::get(__head));
   __completion_executor.dispatch(std::move(__head), __completion_allocator);
 
   return __result.get();

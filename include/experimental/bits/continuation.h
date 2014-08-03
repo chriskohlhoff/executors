@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_CONTINUATION_H
 #define EXECUTORS_EXPERIMENTAL_BITS_CONTINUATION_H
 
+#include <experimental/executor>
 #include <experimental/bits/function_traits.h>
 
 namespace std {
@@ -70,7 +71,7 @@ public:
     "continuation's continuation must accept specified return value");
 
   template <class _T> explicit __continuation_impl(_T&& __t)
-    : _M_continuation(forward<_T>(__t)), _M_executor(get_executor(_M_continuation))
+    : _M_continuation(forward<_T>(__t)), _M_executor(associated_executor<_Continuation>::get(_M_continuation))
   {
   }
 

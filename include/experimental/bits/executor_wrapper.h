@@ -138,6 +138,28 @@ private:
   async_result<_T> _M_wrapped;
 };
 
+template <class _T, class _Executor, class _Alloc>
+struct associated_allocator<executor_wrapper<_T, _Executor>, _Alloc>
+{
+  typedef typename associated_allocator<_T, _Alloc>::type type;
+
+  static type get(const executor_wrapper<_T, _Executor>& __w, const _Alloc& __a = _Alloc()) noexcept
+  {
+    return associated_allocator<_T, _Alloc>::get(__w.unwrap(), __a);
+  }
+};
+
+template <class _T, class _Executor, class _Executor1>
+struct associated_executor<executor_wrapper<_T, _Executor>, _Executor1>
+{
+  typedef _Executor type;
+
+  static type get(const executor_wrapper<_T, _Executor>& __w, const _Executor1& = _Executor1()) noexcept
+  {
+    return __w.get_executor();
+  }
+};
+
 template <class _T, class _Executor>
 inline auto __wrap_with_executor(_T&& __t, const _Executor& __e)
 {

@@ -382,7 +382,7 @@ struct __await_context_launcher
   _Continuation _M_continuation;
 
   template <class _F> __await_context_launcher(_F&& __f)
-    : _M_work(__get_executor_helper(__f)), _M_func(forward<_F>(__f))
+    : _M_work(associated_executor<_Func>::get(__f)), _M_func(forward<_F>(__f))
   {
   }
 
@@ -431,7 +431,7 @@ struct handler_type<_Func, _R(_Args...),
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef __last_argument_t<__signature_t<_DecayFunc>> _AwaitContext;
-  typedef decltype(get_executor(declval<_AwaitContext>())) _Executor;
+  typedef associated_executor_t<_AwaitContext> _Executor;
   typedef __await_context_launcher<_Executor, _DecayFunc> type;
 };
 

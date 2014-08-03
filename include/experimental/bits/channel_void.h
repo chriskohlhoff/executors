@@ -12,8 +12,8 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_VOID_H
 #define EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_VOID_H
 
+#include <experimental/executor>
 #include <experimental/memory>
-#include <experimental/bits/get_executor.h>
 #include <experimental/bits/tuple_utils.h>
 
 namespace std {
@@ -25,12 +25,12 @@ class channel<void, _Cont>::_Op
   : public __channel_op
 {
 public:
-  typedef decltype(__get_executor_helper(declval<_Handler>())) _Executor;
+  typedef associated_executor_t<_Handler> _Executor;
   typedef executor_work<_Executor> _Work;
 
   template <class _H> explicit _Op(_H&& __h)
     : _M_handler(forward<_H>(__h)),
-      _M_work(__get_executor_helper(_M_handler))
+      _M_work(associated_executor<_Handler>::get(_M_handler))
   {
   }
 
@@ -46,7 +46,7 @@ public:
 
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
-    auto __allocator(__get_allocator_helper(_M_handler));
+    auto __allocator(associated_allocator<_Handler>::get(_M_handler));
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec));
     __op.reset();
     __executor.post(std::move(__i), __allocator);

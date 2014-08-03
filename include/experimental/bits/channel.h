@@ -12,6 +12,7 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_H
 #define EXECUTORS_EXPERIMENTAL_BITS_CHANNEL_H
 
+#include <experimental/executor>
 #include <experimental/memory>
 #include <experimental/bits/tuple_utils.h>
 
@@ -66,7 +67,7 @@ class channel<_T, _Cont>::_PutOp
 public:
   template <class _U, class _H> explicit _PutOp(_U&& __u, _H&& __h)
     : _Op(forward<_U>(__u)), _M_handler(forward<_H>(__h)),
-      _M_work(get_executor(_M_handler))
+      _M_work(associated_executor<_Handler>::get(_M_handler))
   {
   }
 
@@ -82,7 +83,7 @@ public:
 
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
-    auto __allocator(__get_allocator_helper(_M_handler));
+    auto __allocator(associated_allocator<_Handler>::get(_M_handler));
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec));
     __op.reset();
     __executor.post(std::move(__i), __allocator);
@@ -95,7 +96,7 @@ public:
 
 private:
   _Handler _M_handler;
-  typedef decltype(get_executor(declval<_Handler>())) _Executor;
+  typedef associated_executor_t<_Handler> _Executor;
   executor_work<_Executor> _M_work;
 };
 
@@ -105,7 +106,7 @@ class channel<_T, _Cont>::_GetOp
 {
 public:
   template <class _H> explicit _GetOp(_H&& __h)
-    : _M_handler(forward<_H>(__h)), _M_work(get_executor(_M_handler))
+    : _M_handler(forward<_H>(__h)), _M_work(associated_executor<_Handler>::get(_M_handler))
   {
   }
 
@@ -121,7 +122,7 @@ public:
 
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
-    auto __allocator(__get_allocator_helper(_M_handler));
+    auto __allocator(associated_allocator<_Handler>::get(_M_handler));
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec, this->_Get_value()));
     __op.reset();
     __executor.post(std::move(__i), __allocator);
@@ -134,7 +135,7 @@ public:
 
 private:
   _Handler _M_handler;
-  typedef decltype(get_executor(declval<_Handler>())) _Executor;
+  typedef associated_executor_t<_Handler> _Executor;
   executor_work<_Executor> _M_work;
 };
 

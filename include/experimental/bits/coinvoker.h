@@ -16,7 +16,6 @@
 #include <cassert>
 #include <type_traits>
 #include <experimental/memory>
-#include <experimental/bits/get_executor.h>
 #include <experimental/bits/invoker.h>
 #include <experimental/bits/tuple_utils.h>
 
@@ -75,9 +74,6 @@ public:
   typedef __signature_cat_t<typename continuation_of<
     handler_type_t<_HeadTokens, void()>()>::signature...> _TailSignature;
   typedef __active_invoker<_TailSignature, _TailToken> _Invoker;
-  typedef typename _Invoker::_TerminalHandler _TerminalHandler;
-  typedef typename _Invoker::executor_type executor_type;
-  typedef typename _Invoker::allocator_type allocator_type;
 
   explicit __coinvoker_tail(typename remove_reference<_TailToken>::type& __tail)
       : _M_pending(0), _M_invoker(__tail)
@@ -117,19 +113,14 @@ public:
       delete this;
   }
 
-  _TerminalHandler& _Get_terminal_handler()
+  _Invoker& _Get_invoker() noexcept
   {
-    return _M_invoker._Get_terminal_handler();
+    return _M_invoker;
   }
 
-  executor_type get_executor() const noexcept
+  const _Invoker& _Get_invoker() const noexcept
   {
-    return _M_invoker.get_executor();
-  }
-
-  allocator_type get_allocator() const noexcept
-  {
-    return _M_invoker.get_allocator();
+    return _M_invoker;
   }
 
 private:
@@ -149,9 +140,6 @@ template <size_t _Index, class _Head, class _Tail>
 class __coinvoker_tail_ptr
 {
 public:
-  typedef typename __coinvoker_tail<_Head, _Tail>::executor_type executor_type;
-  typedef typename __coinvoker_tail<_Head, _Tail>::allocator_type allocator_type;
-
   __coinvoker_tail_ptr(const __coinvoker_tail_ptr&) = delete;
   __coinvoker_tail_ptr& operator=(const __coinvoker_tail_ptr&) = delete;
 
@@ -180,14 +168,14 @@ public:
     __t->_Complete();
   }
 
-  executor_type get_executor() const noexcept
+  typename __coinvoker_tail<_Head, _Tail>::_Invoker& _Get_invoker() noexcept
   {
-    return _M_tail->get_executor();
+    return _M_tail->_Get_invoker();
   }
 
-  allocator_type get_allocator() const noexcept
+  const typename __coinvoker_tail<_Head, _Tail>::_Invoker& _Get_invoker() const noexcept
   {
-    return _M_tail->get_allocator();
+    return _M_tail->_Get_invoker();
   }
 
 private:
@@ -200,16 +188,11 @@ class __coinvoker_head
 public:
   typedef typename tuple_element<_Index, _Head>::type _HeadToken;
   typedef handler_type_t<_HeadToken, void()> _Handler;
-  typedef decltype(__get_executor_helper(declval<_Handler>())) _HeadExecutor;
-  typedef typename __coinvoker_tail<_Head, _Tail>::executor_type _TailExecutor;
-  typedef typename conditional<
-    is_same<_HeadExecutor, unspecified_executor>::value,
-      _TailExecutor, _HeadExecutor>::type executor_type;
-  typedef decltype(__get_allocator_helper(declval<_Handler>())) _HeadAllocator;
-  typedef typename __coinvoker_tail<_Head, _Tail>::allocator_type _TailAllocator;
-  typedef typename conditional<
-    __is_unspecified_allocator<_HeadAllocator>::value,
-      _TailAllocator, _HeadAllocator>::type allocator_type;
+  typedef typename __coinvoker_tail<_Head, _Tail>::_Invoker _TailInvoker;
+  typedef associated_allocator_t<_TailInvoker> _TailAllocator;
+  typedef associated_allocator_t<_Handler, _TailAllocator> _Allocator;
+  typedef associated_executor_t<_TailInvoker> _TailExecutor;
+  typedef associated_executor_t<_Handler, _TailExecutor> _Executor;
 
   __coinvoker_head(typename remove_reference<_HeadToken>::type& __token,
     __coinvoker_tail<_Head, _Tail>* __tail)
@@ -222,37 +205,19 @@ public:
     continuation_of<_Handler()>::chain(std::move(_M_handler), std::move(_M_tail))();
   }
 
-  executor_type get_executor() const
+  _Allocator _Get_allocator() const noexcept
   {
-    return get_executor(is_same<_HeadExecutor, unspecified_executor>());
+    return associated_allocator<_Handler, _TailAllocator>::get(
+      _M_handler, associated_allocator<_TailInvoker>::get(_M_tail._Get_invoker()));
   }
 
-  allocator_type get_allocator() const
+  _Executor _Get_executor() const noexcept
   {
-    return get_allocator(__is_unspecified_allocator<_HeadExecutor>());
+    return associated_executor<_Handler, _TailExecutor>::get(
+      _M_handler, associated_executor<_TailInvoker>::get(_M_tail._Get_invoker()));
   }
 
 private:
-  _TailExecutor get_executor(true_type) const
-  {
-    return _M_tail.get_executor();
-  }
-
-  _HeadExecutor get_executor(false_type) const
-  {
-    return __get_executor_helper(_M_handler);
-  }
-
-  _TailAllocator get_allocator(true_type) const
-  {
-    return _M_tail.get_allocator();
-  }
-
-  _HeadAllocator get_allocator(false_type) const
-  {
-    return __get_allocator_helper(_M_handler);
-  }
-
   _Handler _M_handler;
   __coinvoker_tail_ptr<_Index, _Head, _Tail> _M_tail;
 };
@@ -274,8 +239,8 @@ public:
   auto _Go(_Action __a, typename remove_reference<_HeadTokens>::type&... __head,
     typename remove_reference<_TailToken>::type&)
   {
-    typedef typename __coinvoker_tail<tuple<_HeadTokens...>, tuple<_TailToken>>::_TerminalHandler _TerminalHandler;
-    async_result<_TerminalHandler> __result(_M_tail->_Get_terminal_handler());
+    typedef typename __coinvoker_tail<tuple<_HeadTokens...>, tuple<_TailToken>>::_Invoker _Invoker;
+    async_result<_Invoker> __result(_M_tail->_Get_invoker());
     this->_Go_0(__a, typename _Make_index_sequence<sizeof...(_HeadTokens)>::_Type(), __head...);
     return __result.get();
   }
@@ -303,8 +268,8 @@ private:
   template <class _Action, class _Invoker, class... _Invokers>
   static void _Go_2(_Action __a, _Invoker&& __i, _Invokers&&... __j)
   {
-    auto __executor(__i.get_executor());
-    auto __allocator(__i.get_allocator());
+    auto __executor(__i._Get_executor());
+    auto __allocator(__i._Get_allocator());
     __a(__executor, std::move(__i), __allocator);
     (_Go_2)(__a, forward<_Invokers>(__j)...);
   }
@@ -318,8 +283,8 @@ struct __coinvoke_result
   static constexpr size_t _N = sizeof...(_CompletionTokens) - 1;
   typedef __tuple_split_first<tuple<_CompletionTokens...>, _N> _Head;
   typedef __tuple_split_second<tuple<_CompletionTokens...>, _N> _Tail;
-  typedef typename __coinvoker_tail<_Head, _Tail>::_TerminalHandler _TerminalHandler;
-  typedef typename async_result<_TerminalHandler>::type _Result;
+  typedef typename __coinvoker_tail<_Head, _Tail>::_Invoker _Invoker;
+  typedef typename async_result<_Invoker>::type _Result;
 };
 
 struct __coinvoke_no_result {};

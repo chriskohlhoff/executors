@@ -308,7 +308,7 @@ struct __yield_context_launcher
   executor_work<_Executor> _M_work;
 
   template <class _F> __yield_context_launcher(_F&& __f)
-    : _M_func(forward<_F>(__f)), _M_work(__get_executor_helper(_M_func))
+    : _M_func(forward<_F>(__f)), _M_work(associated_executor<_Func>::get(_M_func))
   {
   }
 
@@ -363,7 +363,7 @@ struct handler_type<_Func, _R(_Args...),
 {
   typedef typename decay<_Func>::type _DecayFunc;
   typedef __last_argument_t<__signature_t<_DecayFunc>> _YieldContext;
-  typedef decltype(get_executor(declval<_YieldContext>())) _Executor;
+  typedef associated_executor_t<_YieldContext> _Executor;
   typedef __yield_context_launcher<_Executor, _DecayFunc> type;
 };
 

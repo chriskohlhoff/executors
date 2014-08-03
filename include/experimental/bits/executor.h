@@ -237,87 +237,6 @@ protected:
   system_executor _M_executor;
 };
 
-template <>
-class __executor_impl<unspecified_executor>
-  : public __executor_impl_base
-{
-public:
-  static __executor_impl_base* _Create()
-  {
-    static __executor_impl* __e = new __executor_impl;
-    return __e;
-  }
-
-  static __executor_impl_base* _Create(const unspecified_executor&)
-  {
-    return _Create();
-  }
-
-  virtual __executor_impl_base* _Clone() const noexcept
-  {
-    return const_cast<__executor_impl*>(this);
-  }
-
-  virtual void _Destroy() noexcept
-  {
-  }
-
-  virtual execution_context& _Context()
-  {
-    return _M_executor.context();
-  }
-
-  virtual void _Work_started() noexcept
-  {
-    _M_executor.work_started();
-  }
-
-  virtual void _Work_finished() noexcept
-  {
-    _M_executor.work_started();
-  }
-
-  virtual void _Dispatch(__function_ptr&& __f)
-  {
-    _M_executor.dispatch(std::move(__f), __small_block_allocator<void>());
-  }
-
-  virtual void _Post(__function_ptr&& __f)
-  {
-    _M_executor.post(std::move(__f), __small_block_allocator<void>());
-  }
-
-  virtual void _Defer(__function_ptr&& __f)
-  {
-    _M_executor.defer(std::move(__f), __small_block_allocator<void>());
-  }
-
-  virtual const type_info& _Target_type() const
-  {
-    return typeid(unspecified_executor);
-  }
-
-  virtual void* _Target()
-  {
-    return &_M_executor;
-  }
-
-  virtual const void* _Target() const
-  {
-    return &_M_executor;
-  }
-
-  virtual bool _Equals(const __executor_impl_base* __e) const noexcept
-  {
-    return __e == _Create();
-  }
-
-protected:
-  __executor_impl() {}
-  ~__executor_impl() {}
-  unspecified_executor _M_executor;
-};
-
 class bad_executor
   : public std::exception
 {
@@ -492,8 +411,7 @@ inline void executor::work_finished() noexcept
 template <class _Func, class _Alloc>
 void executor::dispatch(_Func&& __f, const _Alloc& a)
 {
-  if (static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<system_executor>::_Create())
-     || static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<unspecified_executor>::_Create()))
+  if (static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<system_executor>::_Create()))
     system_executor().dispatch(forward<_Func>(__f), a);
   else
     _M_impl->_Dispatch(__function_ptr(forward<_Func>(__f)));
