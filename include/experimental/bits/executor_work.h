@@ -57,6 +57,12 @@ executor_work<_Executor>::get_executor() const noexcept
 }
 
 template <class _Executor>
+inline bool executor_work<_Executor>::owns_work() const noexcept
+{
+  return _M_owns;
+}
+
+template <class _Executor>
 inline void executor_work<_Executor>::reset() noexcept
 {
   if (_M_owns)

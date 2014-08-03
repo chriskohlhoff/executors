@@ -253,9 +253,13 @@ public:
 
   ~executor_work();
 
-  // executor work operations:
+  // executor work observers:
 
   executor_type get_executor() const noexcept;
+  bool owns_work() const noexcept;
+
+  // executor work modifiers:
+
   void reset() noexcept;
 
 private:
