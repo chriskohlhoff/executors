@@ -8,6 +8,7 @@ nobase_include_HEADERS = \
 	experimental/memory \
 	experimental/strand \
 	experimental/timer \
+	experimental/type_traits \
 	experimental/thread_pool \
 	experimental/yield \
 	experimental/bits/await_context.h \

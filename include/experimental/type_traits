@@ -1,0 +1,209 @@
+//
+// type_traits
+// ~~~~~~~~~~~
+// Extends the standard type_traits header with additional type traits for
+// asynchronous operations: handler_type and async_result.
+//
+// Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
+#ifndef EXECUTORS_EXPERIMENTAL_TYPE_TRAITS_HEADER
+#define EXECUTORS_EXPERIMENTAL_TYPE_TRAITS_HEADER
+
+#include <type_traits>
+#include <experimental/bits/function_traits.h>
+
+namespace std {
+namespace experimental {
+inline namespace concurrency_v1 {
+
+// The handler_type trait is used to determine the handler type for an
+// asynchronous operation. A handler is a function object ([function.objects])
+// that is invoked on completion of the operation.
+//
+// Template parameter _CompletionToken specifies the model used to obtain the
+// result of the asynchronous operation. Template parameter _Signature is the
+// call signature ([func.def]) for the handler type invoked on completion of
+// the asynchronous operation.
+//
+// A program may specialize this trait if the _CompletionToken template
+// parameter in the specialization is a user-defined type.
+//
+// Specializations of handler_type shall define a nested handler type, named
+// type, that satisifies the MoveConstructible requirements, and objects of
+// type type shall be constructible from an lvalue or rvalue of the type
+// specified by the _CompletionToken template parameter.
+
+template <class _CompletionToken, class _Signature, class = void>
+struct handler_type
+{
+  // Type: _CompletionToken if _CompletionToken and
+  // decay<_CompletionToken>::type are the same type; otherwise,
+  // handler_type<typename decay<_CompletionToken>::type, _Signature>::type.
+  typedef typename conditional<
+    is_same<_CompletionToken, typename decay<_CompletionToken>::type>::value,
+    decay<_CompletionToken>,
+    handler_type<typename decay<_CompletionToken>::type, _Signature>
+  >::type::type type;
+};
+
+template <class _CompletionToken, class _Signature>
+using handler_type_t = typename handler_type<
+  _CompletionToken, _Signature>::type;
+
+// The async_result trait enables customization of the return type and return
+// value of an asynchronous operation’s initiating function.
+//
+// Template argument _Handler is a handler type produced by handler_type<T,
+// S>::type for some completion token type T and call signature S.
+//
+// A program may specialize this template if the _Handler template parameter in
+// the specialization is a user-defined type.
+//
+// Specializations of async_result shall satisfy the Destructible requirements
+// in addition to the requirements in the table below. In this table, R is a
+// specialization of async_result for the template parameter _Handler; r is a
+// modifiable lvalue of type R; and h is a modifiable lvalue of type _Handler.
+//
+// +--------------------------------------------------------------------------+
+// | Expression       Return type        Note                                 |
+// +--------------------------------------------------------------------------+
+// | R::type                             void; or a type satisfying           |
+// |                                     MoveConstructible requirements.      |
+// +--------------------------------------------------------------------------+
+// | R r(h);                                                                  |
+// +--------------------------------------------------------------------------+
+// | r.get()          R::type            The get() member function shall      |
+// |                                     be used only as a return expression. |
+// +--------------------------------------------------------------------------+
+
+template <class _Handler>
+class async_result
+{
+public:
+  typedef void type;
+  explicit async_result(_Handler&) {}
+  async_result(const async_result&) = delete;
+  async_result& operator=(const async_result&) = delete;
+  void get() {}
+};
+
+// The async_completion template may be used within an initiating function to
+// reify a completion token into a handler and its linked asynchronous result.
+//
+// Template parameter _CompletionToken specifies the model used to obtain the
+// result of the asynchronous operation. Template parameter _Signature is the
+// call signature ([func.def]) for the handler type invoked on completion of
+// the asynchronous operation.
+
+template <class _CompletionToken, class _Signature>
+struct async_completion
+{
+  typedef handler_type_t<_CompletionToken, _Signature> handler_type;
+
+  explicit async_completion(
+    typename remove_reference<_CompletionToken>::type& __token)
+    : handler(static_cast<typename conditional<
+        is_same<_CompletionToken, handler_type>::value,
+        handler_type&, _CompletionToken&&>::type>(__token)),
+      result(handler) {}
+
+  async_completion(const async_completion&) = delete;
+  async_completion& operator=(const async_completion&) = delete;
+
+  typename conditional<
+    is_same<_CompletionToken, handler_type>::value,
+    handler_type&, handler_type>::type handler;
+
+  async_result<handler_type> result;
+};
+
+template <class> struct continuation_of; // Not defined.
+
+// The continuation_of template enables customisation of function invocation
+// and passing of the result to a continuation.
+//
+// A program may specialize this template if the _Func template parameter in
+// the specialization is a user-defined type.
+//
+// Specializations of continuation_of shall satisfy the requirements in the
+// table below. In this table, C is the template specialization
+// continuation_of<_Func(_Args...)>; f is an lvalue or rvalue of type _Func;
+// and c is an lvalue or rvalue of function object type meeting
+// MoveConstructible requirements and callable with an argument of type
+// C::result_type.
+//
+// +--------------------------------------------------------------------------+
+// | Expression       Return type         Note                                |
+// +--------------------------------------------------------------------------+
+// | C::signature                         The required signature for a        |
+// |                                      function object that receives the   |
+// |                                      result of a function of type _Func. |
+// |                                      when invoked with arguments _Args.  |
+// +--------------------------------------------------------------------------+
+// | C::chain(f, c)   Function object                                         |
+// |                  type meeting                                            |
+// |                  MoveConstructible                                       |
+// |                  requirements and                                        |
+// |                  callable with the                                       |
+// |                  same arguments as                                       |
+// |                  f.                                                      |
+// +--------------------------------------------------------------------------+
+
+template <class _Func, class... _Args>
+struct continuation_of<_Func(_Args...)>
+{
+  // Type:
+  //
+  // - If _Func and decay<_Func>::type are different types,
+  //   continuation_of<typename decay<_Func>::type(_Args...)>::signature;
+  //
+  // - Let _R be the type produced by typename result_of<_Func(_Args...)>::type.
+  //   If _R is void, void(). If _R is non-void, void(_R).
+  //
+  // - Otherwise, if result_of<_Func(_Args...)> does not contain a nested type
+  //   named type, the program is ill-formed.
+  typedef typename conditional<
+    is_same<_Func, typename decay<_Func>::type>::value,
+    __function_continuation_of<_Func, _Args...>,
+    continuation_of<typename decay<_Func>::type(_Args...)>
+  >::type::signature signature;
+
+  // If _Func and decay<_Func>::type are different types, returns
+  // continuation_of<typename decay<_Func>::type>::chain(forward<_F>(__f),
+  // forward<_Continuation>(__c)). Otherwise, returns a function object that,
+  // when invoked, calls a copy of __f, and then passes the result to a copy of
+  // __c.
+  template <class _F, class _Continuation>
+  static auto chain(_F&& __f, _Continuation&& __c)
+  {
+    return continuation_of::_Chain(
+      is_same<_Func, typename decay<_Func>::type>(),
+        forward<_F>(__f), forward<_Continuation>(__c));
+  }
+
+private:
+  template <class _F, class _Continuation>
+  static auto _Chain(true_type, _F&& __f, _Continuation&& __c)
+  {
+    return __chain<_Func, __signature_t<_Func>,
+      typename decay<_Continuation>::type>(
+        forward<_F>(__f), forward<_Continuation>(__c));
+  }
+
+  template <class _F, class _Continuation>
+  static auto _Chain(false_type, _F&& __f, _Continuation&& __c)
+  {
+    return continuation_of<typename decay<_Func>::type>::chain(
+      forward<_F>(__f), forward<_Continuation>(__c));
+  }
+};
+
+} // inline namespace concurrency_v1
+} // namespace experimental
+} // namespace std
+
+#endif
