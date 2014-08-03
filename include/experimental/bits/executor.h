@@ -256,8 +256,8 @@ class __bad_executor_impl
 public:
   static __executor_impl_base* _Create() noexcept
   {
-    static __bad_executor_impl __e;
-    return &__e;
+    static __bad_executor_impl* __e = new __bad_executor_impl;
+    return __e;
   }
 
   virtual __executor_impl_base* _Clone() const noexcept
