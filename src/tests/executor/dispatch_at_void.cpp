@@ -27,6 +27,11 @@ struct function3
   void operator()() { ++function_count; }
 };
 
+void function_throw()
+{
+  throw std::runtime_error("oops");
+}
+
 void handler1()
 {
   ++handler_count;
@@ -137,4 +142,26 @@ int main()
   std::this_thread::sleep_for(std::chrono::seconds(1));
   assert(function_count == 56);
   assert(handler_count == 49);
+
+  std::future<void> fut8 = std::experimental::dispatch_at(abs_time, ex, function_throw, std::experimental::use_future);
+  try
+  {
+    fut8.get();
+    assert(0);
+  }
+  catch (std::exception& e)
+  {
+    assert(e.what() == std::string("oops"));
+  }
+
+  std::future<void> fut9 = std::experimental::dispatch_at(abs_time, ex, std::experimental::package(function_throw));
+  try
+  {
+    fut9.get();
+    assert(0);
+  }
+  catch (std::exception& e)
+  {
+    assert(e.what() == std::string("oops"));
+  }
 }
