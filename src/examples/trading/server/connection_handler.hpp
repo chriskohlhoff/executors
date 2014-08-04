@@ -35,7 +35,7 @@ private:
   void receive_and_dispatch();
 
   udp_socket socket_;
-  std::experimental::thread_pool thread_pool_{1};
+  std::experimental::thread_pool thread_pool_;
   order_management_bus& order_management_bus_;
 };
 
