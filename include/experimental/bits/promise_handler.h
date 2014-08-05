@@ -84,12 +84,6 @@ struct __promise_executor
       __promise_invoker<_Func, _Promise>(_M_promise, forward<_F>(__f)), __a);
   }
 
-  template <class _Func>
-  inline executor_wrapper<typename decay<_Func>::type, __promise_executor> wrap(_Func&& __f) const
-  {
-    return executor_wrapper<typename decay<_Func>::type, __promise_executor>(forward<_Func>(__f), *this);
-  }
-
   friend bool operator==(const __promise_executor& __a, const __promise_executor& __b) noexcept
   {
     return __a._M_promise == __b._M_promise;

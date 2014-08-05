@@ -137,14 +137,6 @@ void loop_scheduler::executor_type::defer(_Func&& __f, const _Alloc& __a)
   _M_scheduler->_Defer(forward<_Func>(__f), __a);
 }
 
-template <class _Func>
-inline executor_wrapper<typename decay<_Func>::type, loop_scheduler::executor_type>
-loop_scheduler::executor_type::wrap(_Func&& __f) const
-{
-  return executor_wrapper<typename decay<_Func>::type,
-    loop_scheduler::executor_type>(forward<_Func>(__f), *this);
-}
-
 inline bool operator==(const loop_scheduler::executor_type& __a, const loop_scheduler::executor_type& __b) noexcept
 {
   return __a._M_scheduler == __b._M_scheduler;

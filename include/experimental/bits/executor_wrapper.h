@@ -160,13 +160,6 @@ struct associated_executor<executor_wrapper<_T, _Executor>, _Executor1>
   }
 };
 
-template <class _T, class _Executor>
-inline auto __wrap_with_executor(_T&& __t, const _Executor& __e)
-{
-  typedef typename decay<_T>::type _DecayT;
-  return executor_wrapper<_DecayT, _Executor>(forward<_T>(__t), __e);
-}
-
 template <class _T>
 struct __is_executor_wrapper : false_type {};
 
@@ -184,9 +177,9 @@ struct continuation_of<executor_wrapper<_T, _Executor>(_Args...)>
   template <class _C>
   static auto chain(executor_wrapper<_T, _Executor>&& __f, _C&& __c)
   {
-    return __wrap_with_executor(
+    return (wrap)(__f.get_executor(),
       _Wrapped_continuation_of::chain(std::move(__f.unwrap()),
-        forward<_C>(__c)), __f.get_executor());
+        forward<_C>(__c)));
   }
 };
 

@@ -429,12 +429,6 @@ inline void executor::defer(_Func&& __f, const _Alloc&)
   _M_impl->_Defer(__function_ptr(forward<_Func>(__f)));
 }
 
-template <class _Func>
-inline executor_wrapper<typename decay<_Func>::type, executor> executor::wrap(_Func&& __f) const
-{
-  return executor_wrapper<typename decay<_Func>::type, executor>(forward<_Func>(__f), *this);
-}
-
 inline executor::operator bool() const noexcept
 {
   return _M_impl != __bad_executor_impl::_Create();

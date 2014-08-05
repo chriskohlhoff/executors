@@ -99,12 +99,6 @@ inline void system_executor::defer(_Func&& __f, const _Alloc& __a)
   __system_executor_impl::_Instance()._Defer(forward<_Func>(__f), __a);
 }
 
-template <class _Func>
-inline executor_wrapper<typename decay<_Func>::type, system_executor> system_executor::wrap(_Func&& __f) const
-{
-  return executor_wrapper<typename decay<_Func>::type, system_executor>(forward<_Func>(__f), *this);
-}
-
 inline bool operator==(const system_executor&, const system_executor&) noexcept
 {
   return true;

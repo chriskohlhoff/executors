@@ -29,6 +29,9 @@ inline namespace concurrency_v1 {
 
 template <class, class = void> struct __get_executor_impl;
 
+template <class, class> struct __wrap_with_executor;
+template <class, class> struct __wrap_with_execution_context;
+
 class __executor_impl_base;
 template <class> class __executor_impl;
 
@@ -234,6 +237,16 @@ template <class _T, class _Executor, class _Alloc>
 template <class _T, class _Executor, class _Executor1>
   struct associated_executor<executor_wrapper<_T, _Executor>, _Executor1>;
 
+// Helper function to associate an executor with an object.
+
+template <class _Executor, class _T>
+  typename __wrap_with_executor<_Executor, _T>::_Result
+    wrap(const _Executor& __e, _T&& __t);
+
+template <class _ExecutionContext, class _T>
+  typename __wrap_with_execution_context<_ExecutionContext, _T>::_Result
+    wrap(_ExecutionContext& __c, _T&& __t);
+
 // An object of class executor_work controls ownership of executor work within
 // a scope.
 
@@ -288,10 +301,6 @@ public:
     void post(_Func&& __f, const _Alloc& a);
   template <class _Func, class _Alloc>
     void defer(_Func&& __f, const _Alloc& a);
-
-  template <class _Func>
-    executor_wrapper<typename decay<_Func>::type, system_executor>
-      wrap(_Func&& __f) const;
 };
 
 bool operator==(const system_executor&, const system_executor&) noexcept;
@@ -336,10 +345,6 @@ public:
     void post(_Func&& __f, const _Alloc& a);
   template <class _Func, class _Alloc>
     void defer(_Func&& __f, const _Alloc& a);
-
-  template <class _Func>
-    executor_wrapper<typename decay<_Func>::type, executor>
-      wrap(_Func&& __f) const;
 
   // executor capacity:
 
@@ -448,6 +453,7 @@ template<class _Alloc>
 #include <experimental/bits/execution_context.h>
 #include <experimental/bits/system_executor.h>
 #include <experimental/bits/executor_wrapper.h>
+#include <experimental/bits/wrap.h>
 #include <experimental/bits/executor_work.h>
 #include <experimental/bits/executor.h>
 #include <experimental/bits/chain.h>

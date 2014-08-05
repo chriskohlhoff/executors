@@ -375,12 +375,6 @@ inline void strand<_Executor>::defer(_Func&& __f, const _Alloc& a)
   this->post(forward<_Func>(__f), a);
 }
 
-template <class _Executor> template <class _Func>
-inline executor_wrapper<typename decay<_Func>::type, strand<_Executor>> strand<_Executor>::wrap(_Func&& __f) const
-{
-  return executor_wrapper<typename decay<_Func>::type, strand<_Executor>>(forward<_Func>(__f), *this);
-}
-
 template <class _Executor>
 inline bool operator==(const strand<_Executor>& __a, const strand<_Executor>& __b) noexcept
 {

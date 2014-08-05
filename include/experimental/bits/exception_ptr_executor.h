@@ -81,12 +81,6 @@ struct __exception_ptr_executor
     _M_executor.defer(__exception_ptr_call_wrapper<_Func>{_M_exception, forward<_F>(__f)}, __a);
   }
 
-  template <class _Func>
-  inline executor_wrapper<typename decay<_Func>::type, __exception_ptr_executor> wrap(_Func&& __f) const
-  {
-    return executor_wrapper<typename decay<_Func>::type, __exception_ptr_executor>(forward<_Func>(__f), *this);
-  }
-
   friend bool operator==(const __exception_ptr_executor& __a, const __exception_ptr_executor& __b) noexcept
   {
     return __a._M_exception == __b._M_exception;

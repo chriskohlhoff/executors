@@ -32,6 +32,7 @@ nobase_include_HEADERS = \
 	experimental/bits/exception_ptr_executor.h \
 	experimental/bits/execution_context.h \
 	experimental/bits/executor.h \
+	experimental/bits/executor_traits.h \
 	experimental/bits/executor_work.h \
 	experimental/bits/executor_wrapper.h \
 	experimental/bits/function_traits.h \
@@ -54,6 +55,7 @@ nobase_include_HEADERS = \
 	experimental/bits/timer_queue.h \
 	experimental/bits/tuple_utils.h \
 	experimental/bits/wait_op.h \
+	experimental/bits/wrap.h \
 	experimental/bits/yield_context.h
 
 MAINTAINERCLEANFILES = \

@@ -14,7 +14,7 @@ int main()
   auto executor = scheduler.get_executor();
 
   dispatch(
-    executor.wrap(
+    wrap(executor,
       [](yield_context yield)
       {
         auto start_time = std::chrono::steady_clock::now();

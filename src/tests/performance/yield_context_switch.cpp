@@ -16,7 +16,7 @@ int main()
   for (int c = 0; c < chains; ++c)
   {
     dispatch(
-      ex.wrap(
+      wrap(ex,
         [](basic_yield_context<loop_scheduler::executor_type> yield)
         {
           for (int i = 0; i < iterations; ++i)

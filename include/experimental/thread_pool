@@ -76,10 +76,6 @@ public:
   template <class _Func, class _Alloc>
     void defer(_Func&& __f, const _Alloc& a);
 
-  template <class _Func>
-    executor_wrapper<typename decay<_Func>::type, executor_type>
-      wrap(_Func&& __f) const;
-
 private:
   friend class thread_pool;
   friend bool operator==(const executor_type&, const executor_type&) noexcept;
