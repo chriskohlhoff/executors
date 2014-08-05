@@ -14,7 +14,7 @@ int main()
   auto executor = scheduler.get_executor();
 
   dispatch(
-    executor.wrap(
+    wrap(executor,
       [](yield_context yield)
       {
         for (int i = 0; i < 10; ++i)

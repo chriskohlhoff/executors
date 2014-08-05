@@ -9,6 +9,7 @@ using std::experimental::dispatch;
 using std::experimental::strand;
 using std::experimental::system_executor;
 using std::experimental::use_future;
+using std::experimental::wrap;
 
 // Active object sharing a system-wide pool of threads.
 // The caller chooses how to wait for the operation to finish.
@@ -56,7 +57,7 @@ public:
   auto transfer(int amount, bank_account& to_acct, CompletionToken&& token)
   {
     return dispatch(
-      ex_.wrap([=]
+      wrap(ex_, [=]
         {
           if (balance_ >= amount)
           {
@@ -66,7 +67,7 @@ public:
 
           return 0;
         }),
-      to_acct.ex_.wrap(
+      wrap(to_acct.ex_,
         [&to_acct](int deducted)
         {
           to_acct.balance_ += deducted;

@@ -34,7 +34,7 @@ public:
   {
     _M_timer.reset(new basic_timer<_Clock>(_Executor(__e).context(), __t));
     basic_timer<_Clock>* __timer = _M_timer.get();
-    __timer->wait(__e.wrap(std::move(*this)));
+    __timer->wait((wrap)(__e, std::move(*this)));
   }
 
   void operator()(const error_code&) &&

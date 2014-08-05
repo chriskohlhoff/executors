@@ -13,6 +13,7 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_INVOKER_H
 
 #include <experimental/memory>
+#include <experimental/bits/executor_traits.h>
 #include <experimental/bits/function_traits.h>
 #include <experimental/bits/tuple_utils.h>
 
@@ -302,16 +303,6 @@ struct continuation_of<__active_invoker<_Result(_Args...), _CompletionTokens...>
     return __f._Chain(forward<_C>(__c));
   }
 };
-
-template <class... _T> struct __is_executor;
-
-template <class _T, class... _U> struct __is_executor<_T, _U...>
-  : is_executor<typename remove_reference<_T>::type> {};
-
-template <class... _T> struct __is_execution_context;
-
-template <class _T, class... _U> struct __is_execution_context<_T, _U...>
-  : is_convertible<typename remove_reference<_T>::type&, execution_context&> {};
 
 template <class... _CompletionTokens>
 struct __invoke_result

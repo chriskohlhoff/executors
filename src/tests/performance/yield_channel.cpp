@@ -17,7 +17,7 @@ int main()
   channel<int> ch2(s);
 
   dispatch(
-    ex.wrap(
+    wrap(ex,
       [&](basic_yield_context<loop_scheduler::executor_type> yield)
       {
         for (int i = 0; i < iterations; ++i)
@@ -28,7 +28,7 @@ int main()
       }));
 
   dispatch(
-    ex.wrap(
+    wrap(ex,
       [&](basic_yield_context<loop_scheduler::executor_type> yield)
       {
         for (int i = 0; i < iterations; ++i)

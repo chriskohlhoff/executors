@@ -10,7 +10,7 @@ const int iterations = 1000000;
 void chain(loop_scheduler::executor_type ex, int i)
 {
   if (i < iterations)
-    post(ex.wrap([=]{ chain(ex, i + 1); }));
+    post(wrap(ex, [=]{ chain(ex, i + 1); }));
 }
 
 int main()
@@ -19,7 +19,7 @@ int main()
   auto ex = s.get_executor();
 
   for (int c = 0; c < chains; ++c)
-    dispatch(ex.wrap([=]{ chain(ex, 0); }));
+    dispatch(wrap(ex, [=]{ chain(ex, 0); }));
 
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
   s.run();
