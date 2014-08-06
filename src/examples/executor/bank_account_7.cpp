@@ -83,7 +83,7 @@ auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
     [=](yield_context yield)
     {
       auto largest_acct = end;
-      int largest_balance;
+      int largest_balance = 0;
 
       for (auto i = begin; i != end; ++i)
       {
