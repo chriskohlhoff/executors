@@ -16,47 +16,25 @@ namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
 
-template <class _Signature, class _Alloc>
-class __packaged_task : public packaged_task<_Signature>
-{
-public:
-  typedef _Alloc allocator_type;
-
-  template <class _Func>
-  explicit __packaged_task(package_t<_Func, _Alloc>&& __p)
-    : packaged_task<_Signature>(allocator_arg, __p._M_allocator, std::move(__p._M_func)),
-      _M_allocator(__p._M_allocator)
-  {
-  }
-
-  allocator_type get_allocator() const noexcept
-  {
-    return _M_allocator;
-  }
-
-private:
-  _Alloc _M_allocator;
-};
-
 template <class _Func, class _Alloc, class _R, class... _Args>
-struct handler_type<package_t<_Func, _Alloc>, _R(_Args...)>
+struct handler_type<packaged_token<_Func, _Alloc>, _R(_Args...)>
 {
-  typedef __packaged_task<typename result_of<_Func(_Args...)>::type(_Args...), _Alloc> type;
+  typedef packaged_handler<typename result_of<_Func(_Args...)>::type(_Args...), _Alloc> type;
 };
 
 template <class _Signature, class _Alloc>
-class async_result<__packaged_task<_Signature, _Alloc>>
+class async_result<packaged_handler<_Signature, _Alloc>>
   : public async_result<packaged_task<_Signature>>
 {
 public:
-  async_result(__packaged_task<_Signature, _Alloc>& __h)
+  explicit async_result(packaged_handler<_Signature, _Alloc>& __h)
     : async_result<packaged_task<_Signature>>(__h) {}
 };
 
 template <class _F, class _Alloc>
-inline package_t<typename decay<_F>::type, _Alloc> package(_F&& __f, const _Alloc& __a)
+inline packaged_token<typename decay<_F>::type, _Alloc> package(_F&& __f, const _Alloc& __a)
 {
-  return package_t<typename decay<_F>::type, _Alloc>(forward<_F>(__f), __a);
+  return packaged_token<typename decay<_F>::type, _Alloc>(forward<_F>(__f), __a);
 }
 
 template <class _R, class... _Args>
