@@ -49,7 +49,7 @@ protected:
     bool operator<(const order& other) const;
   };
 
-  std::experimental::strand<std::experimental::system_executor> ex_;
+  std::experimental::strand<std::experimental::system_executor> strand_;
   market_data_bus& market_data_bus_;
   std::uint64_t next_time_;
   std::priority_queue<order> buy_orders_;

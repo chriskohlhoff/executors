@@ -33,7 +33,7 @@ private:
   // Send a heartbeat to let market data subscribers know that we're still alive.
   void send_heartbeat();
 
-  std::experimental::strand<std::experimental::system_executor> ex_;
+  std::experimental::strand<std::experimental::system_executor> strand_;
   udp_socket socket_;
   std::uint64_t next_sequence_number_;
 };

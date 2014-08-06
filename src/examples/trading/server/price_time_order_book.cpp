@@ -22,7 +22,7 @@ price_time_order_book::price_time_order_book(const std::string& s, market_data_b
 
 void price_time_order_book::handle_event(order_management::new_order o)
 {
-  std::experimental::dispatch(ex_, [=]{ process_new_order(o); });
+  std::experimental::dispatch(strand_, [=]{ process_new_order(o); });
 }
 
 void price_time_order_book::process_new_order(order_management::new_order o)

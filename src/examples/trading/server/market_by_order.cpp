@@ -18,12 +18,12 @@ market_by_order::market_by_order(const std::string& ip, unsigned short port)
   : socket_(0), next_sequence_number_(0)
 {
   socket_.connect(ip, port);
-  send_heartbeat();
+  std::experimental::dispatch(strand_, [this]{ send_heartbeat(); });
 }
 
 void market_by_order::handle_event(market_data::new_order o)
 {
-  std::experimental::dispatch(ex_,
+  std::experimental::dispatch(strand_,
       [=]() mutable
       {
         o.sequence_number = next_sequence_number_++;
@@ -38,7 +38,7 @@ void market_by_order::handle_event(market_data::new_order o)
 
 void market_by_order::handle_event(market_data::trade t)
 {
-  std::experimental::dispatch(ex_,
+  std::experimental::dispatch(strand_,
       [=]() mutable
       {
         t.sequence_number = next_sequence_number_++;
@@ -53,19 +53,16 @@ void market_by_order::handle_event(market_data::trade t)
 
 void market_by_order::send_heartbeat()
 {
-  std::experimental::defer_after(std::chrono::seconds(1), ex_,
-      [=]() mutable
-      {
-        market_data::heartbeat h;
-        h.sequence_number = next_sequence_number_;
-        h.time = std::time(nullptr);
+  market_data::heartbeat h;
+  h.sequence_number = next_sequence_number_;
+  h.time = std::time(nullptr);
 
-        std::ostringstream os;
-        os << h;
-        std::string msg = os.str();
+  std::ostringstream os;
+  os << h;
+  std::string msg = os.str();
 
-        socket_.send(msg.data(), msg.length());
+  socket_.send(msg.data(), msg.length());
 
-        send_heartbeat();
-      });
+  std::experimental::defer_after(std::chrono::seconds(1),
+      strand_, [this]{ send_heartbeat(); });
 }
