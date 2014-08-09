@@ -56,11 +56,11 @@ struct __promise_executor
     return system_executor().context();
   }
 
-  void work_started() noexcept
+  void on_work_started() noexcept
   {
   }
 
-  void work_finished() noexcept
+  void on_work_finished() noexcept
   {
   }
 

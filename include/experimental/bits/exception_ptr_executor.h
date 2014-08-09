@@ -53,14 +53,14 @@ struct __exception_ptr_executor
     return _M_executor.context();
   }
 
-  void work_started() noexcept
+  void on_work_started() noexcept
   {
-    _M_executor.work_started();
+    _M_executor.on_work_started();
   }
 
-  void work_finished() noexcept
+  void on_work_finished() noexcept
   {
-    _M_executor.work_finished();
+    _M_executor.on_work_finished();
   }
 
   template <class _F, class _A> void dispatch(_F&& __f, const _A& __a)

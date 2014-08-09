@@ -217,15 +217,15 @@ inline execution_context& strand<_Executor>::context() noexcept
 }
 
 template <class _Executor>
-inline void strand<_Executor>::work_started() noexcept
+inline void strand<_Executor>::on_work_started() noexcept
 {
-  return _M_executor.work_started();
+  return _M_executor.on_work_started();
 }
 
 template <class _Executor>
-inline void strand<_Executor>::work_finished() noexcept
+inline void strand<_Executor>::on_work_finished() noexcept
 {
-  return _M_executor.work_finished();
+  return _M_executor.on_work_finished();
 }
 
 template <class _Func>

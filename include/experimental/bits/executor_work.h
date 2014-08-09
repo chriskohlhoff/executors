@@ -23,7 +23,7 @@ template <class _Executor>
 inline executor_work<_Executor>::executor_work(const executor_type& __e) noexcept
   : _M_executor(__e), _M_owns(true)
 {
-  _M_executor.work_started();
+  _M_executor.on_work_started();
 }
 
 template <class _Executor>
@@ -31,7 +31,7 @@ inline executor_work<_Executor>::executor_work(const executor_work& __w) noexcep
   : _M_executor(__w._M_executor), _M_owns(__w._M_owns)
 {
   if (_M_owns)
-    _M_executor.work_started();
+    _M_executor.on_work_started();
 }
 
 template <class _Executor>
@@ -46,7 +46,7 @@ template <class _Executor>
 inline executor_work<_Executor>::~executor_work()
 {
   if (_M_owns)
-    _M_executor.work_finished();
+    _M_executor.on_work_finished();
 }
 
 template <class _Executor>
@@ -67,7 +67,7 @@ inline void executor_work<_Executor>::reset() noexcept
 {
   if (_M_owns)
   {
-    _M_executor.work_finished();
+    _M_executor.on_work_finished();
     _M_owns = false;
   }
 }

@@ -292,8 +292,8 @@ public:
 
   execution_context& context() noexcept;
 
-  void work_started() noexcept;
-  void work_finished() noexcept;
+  void on_work_started() noexcept;
+  void on_work_finished() noexcept;
 
   template <class _Func, class _Alloc>
     void dispatch(_Func&& __f, const _Alloc& a);
@@ -336,8 +336,8 @@ public:
 
   execution_context& context() noexcept;
 
-  void work_started() noexcept;
-  void work_finished() noexcept;
+  void on_work_started() noexcept;
+  void on_work_finished() noexcept;
 
   template <class _Func, class _Alloc>
     void dispatch(_Func&& __f, const _Alloc& a);

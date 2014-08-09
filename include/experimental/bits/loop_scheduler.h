@@ -109,12 +109,12 @@ inline loop_scheduler& loop_scheduler::executor_type::context() noexcept
   return *_M_scheduler;
 }
 
-inline void loop_scheduler::executor_type::work_started() noexcept
+inline void loop_scheduler::executor_type::on_work_started() noexcept
 {
   _M_scheduler->_Work_started();
 }
 
-inline void loop_scheduler::executor_type::work_finished() noexcept
+inline void loop_scheduler::executor_type::on_work_finished() noexcept
 {
   _M_scheduler->_Work_finished();
 }

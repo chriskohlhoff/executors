@@ -102,12 +102,12 @@ public:
 
   virtual void _Work_started() noexcept
   {
-    _M_executor.work_started();
+    _M_executor.on_work_started();
   }
 
   virtual void _Work_finished() noexcept
   {
-    _M_executor.work_finished();
+    _M_executor.on_work_finished();
   }
 
   virtual void _Dispatch(__function_ptr&& __f)
@@ -188,12 +188,12 @@ public:
 
   virtual void _Work_started() noexcept
   {
-    _M_executor.work_started();
+    _M_executor.on_work_started();
   }
 
   virtual void _Work_finished() noexcept
   {
-    _M_executor.work_started();
+    _M_executor.on_work_started();
   }
 
   virtual void _Dispatch(__function_ptr&& __f)
@@ -398,12 +398,12 @@ inline execution_context& executor::context() noexcept
   return _M_impl->_Context();
 }
 
-inline void executor::work_started() noexcept
+inline void executor::on_work_started() noexcept
 {
   _M_impl->_Work_started();
 }
 
-inline void executor::work_finished() noexcept
+inline void executor::on_work_finished() noexcept
 {
   _M_impl->_Work_finished();
 }

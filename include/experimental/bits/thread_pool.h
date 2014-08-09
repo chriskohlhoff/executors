@@ -71,12 +71,12 @@ inline thread_pool& thread_pool::executor_type::context() noexcept
   return *_M_pool;
 }
 
-inline void thread_pool::executor_type::work_started() noexcept
+inline void thread_pool::executor_type::on_work_started() noexcept
 {
   _M_pool->_Work_started();
 }
 
-inline void thread_pool::executor_type::work_finished() noexcept
+inline void thread_pool::executor_type::on_work_finished() noexcept
 {
   _M_pool->_Work_finished();
 }

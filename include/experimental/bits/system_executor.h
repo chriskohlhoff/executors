@@ -70,12 +70,12 @@ inline execution_context& system_executor::context() noexcept
   return __system_executor_impl::_Instance();
 }
 
-inline void system_executor::work_started() noexcept
+inline void system_executor::on_work_started() noexcept
 {
   // No-op.
 }
 
-inline void system_executor::work_finished() noexcept
+inline void system_executor::on_work_finished() noexcept
 {
   // No-op.
 }
