@@ -25,7 +25,11 @@ Thread pool      | Any thread in the pool, and nowhere else.
 Strand           | Not concurrent with any other function object sharing the strand, and in FIFO order.
 Future / Promise | Any thread. Capture any exceptions thrown by the function object and store them in the promise.
 
-To inject a function object into an executor, we can use a **post** operation:
+Executors are ultimately defined by a set of type requirements, so the set of executors isn't limited to those listed here. Like allocators, library users can develop custom executor types to implement their own rules.
+
+To submit a function object to an executor, we can choose from one of three fundamental operations: **dispatch**, **post** and **defer**. These operations differ in the eagerness with which they run the submitted function.
+
+A dispatch operation is the most eager, and used when we want to run a function object according to an executor’s rules, but in the cheapest way available:
 
     void f1()
     {
@@ -34,9 +38,24 @@ To inject a function object into an executor, we can use a **post** operation:
 
     // ...
 
+    ex.dispatch(f1);
+
+By performing a dispatch operation, we are giving the executor `ex` the option of having `dispatch()` run the submitted function object before it returns. Whether an executor does this depends on its rules:
+
+Type of executor | Behaviour of dispatch
+---------------- | ---------------------
+System           | Always runs the function object before returning from `dispatch()`.
+Thread pool      | If we're inside the thread pool, runs the function object before returning from `dispatch()`. Otherwise, adds to the thread pool's work queue.
+Strand           | If we're inside the strand, or if the strand queue is empty, runs the function object before returning from `dispatch()`. Otherwise, adds to the strand's work queue.
+Future / Promise | Wraps the function object in a try/catch block, and runs it before returning from `dispatch()`.
+
+The consequence of this is that, if the executor’s rules allow it, the compiler is able to inline the function call.
+
+A post operation, on the other hand, is not permitted to run the function object itself.
+
     ex.post(f1);
 
-This submits the function object for later execution, according to the rules of the executor:
+A posted function is scheduled for execution as soon as possible, but according to the rules of the executor:
 
 Type of executor | Behaviour of post
 ---------------- | -----------------
@@ -45,18 +64,18 @@ Thread pool      | Adds the function object to the thread pool's work queue.
 Strand           | Adds the function object to the strand's work queue.
 Future / Promise | Wraps the function object in a try/catch block, and adds it to the system work queue.
 
-Alternatively, we may want execute a function object according to the rules, but in the cheapest way possible. For this, we use a **dispatch** operation:
+Finally, the defer operation is the least eager of the three.
 
-    ex.dispatch(f1);
+    defer(ex, f1);
 
-By performing a dispatch operation, we are giving the executor the option of having `dispatch()` run the function object before it returns. Whether an executor does this depends on its rules:
+A defer operation is similar to a post operation, except that it implies a relationship between the caller and the function object being submitted. It is intended for use when submitting a function object that represents a continuation of the caller.
 
-Type of executor | Behaviour of dispatch
----------------- | ---------------------
-System           | Always runs the function object before returning from `dispatch()`.
-Thread pool      | If we're inside the thread pool, runs the function object before returning from `dispatch()`. Otherwise, adds to the thread pool's work queue.
-Strand           | If we're inside the strand, or if the strand queue is empty, runs the function object before returning from `dispatch()`. Otherwise, adds to the strand's work queue.
-Future / Promise | Wraps the function object in a try/catch block, and runs it before returning from `dispatch()`.
+Type of executor | Behaviour of defer
+---------------- | ------------------
+System           | If the caller is executing within the system-wide thread pool, saves the function object to a thread-local queue. Once control returns to the system thread pool, the function object is scheduled for execution as soon as possible. If the caller is not inside the system thread pool, behaves as a post operation.
+Thread pool      | If the caller is executing within the thread pool, saves the function object to a thread-local queue. Once control returns to the thread pool, the function object is scheduled for execution as soon as possible. If the caller is not inside the specified thread pool, behaves as a post operation.
+Strand           | Adds the function object to the strand's work queue.
+Future / Promise | Wraps the function object in a try/catch block, and delegates to the system executor for deferral.
 
 ### Posting functions to a thread pool
 
@@ -66,12 +85,11 @@ As a simple example, let us consider how to implement the Active Object design p
     {
       int balance_ = 0;
       std::experimental::thread_pool pool_{1};
-      mutable std::experimental::thread_pool::executor ex_ = std::experimental::make_executor(pool_);
 
     public:
       void deposit(int amount)
       {
-        post(ex_, [=]
+        post(pool_, [=]
           {
             balance_ += amount;
           });
@@ -79,7 +97,7 @@ As a simple example, let us consider how to implement the Active Object design p
 
       void withdraw(int amount)
       {
-        post(ex_, [=]
+        post(pool_, [=]
           {
             if (balance_ >= amount)
               balance_ -= amount;
@@ -95,13 +113,17 @@ First, we create a private thread pool with a single thread:
 
 A thread pool is an example of an **execution context**. An execution context represents a place where function objects will be executed. This is distinct from an executor which, as an embodiment of a set of rules, is intended to be a lightweight object that is cheap to copy and wrap for further adaptation.
 
-Therefore, to inject function objects into thread pool, we must create an executor for it using the library function `make_executor()`:
+To add the function to the thread pool's queue, we use a post operation:
 
-    std::experimental::thread_pool::executor ex_ = std::experimental::make_executor(pool_);
+    post(pool_, [=]
+      {
+        if (balance_ >= amount)
+          balance_ -= amount;
+      });
 
-To add the function to the queue, we then use a post operation:
+For convenience the post function is overloaded for execution contexts, such as `thread_pool`, to take care of obtaining the executor for you. The above call is equivalent to:
 
-    post(ex_, [=]
+    post(pool_.get_executor(), [=]
       {
         if (balance_ >= amount)
           balance_ -= amount;
@@ -113,7 +135,7 @@ When implementing the Active Object pattern, we will normally want to wait for t
 
     void withdraw(int amount)
     {
-      std::future<void> fut = std::experimental::post(ex_, [=]
+      std::future<void> fut = std::experimental::post(pool_, [=]
         {
           if (balance_ >= amount)
             balance_ -= amount;
@@ -131,7 +153,7 @@ Other types of completion token include plain function objects (used as callback
     template <class CompletionToken>
     auto withdraw(int amount, CompletionToken&& token)
     {
-      return std::experimental::post(ex_, [=]
+      return std::experimental::post(pool_, [=]
         {
           if (balance_ >= amount)
             balance_ -= amount;
@@ -161,7 +183,7 @@ or any other type that meets the completion token requirements. This approach al
       template <class CompletionToken>
       auto balance(CompletionToken&& token) const
       {
-        return std::experimental::post(ex_, [=]
+        return std::experimental::post(pool_, [=]
           {
             return balance_;
           },
