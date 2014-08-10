@@ -38,7 +38,7 @@ A dispatch operation is the most eager, and used when we want to run a function 
 
     // ...
 
-    ex.dispatch(f1);
+    dispatch(ex, f1);
 
 By performing a dispatch operation, we are giving the executor `ex` the option of having `dispatch()` run the submitted function object before it returns. Whether an executor does this depends on its rules:
 
@@ -53,7 +53,7 @@ The consequence of this is that, if the executor’s rules allow it, the compile
 
 A post operation, on the other hand, is not permitted to run the function object itself.
 
-    ex.post(f1);
+    post(ex, f1);
 
 A posted function is scheduled for execution as soon as possible, but according to the rules of the executor:
 
