@@ -6,7 +6,7 @@ table { margin: auto; border: 1px solid gray; border-collapse: collapse; }
 th { border: 1px solid gray; }
 td { border: 1px solid gray; }
 h1, h2, h3, h4, h5, div.titlepage { page-break-after: avoid; }
-</style><meta http-equiv="Content-Type" content="text/html; charset=US-ASCII"><title>Executors Proposal</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><pre>Doc. no:  D????  (as of commit af7e868972c6beb1df84960801ace630f696a7f2)
+</style><meta http-equiv="Content-Type" content="text/html; charset=US-ASCII"><title>Executors Proposal</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><pre>Doc. no:  D????  (as of commit be201326227ab5ef230dcaabdc99651ccd879786)
 Date:     2014-??-??
 Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 </pre>
@@ -123,7 +123,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         for the template parameter <code class="computeroutput"><span class="identifier">Handler</span></code>;
         <code class="computeroutput"><span class="identifier">r</span></code> is a modifiable lvalue
         of type <code class="computeroutput"><span class="identifier">R</span></code>; and <code class="computeroutput"><span class="identifier">h</span></code> is a modifiable lvalue of type <code class="computeroutput"><span class="identifier">Handler</span></code>.
-      </p><div class="table"><a name="idm466290168448"></a><p class="title"><b>Table&#160;1.&#160;async_result specialization requirements</b></p><div class="table-contents"><table class="table" summary="async_result specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm494191823872"></a><p class="title"><b>Table&#160;1.&#160;async_result specialization requirements</b></p><div class="table-contents"><table class="table" summary="async_result specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -253,7 +253,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         is a const reference to an object of type <code class="computeroutput"><span class="identifier">T</span></code>;
         and <code class="computeroutput"><span class="identifier">a</span></code> is an object of type
         <code class="computeroutput"><span class="identifier">Alloc</span></code>.
-      </p><div class="table"><a name="idm466289997152"></a><p class="title"><b>Table&#160;2.&#160;associated_allocator specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_allocator specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm494191652704"></a><p class="title"><b>Table&#160;2.&#160;associated_allocator specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_allocator specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -432,9 +432,9 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           An executor type <code class="computeroutput"><span class="identifier">X</span></code> shall
           satisfy the requirements of <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>
           (C++ Std, [copyconstructible]) types. No constructor, comparison operator,
-          copy operation, move operation, swap operation, or member functions <code class="computeroutput"><span class="identifier">context</span></code>, <code class="computeroutput"><span class="identifier">work_started</span></code>
-          and <code class="computeroutput"><span class="identifier">work_finished</span></code> on these
-          types shall exit via an exception.
+          copy operation, move operation, swap operation, or member functions <code class="computeroutput"><span class="identifier">context</span></code>, <code class="computeroutput"><span class="identifier">on_work_started</span></code>
+          and <code class="computeroutput"><span class="identifier">on_work_finished</span></code> on
+          these types shall exit via an exception.
         </p><p>
           The executor copy constructor, comparison operators, and member functions
           defined in these requirements shall not introduce data races as a result
@@ -454,7 +454,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           (C++ Std, [allocator.requirements]), <code class="computeroutput"><span class="identifier">t</span></code>
           denotes an object of type <code class="computeroutput"><span class="identifier">T</span></code>,
           and <code class="computeroutput"><span class="identifier">u</span></code> denotes an identifier.
-        </p><div class="table"><a name="idm466289553040"></a><p class="title"><b>Table&#160;3.&#160;Executor requirements</b></p><div class="table-contents"><table class="table" summary="Executor requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+        </p><div class="table"><a name="idm494191234832"></a><p class="title"><b>Table&#160;3.&#160;Executor requirements</b></p><div class="table-contents"><table class="table" summary="Executor requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                   <p>
                     expression
                   </p>
@@ -473,8 +473,8 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
                 </td><td>
                 </td><td>
                   <p>
-                    Shall not exit via an exception.<br> post: <code class="computeroutput"><span class="identifier">u</span>
-                    <span class="special">==</span> <span class="identifier">x1</span></code>
+                    Shall not exit via an exception.<br> <br> post: <code class="computeroutput"><span class="identifier">u</span> <span class="special">==</span>
+                    <span class="identifier">x1</span></code>
                   </p>
                 </td></tr><tr><td>
                   <p>
@@ -483,8 +483,8 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
                 </td><td>
                 </td><td>
                   <p>
-                    Shall not exit via an exception.<br> post: <code class="computeroutput"><span class="identifier">u</span></code>
-                    equals the prior value of <code class="computeroutput"><span class="identifier">x3</span></code>.
+                    Shall not exit via an exception.<br> <br> post: <code class="computeroutput"><span class="identifier">u</span></code> equals the prior value of
+                    <code class="computeroutput"><span class="identifier">x3</span></code>.
                   </p>
                 </td></tr><tr><td>
                   <p>
@@ -497,9 +497,13 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
                   </p>
                 </td><td>
                   <p>
-                    Shall not exit via an exception.<br> Returns <code class="computeroutput"><span class="keyword">true</span></code> only if <code class="computeroutput"><span class="identifier">x1</span></code>
-                    and <code class="computeroutput"><span class="identifier">x2</span></code> represent
-                    the same execution policy. <code class="computeroutput"><span class="keyword">operator</span><span class="special">==</span></code> shall be reflexive, symmetric,
+                    Shall not exit via an exception.<br> <br> Returns <code class="computeroutput"><span class="keyword">true</span></code> only if <code class="computeroutput"><span class="identifier">x1</span></code>
+                    and <code class="computeroutput"><span class="identifier">x2</span></code> can be
+                    interchanged with identical effects in any of the expressions
+                    defined in these type requirements. [<span class="emphasis"><em>Note:</em></span>
+                    <code class="computeroutput"><span class="keyword">false</span></code> does not necessarily
+                    imply that the effects are not identical. &#8212;<span class="emphasis"><em>end note</em></span>]
+                    <br> <br> <code class="computeroutput"><span class="keyword">operator</span><span class="special">==</span></code> shall be reflexive, symmetric,
                     and transitive, and shall not exit via an exception.
                   </p>
                 </td></tr><tr><td>
@@ -513,7 +517,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
                   </p>
                 </td><td>
                   <p>
-                    Shall not exit via an exception.<br> Same as <code class="computeroutput"><span class="special">!(</span><span class="identifier">x1</span>
+                    Shall not exit via an exception.<br> <br> Same as <code class="computeroutput"><span class="special">!(</span><span class="identifier">x1</span>
                     <span class="special">==</span> <span class="identifier">x2</span><span class="special">)</span></code>.
                   </p>
                 </td></tr><tr><td>
@@ -531,7 +535,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
                   </p>
                 </td></tr><tr><td>
                   <p>
-                    <code class="computeroutput"><span class="identifier">x</span><span class="special">.</span><span class="identifier">work_started</span><span class="special">()</span></code>
+                    <code class="computeroutput"><span class="identifier">x</span><span class="special">.</span><span class="identifier">on_work_started</span><span class="special">()</span></code>
                   </p>
                 </td><td>
                 </td><td>
@@ -540,13 +544,13 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
                   </p>
                 </td></tr><tr><td>
                   <p>
-                    <code class="computeroutput"><span class="identifier">x</span><span class="special">.</span><span class="identifier">work_finished</span><span class="special">()</span></code>
+                    <code class="computeroutput"><span class="identifier">x</span><span class="special">.</span><span class="identifier">on_work_finished</span><span class="special">()</span></code>
                   </p>
                 </td><td>
                 </td><td>
                   <p>
-                    Shall not exit via an exception.<br> Requires: A preceding
-                    call <code class="computeroutput"><span class="identifier">x1</span><span class="special">.</span><span class="identifier">work_started</span><span class="special">()</span></code>
+                    Shall not exit via an exception.<br> <br> Requires: A preceding
+                    call <code class="computeroutput"><span class="identifier">x1</span><span class="special">.</span><span class="identifier">on_work_started</span><span class="special">()</span></code>
                     where <code class="computeroutput"><span class="identifier">x</span> <span class="special">==</span>
                     <span class="identifier">x1</span></code>.
                   </p>
@@ -703,7 +707,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
       </p><p>
         Once a service reference is obtained from an <code class="computeroutput"><span class="identifier">execution_context</span></code>
         object by calling <code class="computeroutput"><span class="identifier">use_service</span><span class="special">&lt;&gt;</span></code>, that reference remains usable until
-        a call to <code class="computeroutput"><span class="identifier">destroy_context</span><span class="special">()</span></code>.]
+        a call to <code class="computeroutput"><span class="identifier">destroy_context</span><span class="special">()</span></code>.
       </p><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="classes.__execution_context__constructor"></a>5.9.1.&#160;<code class="literal">execution_context</code> constructor</h4></div></div></div><pre class="programlisting"><span class="identifier">execution_context</span><span class="special">();</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Effects:</em></span> Creates an object of class <code class="computeroutput"><span class="identifier">execution_context</span></code>.
@@ -982,7 +986,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         is a const reference to an object of type <code class="computeroutput"><span class="identifier">T</span></code>;
         and <code class="computeroutput"><span class="identifier">e</span></code> is an object of type
         <code class="computeroutput"><span class="identifier">Executor</span></code>.
-      </p><div class="table"><a name="idm466288760608"></a><p class="title"><b>Table&#160;4.&#160;associated_executor specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_executor specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm494190454080"></a><p class="title"><b>Table&#160;4.&#160;associated_executor specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_executor specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -1381,7 +1385,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 </pre><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="classes.__executor_work__constructors"></a>5.16.1.&#160;<code class="literal">executor_work</code> constructors</h4></div></div></div><pre class="programlisting"><span class="keyword">explicit</span> <span class="identifier">executor_work</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">executor_type</span><span class="special">&amp;</span> <span class="identifier">ex</span><span class="special">)</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Effects:</em></span> Constructs an object of class <code class="computeroutput"><span class="identifier">executor_work</span></code>, initializing <code class="computeroutput"><span class="identifier">ex_</span></code> with <code class="computeroutput"><span class="identifier">ex</span></code>,
-            and then performing <code class="computeroutput"><span class="identifier">ex_</span><span class="special">.</span><span class="identifier">work_started</span><span class="special">()</span></code>.
+            and then performing <code class="computeroutput"><span class="identifier">ex_</span><span class="special">.</span><span class="identifier">on_work_started</span><span class="special">()</span></code>.
           </p></blockquote></div><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Postconditions:</em></span> <code class="computeroutput"><span class="identifier">ex</span>
             <span class="special">==</span> <span class="identifier">ex_</span></code>
@@ -1391,7 +1395,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Effects:</em></span> Constructs an object of class <code class="computeroutput"><span class="identifier">executor_work</span></code>, initializing <code class="computeroutput"><span class="identifier">ex_</span></code> with <code class="computeroutput"><span class="identifier">other</span><span class="special">.</span><span class="identifier">ex</span></code>.
             If <code class="computeroutput"><span class="identifier">other</span><span class="special">.</span><span class="identifier">owns_</span> <span class="special">==</span>
-            <span class="keyword">true</span></code>, performs <code class="computeroutput"><span class="identifier">ex_</span><span class="special">.</span><span class="identifier">work_started</span><span class="special">()</span></code>.
+            <span class="keyword">true</span></code>, performs <code class="computeroutput"><span class="identifier">ex_</span><span class="special">.</span><span class="identifier">on_work_started</span><span class="special">()</span></code>.
           </p></blockquote></div><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Postconditions:</em></span> <code class="computeroutput"><span class="identifier">ex</span>
             <span class="special">==</span> <span class="identifier">other</span><span class="special">.</span><span class="identifier">ex_</span></code>
@@ -1410,7 +1414,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
             <span class="keyword">false</span></code>.
           </p></blockquote></div></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="classes.__executor_work__destructor"></a>5.16.2.&#160;<code class="literal">executor_work</code> destructor</h4></div></div></div><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Effects:</em></span> If <code class="computeroutput"><span class="identifier">owns_</span></code>
-            is true, performs <code class="computeroutput"><span class="identifier">ex</span><span class="special">.</span><span class="identifier">work_finished</span><span class="special">()</span></code>.
+            is true, performs <code class="computeroutput"><span class="identifier">ex</span><span class="special">.</span><span class="identifier">on_work_finished</span><span class="special">()</span></code>.
           </p></blockquote></div></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="classes.__executor_work__observers"></a>5.16.3.&#160;<code class="literal">executor_work</code> observers</h4></div></div></div><pre class="programlisting"><span class="identifier">executor_type</span> <span class="identifier">get_executor</span><span class="special">()</span> <span class="keyword">const</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Returns:</em></span> <code class="computeroutput"><span class="identifier">ex_</span></code>.
@@ -1420,7 +1424,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           </p></blockquote></div></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="classes.__executor_work__modifiers"></a>5.16.4.&#160;<code class="literal">executor_work</code> modifiers</h4></div></div></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Effects:</em></span> If <code class="computeroutput"><span class="identifier">owns_</span></code>
-            is true, performs <code class="computeroutput"><span class="identifier">ex</span><span class="special">.</span><span class="identifier">work_finished</span><span class="special">()</span></code>.
+            is true, performs <code class="computeroutput"><span class="identifier">ex</span><span class="special">.</span><span class="identifier">on_work_finished</span><span class="special">()</span></code>.
           </p></blockquote></div><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Postconditions:</em></span> <code class="computeroutput"><span class="identifier">owns_</span>
             <span class="special">==</span> <span class="keyword">false</span></code>.
@@ -1436,8 +1440,8 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 
         <span class="identifier">execution_context</span><span class="special">&amp;</span> <span class="identifier">context</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
-        <span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
-        <span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
         <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
           <span class="keyword">void</span> <span class="identifier">dispatch</span><span class="special">(</span><span class="identifier">Func</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">);</span>
@@ -1471,10 +1475,10 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Returns:</em></span> A reference to a static-duration object
             of a type derived from <code class="computeroutput"><span class="identifier">execution_context</span></code>.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Effects:</em></span> Does nothing.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Effects:</em></span> Does nothing.
           </p></blockquote></div><pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
@@ -1560,8 +1564,8 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 
         <span class="identifier">execution_context</span><span class="special">&amp;</span> <span class="identifier">context</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
-        <span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
-        <span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
         <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
           <span class="keyword">void</span> <span class="identifier">dispatch</span><span class="special">(</span><span class="identifier">Func</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">);</span>
@@ -1639,6 +1643,10 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           </p></blockquote></div><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Effects:</em></span> <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> targets a copy of <code class="computeroutput"><span class="identifier">e</span></code>
             initialized with <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span></code>.
+          </p></blockquote></div><div class="blockquote"><blockquote class="blockquote"><p>
+            <span class="emphasis"><em>Remarks:</em></span> This function shall not participate in
+            overload resolution unless <code class="computeroutput"><span class="identifier">is_executor</span><span class="special">&lt;</span><span class="identifier">Executor</span><span class="special">&gt;::</span><span class="identifier">value</span></code>
+            is true.
           </p></blockquote></div><pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Executor</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
   <span class="identifier">executor</span><span class="special">(</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">,</span> <span class="identifier">Executor</span> <span class="identifier">e</span><span class="special">);</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
@@ -1675,6 +1683,10 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
             <span class="emphasis"><em>Effects:</em></span> <code class="computeroutput"><span class="identifier">executor</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">e</span><span class="special">)).</span><span class="identifier">swap</span><span class="special">(*</span><span class="keyword">this</span><span class="special">)</span></code>.
           </p></blockquote></div><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Returns:</em></span> <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
+          </p></blockquote></div><div class="blockquote"><blockquote class="blockquote"><p>
+            <span class="emphasis"><em>Remarks:</em></span> This function shall not participate in
+            overload resolution unless <code class="computeroutput"><span class="identifier">is_executor</span><span class="special">&lt;</span><span class="identifier">Executor</span><span class="special">&gt;::</span><span class="identifier">value</span></code>
+            is true.
           </p></blockquote></div></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="classes.__executor__destructor"></a>5.19.3.&#160;<code class="literal">executor</code> destructor</h4></div></div></div><pre class="programlisting"><span class="special">~</span><span class="identifier">executor</span><span class="special">();</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Effects:</em></span> If <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span> <span class="special">!=</span> <span class="identifier">nullptr</span></code>, releases shared ownership
@@ -1691,13 +1703,13 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Returns:</em></span> <code class="computeroutput"><span class="identifier">e</span><span class="special">.</span><span class="identifier">context</span><span class="special">()</span></code>, where <code class="computeroutput"><span class="identifier">e</span></code>
             is the target object of <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
-            <span class="emphasis"><em>Effects:</em></span> <code class="computeroutput"><span class="identifier">e</span><span class="special">.</span><span class="identifier">work_started</span><span class="special">()</span></code>, where <code class="computeroutput"><span class="identifier">e</span></code>
+            <span class="emphasis"><em>Effects:</em></span> <code class="computeroutput"><span class="identifier">e</span><span class="special">.</span><span class="identifier">on_work_started</span><span class="special">()</span></code>, where <code class="computeroutput"><span class="identifier">e</span></code>
             is the target object of <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
-            <span class="emphasis"><em>Effects:</em></span> <code class="computeroutput"><span class="identifier">e</span><span class="special">.</span><span class="identifier">work_finished</span><span class="special">()</span></code>, where <code class="computeroutput"><span class="identifier">e</span></code>
+            <span class="emphasis"><em>Effects:</em></span> <code class="computeroutput"><span class="identifier">e</span><span class="special">.</span><span class="identifier">on_work_finished</span><span class="special">()</span></code>, where <code class="computeroutput"><span class="identifier">e</span></code>
             is the target object of <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
           </p></blockquote></div><pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
   <span class="keyword">void</span> <span class="identifier">dispatch</span><span class="special">(</span><span class="identifier">Func</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">);</span>
@@ -2002,8 +2014,8 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 
         <span class="identifier">execution_context</span><span class="special">&amp;</span> <span class="identifier">context</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
-        <span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
-        <span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
         <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
           <span class="keyword">void</span> <span class="identifier">dispatch</span><span class="special">(</span><span class="identifier">Func</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">);</span>
@@ -2170,12 +2182,12 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           </p></blockquote></div><pre class="programlisting"><span class="identifier">execution_context</span><span class="special">&amp;</span> <span class="identifier">context</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Returns:</em></span> <code class="computeroutput"><span class="identifier">inner_ex_</span><span class="special">.</span><span class="identifier">context</span><span class="special">()</span></code>.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
-            <span class="emphasis"><em>Effects:</em></span> Calls <code class="computeroutput"><span class="identifier">inner_ex_</span><span class="special">.</span><span class="identifier">work_started</span><span class="special">()</span></code>.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+            <span class="emphasis"><em>Effects:</em></span> Calls <code class="computeroutput"><span class="identifier">inner_ex_</span><span class="special">.</span><span class="identifier">on_work_started</span><span class="special">()</span></code>.
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
-            <span class="emphasis"><em>Effects:</em></span> Calls <code class="computeroutput"><span class="identifier">inner_ex_</span><span class="special">.</span><span class="identifier">work_finished</span><span class="special">()</span></code>.
+            <span class="emphasis"><em>Effects:</em></span> Calls <code class="computeroutput"><span class="identifier">inner_ex_</span><span class="special">.</span><span class="identifier">on_work_finished</span><span class="special">()</span></code>.
           </p></blockquote></div><pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
   <span class="keyword">void</span> <span class="identifier">dispatch</span><span class="special">(</span><span class="identifier">Func</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">);</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
@@ -2785,8 +2797,8 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         <span class="emphasis"><em>outstanding work</em></span> is defined as the sum of:
       </p><p>
         &#8212; the total number of calls to the <code class="computeroutput"><span class="identifier">thread_pool</span></code>
-        executor's <code class="computeroutput"><span class="identifier">work_started</span></code> function,
-        less the total number of calls to the <code class="computeroutput"><span class="identifier">work_finished</span></code>
+        executor's <code class="computeroutput"><span class="identifier">on_work_started</span></code>
+        function, less the total number of calls to the <code class="computeroutput"><span class="identifier">on_work_finished</span></code>
         function;
       </p><p>
         &#8212; the number of function objects that have been added to the <code class="computeroutput"><span class="identifier">thread_pool</span></code> via the <code class="computeroutput"><span class="identifier">thread_pool</span></code>
@@ -2863,8 +2875,8 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 
         <span class="identifier">thread_pool</span><span class="special">&amp;</span> <span class="identifier">context</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
-        <span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
-        <span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
         <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
           <span class="keyword">void</span> <span class="identifier">dispatch</span><span class="special">(</span><span class="identifier">Func</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">);</span>
@@ -2917,12 +2929,14 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           </p></blockquote></div><pre class="programlisting"><span class="identifier">thread_pool</span><span class="special">&amp;</span> <span class="identifier">context</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Returns:</em></span> A reference to the associated <code class="computeroutput"><span class="identifier">thread_pool</span></code> object.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
-            <span class="emphasis"><em>Effects:</em></span> Calls <code class="computeroutput"><span class="identifier">inner_ex_</span><span class="special">.</span><span class="identifier">work_started</span><span class="special">()</span></code>.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+            <span class="emphasis"><em>Effects:</em></span> Increases the count of outstanding work
+            associated with the <code class="computeroutput"><span class="identifier">thread_pool</span></code>.
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
-            <span class="emphasis"><em>Effects:</em></span> Calls <code class="computeroutput"><span class="identifier">inner_ex_</span><span class="special">.</span><span class="identifier">work_finished</span><span class="special">()</span></code>.
+            <span class="emphasis"><em>Effects:</em></span> Decreases the count of outstanding work
+            associated with the <code class="computeroutput"><span class="identifier">thread_pool</span></code>.
           </p></blockquote></div><pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
   <span class="keyword">void</span> <span class="identifier">dispatch</span><span class="special">(</span><span class="identifier">Func</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">);</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
@@ -3020,8 +3034,8 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         <span class="emphasis"><em>outstanding work</em></span> is defined as the sum of:
       </p><p>
         &#8212; the total number of calls to the <code class="computeroutput"><span class="identifier">loop_scheduler</span></code>
-        executor's <code class="computeroutput"><span class="identifier">work_started</span></code> function,
-        less the total number of calls to the <code class="computeroutput"><span class="identifier">work_finished</span></code>
+        executor's <code class="computeroutput"><span class="identifier">on_work_started</span></code>
+        function, less the total number of calls to the <code class="computeroutput"><span class="identifier">on_work_finished</span></code>
         function;
       </p><p>
         &#8212; the number of function objects that have been added to the <code class="computeroutput"><span class="identifier">loop_scheduler</span></code> via the <code class="computeroutput"><span class="identifier">loop_scheduler</span></code>
@@ -3225,8 +3239,8 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 
         <span class="identifier">loop_scheduler</span><span class="special">&amp;</span> <span class="identifier">context</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
-        <span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
-        <span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+        <span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 
         <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
           <span class="keyword">void</span> <span class="identifier">dispatch</span><span class="special">(</span><span class="identifier">Func</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">);</span>
@@ -3287,12 +3301,14 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           </p></blockquote></div><pre class="programlisting"><span class="identifier">loop_scheduler</span><span class="special">&amp;</span> <span class="identifier">context</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
             <span class="emphasis"><em>Returns:</em></span> A reference to the associated <code class="computeroutput"><span class="identifier">loop_scheduler</span></code> object.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_started</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
-            <span class="emphasis"><em>Effects:</em></span> Calls <code class="computeroutput"><span class="identifier">inner_ex_</span><span class="special">.</span><span class="identifier">work_started</span><span class="special">()</span></code>.
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+            <span class="emphasis"><em>Effects:</em></span> Increases the count of outstanding work
+            associated with the <code class="computeroutput"><span class="identifier">loop_scheduler</span></code>.
+          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_work_finished</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>
-            <span class="emphasis"><em>Effects:</em></span> Calls <code class="computeroutput"><span class="identifier">inner_ex_</span><span class="special">.</span><span class="identifier">work_finished</span><span class="special">()</span></code>.
+            <span class="emphasis"><em>Effects:</em></span> Decreases the count of outstanding work
+            associated with the <code class="computeroutput"><span class="identifier">loop_scheduler</span></code>.
           </p></blockquote></div><pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Func</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Alloc</span><span class="special">&gt;</span>
   <span class="keyword">void</span> <span class="identifier">dispatch</span><span class="special">(</span><span class="identifier">Func</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">Alloc</span><span class="special">&amp;</span> <span class="identifier">a</span><span class="special">);</span>
 </pre><div class="blockquote"><blockquote class="blockquote"><p>

@@ -1,11 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<title>
-Executors library
-</title>
-</head>
-<body>
-<div><a href="concurrency.html">Proposed wording</a></div>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>A C++14 library for executors</title>
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="narrow.css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+
+      <div class="header">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="#">Slides (PDF)</a></li>
+          <li><a href="concurrency.html">Proposed wording</a></li>
+          <li><a href="https://github.com/chriskohlhoff/executors">Reference implementation</a></li>
+        </ul>
+        <h3 class="text-muted">A C++14 library for executors</h3>
+      </div>
+
+      <!--<div class="panel panel-default">-->
+        <div id="slides-carousel" class="carousel slide" data-ride="carousel" data-interval="false" data-pause="hover">
+          <!-- Indicators -->
+          <ol class="carousel-indicators">
+            <li data-target="#slides-carousel" data-slide-to="0" class="active"></li>
+            <li data-target="#slides-carousel" data-slide-to="1"></li>
+            <li data-target="#slides-carousel" data-slide-to="2"></li>
+            <li data-target="#slides-carousel" data-slide-to="3"></li>
+            <li data-target="#slides-carousel" data-slide-to="4"></li>
+            <li data-target="#slides-carousel" data-slide-to="5"></li>
+            <li data-target="#slides-carousel" data-slide-to="6"></li>
+            <li data-target="#slides-carousel" data-slide-to="7"></li>
+            <li data-target="#slides-carousel" data-slide-to="8"></li>
+            <li data-target="#slides-carousel" data-slide-to="9"></li>
+            <li data-target="#slides-carousel" data-slide-to="10"></li>
+            <li data-target="#slides-carousel" data-slide-to="11"></li>
+            <li data-target="#slides-carousel" data-slide-to="12"></li>
+            <li data-target="#slides-carousel" data-slide-to="13"></li>
+            <li data-target="#slides-carousel" data-slide-to="14"></li>
+            <li data-target="#slides-carousel" data-slide-to="15"></li>
+            <li data-target="#slides-carousel" data-slide-to="16"></li>
+            <li data-target="#slides-carousel" data-slide-to="17"></li>
+            <li data-target="#slides-carousel" data-slide-to="18"></li>
+            <li data-target="#slides-carousel" data-slide-to="19"></li>
+            <li data-target="#slides-carousel" data-slide-to="20"></li>
+            <li data-target="#slides-carousel" data-slide-to="21"></li>
+            <li data-target="#slides-carousel" data-slide-to="22"></li>
+            <li data-target="#slides-carousel" data-slide-to="23"></li>
+            <li data-target="#slides-carousel" data-slide-to="24"></li>
+            <li data-target="#slides-carousel" data-slide-to="25"></li>
+            <li data-target="#slides-carousel" data-slide-to="26"></li>
+            <li data-target="#slides-carousel" data-slide-to="27"></li>
+            <li data-target="#slides-carousel" data-slide-to="28"></li>
+            <li data-target="#slides-carousel" data-slide-to="29"></li>
+            <li data-target="#slides-carousel" data-slide-to="30"></li>
+            <li data-target="#slides-carousel" data-slide-to="31"></li>
+            <li data-target="#slides-carousel" data-slide-to="32"></li>
+            <li data-target="#slides-carousel" data-slide-to="33"></li>
+            <li data-target="#slides-carousel" data-slide-to="34"></li>
+            <li data-target="#slides-carousel" data-slide-to="35"></li>
+            <li data-target="#slides-carousel" data-slide-to="36"></li>
+            <li data-target="#slides-carousel" data-slide-to="37"></li>
+            <li data-target="#slides-carousel" data-slide-to="38"></li>
+            <li data-target="#slides-carousel" data-slide-to="39"></li>
+            <li data-target="#slides-carousel" data-slide-to="40"></li>
+            <li data-target="#slides-carousel" data-slide-to="41"></li>
+            <li data-target="#slides-carousel" data-slide-to="42"></li>
+            <li data-target="#slides-carousel" data-slide-to="43"></li>
+            <li data-target="#slides-carousel" data-slide-to="44"></li>
+            <li data-target="#slides-carousel" data-slide-to="45"></li>
+            <li data-target="#slides-carousel" data-slide-to="46"></li>
+            <li data-target="#slides-carousel" data-slide-to="47"></li>
+            <li data-target="#slides-carousel" data-slide-to="48"></li>
+            <li data-target="#slides-carousel" data-slide-to="49"></li>
+            <li data-target="#slides-carousel" data-slide-to="50"></li>
+            <li data-target="#slides-carousel" data-slide-to="51"></li>
+            <li data-target="#slides-carousel" data-slide-to="52"></li>
+            <li data-target="#slides-carousel" data-slide-to="53"></li>
+            <li data-target="#slides-carousel" data-slide-to="54"></li>
+            <li data-target="#slides-carousel" data-slide-to="55"></li>
+            <li data-target="#slides-carousel" data-slide-to="56"></li>
+            <li data-target="#slides-carousel" data-slide-to="57"></li>
+            <li data-target="#slides-carousel" data-slide-to="58"></li>
+            <li data-target="#slides-carousel" data-slide-to="59"></li>
+            <li data-target="#slides-carousel" data-slide-to="60"></li>
+            <li data-target="#slides-carousel" data-slide-to="61"></li>
+            <li data-target="#slides-carousel" data-slide-to="62"></li>
+            <li data-target="#slides-carousel" data-slide-to="63"></li>
+          </ol>
+
+          <!-- Wrapper for slides -->
+          <div class="carousel-inner">
+            <div class="item active"><img src="slides/Slide01.gif"></div>
+            <div class="item"><img src="slides/Slide02.gif"></div>
+            <div class="item"><img src="slides/Slide03.gif"></div>
+            <div class="item"><img src="slides/Slide04.gif"></div>
+            <div class="item"><img src="slides/Slide05.gif"></div>
+            <div class="item"><img src="slides/Slide06.gif"></div>
+            <div class="item"><img src="slides/Slide07.gif"></div>
+            <div class="item"><img src="slides/Slide08.gif"></div>
+            <div class="item"><img src="slides/Slide09.gif"></div>
+            <div class="item"><img src="slides/Slide10.gif"></div>
+            <div class="item"><img src="slides/Slide11.gif"></div>
+            <div class="item"><img src="slides/Slide12.gif"></div>
+            <div class="item"><img src="slides/Slide13.gif"></div>
+            <div class="item"><img src="slides/Slide14.gif"></div>
+            <div class="item"><img src="slides/Slide15.gif"></div>
+            <div class="item"><img src="slides/Slide16.gif"></div>
+            <div class="item"><img src="slides/Slide17.gif"></div>
+            <div class="item"><img src="slides/Slide18.gif"></div>
+            <div class="item"><img src="slides/Slide19.gif"></div>
+            <div class="item"><img src="slides/Slide20.gif"></div>
+            <div class="item"><img src="slides/Slide21.gif"></div>
+            <div class="item"><img src="slides/Slide22.gif"></div>
+            <div class="item"><img src="slides/Slide23.gif"></div>
+            <div class="item"><img src="slides/Slide24.gif"></div>
+            <div class="item"><img src="slides/Slide25.gif"></div>
+            <div class="item"><img src="slides/Slide26.gif"></div>
+            <div class="item"><img src="slides/Slide27.gif"></div>
+            <div class="item"><img src="slides/Slide28.gif"></div>
+            <div class="item"><img src="slides/Slide29.gif"></div>
+            <div class="item"><img src="slides/Slide30.gif"></div>
+            <div class="item"><img src="slides/Slide31.gif"></div>
+            <div class="item"><img src="slides/Slide32.gif"></div>
+            <div class="item"><img src="slides/Slide33.gif"></div>
+            <div class="item"><img src="slides/Slide34.gif"></div>
+            <div class="item"><img src="slides/Slide35.gif"></div>
+            <div class="item"><img src="slides/Slide36.gif"></div>
+            <div class="item"><img src="slides/Slide37.gif"></div>
+            <div class="item"><img src="slides/Slide38.gif"></div>
+            <div class="item"><img src="slides/Slide39.gif"></div>
+            <div class="item"><img src="slides/Slide40.gif"></div>
+            <div class="item"><img src="slides/Slide41.gif"></div>
+            <div class="item"><img src="slides/Slide42.gif"></div>
+            <div class="item"><img src="slides/Slide43.gif"></div>
+            <div class="item"><img src="slides/Slide44.gif"></div>
+            <div class="item"><img src="slides/Slide45.gif"></div>
+            <div class="item"><img src="slides/Slide46.gif"></div>
+            <div class="item"><img src="slides/Slide47.gif"></div>
+            <div class="item"><img src="slides/Slide48.gif"></div>
+            <div class="item"><img src="slides/Slide49.gif"></div>
+            <div class="item"><img src="slides/Slide50.gif"></div>
+            <div class="item"><img src="slides/Slide51.gif"></div>
+            <div class="item"><img src="slides/Slide52.gif"></div>
+            <div class="item"><img src="slides/Slide53.gif"></div>
+            <div class="item"><img src="slides/Slide54.gif"></div>
+            <div class="item"><img src="slides/Slide55.gif"></div>
+            <div class="item"><img src="slides/Slide56.gif"></div>
+            <div class="item"><img src="slides/Slide57.gif"></div>
+            <div class="item"><img src="slides/Slide58.gif"></div>
+            <div class="item"><img src="slides/Slide59.gif"></div>
+            <div class="item"><img src="slides/Slide60.gif"></div>
+            <div class="item"><img src="slides/Slide61.gif"></div>
+            <div class="item"><img src="slides/Slide62.gif"></div>
+            <div class="item"><img src="slides/Slide63.gif"></div>
+            <div class="item"><img src="slides/Slide64.gif"></div>
+          </div>
+
+          <!-- Controls -->
+          <a class="left carousel-control" href="#slides-carousel" role="button" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left"></span>
+          </a>
+          <a class="right carousel-control" href="#slides-carousel" role="button" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </div>
+
+    </div>
+
+  </body>
 </html>
