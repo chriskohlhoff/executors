@@ -6,7 +6,7 @@ table { margin: auto; border: 1px solid gray; border-collapse: collapse; }
 th { border: 1px solid gray; }
 td { border: 1px solid gray; }
 h1, h2, h3, h4, h5, div.titlepage { page-break-after: avoid; }
-</style><meta http-equiv="Content-Type" content="text/html; charset=US-ASCII"><title>Executors Proposal</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><pre>Doc. no:  D????  (as of commit be201326227ab5ef230dcaabdc99651ccd879786)
+</style><meta http-equiv="Content-Type" content="text/html; charset=US-ASCII"><title>Executors Proposal</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><pre>Doc. no:  D????  (as of commit 68371666a365df0bd1ed774d0b984eea1fd92b24)
 Date:     2014-??-??
 Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 </pre>
@@ -123,7 +123,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         for the template parameter <code class="computeroutput"><span class="identifier">Handler</span></code>;
         <code class="computeroutput"><span class="identifier">r</span></code> is a modifiable lvalue
         of type <code class="computeroutput"><span class="identifier">R</span></code>; and <code class="computeroutput"><span class="identifier">h</span></code> is a modifiable lvalue of type <code class="computeroutput"><span class="identifier">Handler</span></code>.
-      </p><div class="table"><a name="idm494191823872"></a><p class="title"><b>Table&#160;1.&#160;async_result specialization requirements</b></p><div class="table-contents"><table class="table" summary="async_result specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm97829166496"></a><p class="title"><b>Table&#160;1.&#160;async_result specialization requirements</b></p><div class="table-contents"><table class="table" summary="async_result specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -253,7 +253,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         is a const reference to an object of type <code class="computeroutput"><span class="identifier">T</span></code>;
         and <code class="computeroutput"><span class="identifier">a</span></code> is an object of type
         <code class="computeroutput"><span class="identifier">Alloc</span></code>.
-      </p><div class="table"><a name="idm494191652704"></a><p class="title"><b>Table&#160;2.&#160;associated_allocator specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_allocator specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm97828978928"></a><p class="title"><b>Table&#160;2.&#160;associated_allocator specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_allocator specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -425,9 +425,9 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 
 <span class="special">}</span> <span class="comment">// namespace std</span>
 </pre></div><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="concurrency.async_requirements"></a>5.8.&#160;Requirements</h3></div></div></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="requirements.executor"></a>5.8.1.&#160;Executor requirements</h4></div></div></div><p>
-          The library describes a standard set of requirements for <span class="emphasis"><em>executors</em></span>,
-          which are class-type objects that encapsulate the information about an
-          execution policy.
+          The library describes a standard set of requirements for <span class="emphasis"><em>executors</em></span>.
+          A type meeting Executor requirements shall embody a set of rules for determining
+          how submitted function objects are to be executed.
         </p><p>
           An executor type <code class="computeroutput"><span class="identifier">X</span></code> shall
           satisfy the requirements of <code class="computeroutput"><span class="identifier">CopyConstructible</span></code>
@@ -454,7 +454,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           (C++ Std, [allocator.requirements]), <code class="computeroutput"><span class="identifier">t</span></code>
           denotes an object of type <code class="computeroutput"><span class="identifier">T</span></code>,
           and <code class="computeroutput"><span class="identifier">u</span></code> denotes an identifier.
-        </p><div class="table"><a name="idm494191234832"></a><p class="title"><b>Table&#160;3.&#160;Executor requirements</b></p><div class="table-contents"><table class="table" summary="Executor requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+        </p><div class="table"><a name="idm97828561008"></a><p class="title"><b>Table&#160;3.&#160;Executor requirements</b></p><div class="table-contents"><table class="table" summary="Executor requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                   <p>
                     expression
                   </p>
@@ -986,7 +986,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         is a const reference to an object of type <code class="computeroutput"><span class="identifier">T</span></code>;
         and <code class="computeroutput"><span class="identifier">e</span></code> is an object of type
         <code class="computeroutput"><span class="identifier">Executor</span></code>.
-      </p><div class="table"><a name="idm494190454080"></a><p class="title"><b>Table&#160;4.&#160;associated_executor specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_executor specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm97827782016"></a><p class="title"><b>Table&#160;4.&#160;associated_executor specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_executor specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -1461,7 +1461,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         Class <code class="computeroutput"><span class="identifier">system_executor</span></code> is
         a <code class="computeroutput"><span class="identifier">DefaultConstructible</span></code> type
         (C++ Std, [defaultconstructible]) satisfying <a class="link" href="#requirements.executor" title="5.8.1.&#160;Executor requirements">Executor
-        requirements</a>. It represents an execution policy where function objects
+        requirements</a>. It represents a set of rules where function objects
         are permitted to execute on any thread.
       </p><p>
         To satisfy the executor requirements for the <code class="computeroutput"><span class="identifier">post</span></code>
