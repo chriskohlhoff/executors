@@ -310,7 +310,7 @@ For our bank account example, what is more important is that the variadic `post(
     auto transfer(int amount, bank_account& to_acct, CompletionToken&& token)
     {
       return std::experimental::dispatch(
-        ex_.wrap([=]
+        std::experimental::wrap(ex_, [=]
           {
             if (balance_ >= amount)
             {
@@ -320,7 +320,7 @@ For our bank account example, what is more important is that the variadic `post(
 
             return 0;
           }),
-        to_acct.ex_.wrap(
+        std::experimental::wrap(to_acct.ex_,
           [&to_acct](int deducted)
           {
             to_acct.balance_ += deducted;
@@ -332,7 +332,7 @@ For our bank account example, what is more important is that the variadic `post(
 
 Here, the first function object:
 
-    ex_.wrap([=]
+    std::experimental::wrap(ex_, [=]
       {
         if (balance_ >= amount)
         {
@@ -343,11 +343,11 @@ Here, the first function object:
         return 0;
       }),
 
-is run on the source account's strand `ex_`. We wrap the function object using `ex_.wrap(...)` to tell `dispatch()` which executor to use.
+is run on the source account's strand `ex_`. We wrap the function object using `wrap(ex_, ...)` to tell `dispatch()` which executor to use.
 
 The amount that is successfully deducted is then passed to the second function object:
 
-    to_acct.ex_.wrap(
+    std::experimental::wrap(to_acct.ex_,
       [&to_acct](int deducted)
       {
         to_acct.balance_ += deducted;
@@ -844,10 +844,12 @@ Channels provide a lightweight mechanism for chains of asynchronous operations (
       std::experimental::strand<std::experimental::system_executor> ex;
 
       std::experimental::dispatch(
-        ex.wrap([&](std::experimental::yield_context yield){ pinger(c, yield); }));
+        std::experimental::wrap(ex,
+          [&](std::experimental::yield_context yield){ pinger(c, yield); }));
 
       std::experimental::dispatch(
-        ex.wrap([&](std::experimental::yield_context yield){ printer(c, yield); }));
+        std::experimental::wrap(ex,
+          [&](std::experimental::yield_context yield){ printer(c, yield); }));
 
       std::string input;
       std::getline(std::cin, input);
