@@ -37,8 +37,8 @@ int main()
   auto c = std::make_shared<channel<std::string>>();
   strand<system_executor> s;
 
-  dispatch(wrap(s, [&](yield_context yield){ pinger(c, yield); }));
-  dispatch(wrap(s, [&](yield_context yield){ printer(c, yield); }));
+  dispatch(wrap(s, [c](yield_context yield){ pinger(c, yield); }));
+  dispatch(wrap(s, [c](yield_context yield){ printer(c, yield); }));
 
   std::string input;
   std::getline(std::cin, input);

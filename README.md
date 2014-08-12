@@ -845,11 +845,11 @@ Channels provide a lightweight mechanism for chains of asynchronous operations (
 
       std::experimental::dispatch(
         std::experimental::wrap(ex,
-          [&](std::experimental::yield_context yield){ pinger(c, yield); }));
+          [c](std::experimental::yield_context yield){ pinger(c, yield); }));
 
       std::experimental::dispatch(
         std::experimental::wrap(ex,
-          [&](std::experimental::yield_context yield){ printer(c, yield); }));
+          [c](std::experimental::yield_context yield){ printer(c, yield); }));
 
       std::string input;
       std::getline(std::cin, input);

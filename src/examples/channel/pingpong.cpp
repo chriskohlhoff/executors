@@ -14,7 +14,7 @@ using std::experimental::system_executor;
 using std::experimental::wrap;
 using std::experimental::yield_context;
 
-void pinger(std::shared_ptr<channel<std::string>>& c, yield_context yield)
+void pinger(std::shared_ptr<channel<std::string>> c, yield_context yield)
 {
   for (;;)
   {
@@ -22,7 +22,7 @@ void pinger(std::shared_ptr<channel<std::string>>& c, yield_context yield)
   }
 }
 
-void ponger(std::shared_ptr<channel<std::string>>& c, yield_context yield)
+void ponger(std::shared_ptr<channel<std::string>> c, yield_context yield)
 {
   for (;;)
   {
@@ -30,7 +30,7 @@ void ponger(std::shared_ptr<channel<std::string>>& c, yield_context yield)
   }
 }
 
-void printer(std::shared_ptr<channel<std::string>>& c, yield_context yield)
+void printer(std::shared_ptr<channel<std::string>> c, yield_context yield)
 {
   for (;;)
   {
@@ -45,9 +45,9 @@ int main()
   auto c = std::make_shared<channel<std::string>>();
   strand<system_executor> s;
 
-  dispatch(wrap(s, [&](yield_context yield){ pinger(c, yield); }));
-  dispatch(wrap(s, [&](yield_context yield){ ponger(c, yield); }));
-  dispatch(wrap(s, [&](yield_context yield){ printer(c, yield); }));
+  dispatch(wrap(s, [c](yield_context yield){ pinger(c, yield); }));
+  dispatch(wrap(s, [c](yield_context yield){ ponger(c, yield); }));
+  dispatch(wrap(s, [c](yield_context yield){ printer(c, yield); }));
 
   std::string input;
   std::getline(std::cin, input);
