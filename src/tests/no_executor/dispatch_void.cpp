@@ -1,6 +1,7 @@
 #include <experimental/executor>
 #include <experimental/future>
 #include <cassert>
+#include <string>
 
 int function_count = 0;
 int handler_count = 0;

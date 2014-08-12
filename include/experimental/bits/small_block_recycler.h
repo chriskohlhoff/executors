@@ -31,6 +31,10 @@ public:
   {
   }
 
+// The clang compiler shipped with Xcode doesn't support the thread_local
+// keyword. We make do with the __thread keyword extension, but this means we
+// cannot have a non-trivial destructor.
+#if !defined(__APPLE__) || !defined(__clang__)
   ~__small_block_recycler()
   {
     if (_M_memory)
@@ -38,6 +42,7 @@ public:
     if (_M_next_memory)
       ::operator delete(_M_next_memory);
   }
+#endif
 
   template <class _T>
   struct _Delete
@@ -135,11 +140,20 @@ private:
 
   void* _M_memory;
   void* _M_next_memory;
+#if defined(__APPLE__) && defined(__clang__)
+  static __thread __small_block_recycler _S_instance;
+#else
   static thread_local __small_block_recycler _S_instance;
+#endif
 };
 
+#if defined(__APPLE__) && defined(__clang__)
+template <unsigned char __max>
+__thread __small_block_recycler<__max> __small_block_recycler<__max>::_S_instance;
+#else
 template <unsigned char __max>
 thread_local __small_block_recycler<__max> __small_block_recycler<__max>::_S_instance;
+#endif
 
 template <class _T>
 class __small_block_allocator

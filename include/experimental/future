@@ -112,7 +112,13 @@ public:
 
   template <class _Func>
   explicit packaged_handler(packaged_token<_Func, _Alloc>&& __p)
-    : packaged_task<_Signature>(allocator_arg, __p._M_allocator, std::move(__p._M_func)),
+    : packaged_task<_Signature>(allocator_arg,
+#if defined(__APPLE__) && defined(__clang__)
+        typename allocator_traits<_Alloc>::template rebind_alloc<char>(__p._M_allocator),
+#else
+        __p._M_allocator,
+#endif
+        std::move(__p._M_func)),
       _M_allocator(__p._M_allocator)
   {
   }

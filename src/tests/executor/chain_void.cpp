@@ -2,6 +2,7 @@
 #include <experimental/future>
 #include <experimental/loop_scheduler>
 #include <cassert>
+#include <string>
 
 int function_count = 0;
 int handler_count = 0;

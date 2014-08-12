@@ -71,12 +71,22 @@ public:
 
 private:
   friend class __context;
+#if defined(__APPLE__) && defined(__clang__)
+  static __thread __context* _S_top;
+#else
   static thread_local __context* _S_top;
+#endif
 };
 
+#if defined(__APPLE__) && defined(__clang__)
+template <class _Key, class _Value>
+  __thread typename __call_stack<_Key, _Value>::__context*
+    __call_stack<_Key, _Value>::_S_top;
+#else
 template <class _Key, class _Value>
   thread_local typename __call_stack<_Key, _Value>::__context*
     __call_stack<_Key, _Value>::_S_top;
+#endif
 
 } // inline namespace concurrency_v1
 } // namespace experimental

@@ -2,6 +2,7 @@
 #include <experimental/future>
 #include <cassert>
 #include <stdexcept>
+#include <string>
 
 int function_count = 0;
 int handler_count = 0;
