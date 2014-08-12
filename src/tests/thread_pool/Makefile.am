@@ -5,6 +5,7 @@ noinst_PROGRAMS = \
 	dispatch_after_void \
 	dispatch_at_int \
 	dispatch_at_void \
+	make_work \
 	nested_dispatch \
 	post_int \
 	post_void \
@@ -20,6 +21,7 @@ TESTS = \
 	dispatch_after_void \
 	dispatch_at_int \
 	dispatch_at_void \
+	make_work \
 	nested_dispatch \
 	post_int \
 	post_void \
@@ -36,6 +38,7 @@ dispatch_after_int_SOURCES = dispatch_after_int.cpp
 dispatch_after_void_SOURCES = dispatch_after_void.cpp
 dispatch_at_int_SOURCES = dispatch_at_int.cpp
 dispatch_at_void_SOURCES = dispatch_at_void.cpp
+make_work_SOURCES = make_work.cpp
 nested_dispatch_SOURCES = nested_dispatch.cpp
 post_int_SOURCES = post_int.cpp
 post_void_SOURCES = post_void.cpp
