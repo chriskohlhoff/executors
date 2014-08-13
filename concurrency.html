@@ -6,7 +6,8 @@ table { margin: auto; border: 1px solid gray; border-collapse: collapse; }
 th { border: 1px solid gray; }
 td { border: 1px solid gray; }
 h1, h2, h3, h4, h5, div.titlepage { page-break-after: avoid; }
-</style><meta http-equiv="Content-Type" content="text/html; charset=US-ASCII"><title>Executors Proposal</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><pre>Doc. no:  D????  (as of commit a99766d98ca0d304e2d7be575a16844aeb54818d)
+dl { margin-top: 0px; margin-bottom: 0px; }
+</style><meta http-equiv="Content-Type" content="text/html; charset=US-ASCII"><title>Executors Proposal</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><pre>Doc. no:  D????  (as of commit 365ea10b2fec0a5ee1159f0e0d91543816e0624e)
 Date:     2014-??-??
 Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 </pre>
@@ -123,7 +124,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         for the template parameter <code class="computeroutput"><span class="identifier">Handler</span></code>;
         <code class="computeroutput"><span class="identifier">r</span></code> is a modifiable lvalue
         of type <code class="computeroutput"><span class="identifier">R</span></code>; and <code class="computeroutput"><span class="identifier">h</span></code> is a modifiable lvalue of type <code class="computeroutput"><span class="identifier">Handler</span></code>.
-      </p><div class="table"><a name="idm305330765776"></a><p class="title"><b>Table&#160;1.&#160;async_result specialization requirements</b></p><div class="table-contents"><table class="table" summary="async_result specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm181610686128"></a><p class="title"><b>Table&#160;1.&#160;async_result specialization requirements</b></p><div class="table-contents"><table class="table" summary="async_result specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -261,7 +262,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         is a const reference to an object of type <code class="computeroutput"><span class="identifier">T</span></code>;
         and <code class="computeroutput"><span class="identifier">a</span></code> is an object of type
         <code class="computeroutput"><span class="identifier">Alloc</span></code>.
-      </p><div class="table"><a name="idm305330570016"></a><p class="title"><b>Table&#160;2.&#160;associated_allocator specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_allocator specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm181610476672"></a><p class="title"><b>Table&#160;2.&#160;associated_allocator specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_allocator specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -501,7 +502,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           (C++ Std, [allocator.requirements]), <code class="computeroutput"><span class="identifier">t</span></code>
           denotes an object of type <code class="computeroutput"><span class="identifier">T</span></code>,
           and <code class="computeroutput"><span class="identifier">u</span></code> denotes an identifier.
-        </p><div class="table"><a name="idm305329980496"></a><p class="title"><b>Table&#160;3.&#160;Executor requirements</b></p><div class="table-contents"><table class="table" summary="Executor requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+        </p><div class="table"><a name="idm181605676592"></a><p class="title"><b>Table&#160;3.&#160;Executor requirements</b></p><div class="table-contents"><table class="table" summary="Executor requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                   <p>
                     expression
                   </p>
@@ -1033,7 +1034,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         is a const reference to an object of type <code class="computeroutput"><span class="identifier">T</span></code>;
         and <code class="computeroutput"><span class="identifier">e</span></code> is an object of type
         <code class="computeroutput"><span class="identifier">Executor</span></code>.
-      </p><div class="table"><a name="idm305329184048"></a><p class="title"><b>Table&#160;4.&#160;associated_executor specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_executor specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm181604880144"></a><p class="title"><b>Table&#160;4.&#160;associated_executor specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_executor specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
