@@ -32,7 +32,7 @@ typename __invoke_with_token<_CompletionTokens...>::_Result
   _Invoker __head(__tokens...);
   async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
 
-  auto __completion_executor(associated_executor<typename _Invoker::_Tail>::get(__head._Get_tail()));
+  auto __completion_executor(get_associated_executor(__head._Get_tail()));
   __head._Start(__completion_executor, __rel_time);
 
   return __result.get();

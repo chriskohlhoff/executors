@@ -30,8 +30,8 @@ typename __invoke_with_token<_CompletionTokens...>::_Result
   _Invoker __head(__tokens...);
   async_result<_Invoker> __result(__head);
 
-  auto __completion_executor(associated_executor<_Invoker>::get(__head));
-  auto __completion_allocator(associated_allocator<_Invoker>::get(__head));
+  auto __completion_executor(get_associated_executor(__head));
+  auto __completion_allocator(get_associated_allocator(__head));
   __completion_executor.dispatch(std::move(__head), __completion_allocator);
 
   return __result.get();
@@ -50,7 +50,7 @@ typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
   async_result<_Invoker> __result(__head);
 
   auto __completion_executor(__e);
-  auto __completion_allocator(associated_allocator<_Invoker>::get(__head));
+  auto __completion_allocator(get_associated_allocator(__head));
   __completion_executor.dispatch(std::move(__head), __completion_allocator);
 
   return __result.get();
@@ -69,7 +69,7 @@ typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...
   async_result<_Invoker> __result(__head);
 
   auto __completion_executor(__c.get_executor());
-  auto __completion_allocator(associated_allocator<_Invoker>::get(__head));
+  auto __completion_allocator(get_associated_allocator(__head));
   __completion_executor.dispatch(std::move(__head), __completion_allocator);
 
   return __result.get();
