@@ -8,20 +8,24 @@ using std::experimental::post;
 using std::experimental::thread_pool;
 using std::experimental::wrap;
 
+// A function to asynchronously read a single line from an input stream.
 template <class Handler>
 void async_getline(std::istream& is, Handler handler)
 {
+  // Create executor_work for the handler's associated executor.
   auto work = make_work(handler);
 
-  post([&is, work, handler=std::move(handler)]
+  // Post a function object to do the work asynchronously.
+  post([&is, work, handler=std::move(handler)]() mutable
       {
         std::string line;
         std::getline(is, line);
 
+        // Pass the result to the handler, via the associated executor.
         dispatch(work.get_executor(),
-            [line, handler=std::move(handler)]
+            [line=std::move(line), handler=std::move(handler)]
             {
-              handler(line);
+              handler(std::move(line));
             });
       });
 }
