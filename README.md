@@ -1,6 +1,10 @@
 A C++14 library for executors
 =============================
 
+> **NOTE:**
+>
+> The library described below is more extensive than that included in the latest standards proposal. To see what forms part of the proposal, visit [http://chriskohlhoff.github.io/executors/](http://chriskohlhoff.github.io/executors/).
+
 This is a potential standard library proposal that covers:
 
 * [Executors](#executors)
@@ -11,7 +15,7 @@ This is a potential standard library proposal that covers:
 * [Timers](#timers)
 * [Channels](#channels)
 
-It has been tested with g++ 4.8.2, g++ 4.9 (experimental) and clang 3.4, each using the `-std=c++1y` compiler option.
+It has been tested with g++ 4.8.2, g++ 4.9 and clang 3.4, each using the `-std=c++1y` compiler option.
 
 Executors
 ---------
