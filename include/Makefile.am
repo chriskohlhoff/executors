@@ -36,6 +36,7 @@ nobase_include_HEADERS = \
 	experimental/bits/executor_work.h \
 	experimental/bits/executor_wrapper.h \
 	experimental/bits/function_traits.h \
+	experimental/bits/get_associated_executor.h \
 	experimental/bits/invoker.h \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/make_work.h \

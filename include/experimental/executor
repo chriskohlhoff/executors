@@ -27,10 +27,11 @@ namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
 
-template <class, class = void> struct __get_executor_impl;
-
 template <class, class> struct __wrap_with_executor;
 template <class, class> struct __wrap_with_execution_context;
+
+template <class, class> struct __get_associated_executor_with_executor;
+template <class, class> struct __get_associated_executor_with_execution_context;
 
 template <class> struct __work_with_executor;
 template <class> struct __work_with_execution_context;
@@ -252,6 +253,17 @@ template <class _Executor, class _T>
 template <class _ExecutionContext, class _T>
   typename __wrap_with_execution_context<_ExecutionContext, _T>::_Result
     wrap(_ExecutionContext& __c, _T&& __t);
+
+// Helper function to obtain an associated executor.
+
+template <class _T>
+  associated_executor_t<_T> get_associated_executor(const _T& __t);
+template <class _T, class _Executor>
+  typename __get_associated_executor_with_executor<_T, _Executor>::_Result
+    get_associated_executor(const _T& __t, const _Executor& __e);
+template <class _T, class _ExecutionContext>
+  typename __get_associated_executor_with_execution_context<_T, _ExecutionContext>::_Result
+    get_associated_executor(const _T& __t, _ExecutionContext& __c);
 
 // An object of class executor_work controls ownership of executor work within
 // a scope.
@@ -478,6 +490,7 @@ template<class _Alloc>
 #include <experimental/bits/system_executor.h>
 #include <experimental/bits/executor_wrapper.h>
 #include <experimental/bits/wrap.h>
+#include <experimental/bits/get_associated_executor.h>
 #include <experimental/bits/executor_work.h>
 #include <experimental/bits/make_work.h>
 #include <experimental/bits/executor.h>

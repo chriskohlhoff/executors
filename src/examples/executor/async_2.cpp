@@ -2,8 +2,8 @@
 #include <experimental/thread_pool>
 #include <iostream>
 
-using std::experimental::associated_executor;
 using std::experimental::dispatch;
+using std::experimental::get_associated_executor;
 using std::experimental::make_work;
 using std::experimental::post;
 using std::experimental::thread_pool;
@@ -36,7 +36,7 @@ template <class Handler>
 void async_getlines(std::istream& is, std::string init, Handler handler)
 {
   // Get the final handler's associated executor.
-  auto ex = associated_executor<Handler>::get(handler);
+  auto ex = get_associated_executor(handler);
 
   // Use the associated executor for each operation in the composition.
   async_getline(is,

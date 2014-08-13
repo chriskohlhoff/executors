@@ -4,6 +4,7 @@ dispatch_after_int
 dispatch_after_void
 dispatch_at_int
 dispatch_at_void
+get_associated_executor
 make_work
 nested_dispatch
 post_int

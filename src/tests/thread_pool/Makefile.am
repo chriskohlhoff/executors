@@ -5,6 +5,7 @@ noinst_PROGRAMS = \
 	dispatch_after_void \
 	dispatch_at_int \
 	dispatch_at_void \
+	get_associated_executor \
 	make_work \
 	nested_dispatch \
 	post_int \
@@ -21,6 +22,7 @@ TESTS = \
 	dispatch_after_void \
 	dispatch_at_int \
 	dispatch_at_void \
+	get_associated_executor \
 	make_work \
 	nested_dispatch \
 	post_int \
@@ -38,6 +40,7 @@ dispatch_after_int_SOURCES = dispatch_after_int.cpp
 dispatch_after_void_SOURCES = dispatch_after_void.cpp
 dispatch_at_int_SOURCES = dispatch_at_int.cpp
 dispatch_at_void_SOURCES = dispatch_at_void.cpp
+get_associated_executor_SOURCES = get_associated_executor.cpp
 make_work_SOURCES = make_work.cpp
 nested_dispatch_SOURCES = nested_dispatch.cpp
 post_int_SOURCES = post_int.cpp
