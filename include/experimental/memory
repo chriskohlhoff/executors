@@ -35,8 +35,18 @@ struct associated_allocator
 template <class _T, class _Alloc = allocator<void>>
 using associated_allocator_t = typename associated_allocator<_T, _Alloc>::type;
 
+// Helper function to obtain an associated allocator.
+
+template <class _T>
+  associated_allocator_t<_T> get_associated_allocator(const _T& __t);
+template <class _T, class _Alloc>
+  associated_allocator_t<_T, _Alloc>
+    get_associated_allocator(const _T& __t, const _Alloc& __a);
+
 } // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
+
+#include <experimental/bits/get_associated_allocator.h>
 
 #endif

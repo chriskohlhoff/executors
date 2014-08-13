@@ -73,6 +73,7 @@ AC_OUTPUT([
   src/tests/execution_context/Makefile
   src/tests/executor/Makefile
   src/tests/loop_scheduler/Makefile
+  src/tests/memory/Makefile
   src/tests/no_executor/Makefile
   src/tests/performance/Makefile
   src/tests/strand/Makefile

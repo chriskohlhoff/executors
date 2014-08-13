@@ -1,5 +1,6 @@
 SUBDIRS = \
 	traits \
+	memory \
 	no_executor \
 	executor \
 	system_executor \
