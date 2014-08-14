@@ -34,7 +34,7 @@ class __function
   : public __function_base
 {
 public:
-  template <class _F> __function(_F&& __f) : _M_func(forward<_F>(__f)) {}
+  template <class _F> explicit __function(_F&& __f) : _M_func(forward<_F>(__f)) {}
   virtual void _Invoke() { std::move(_M_func)(); }
 
 private:
@@ -44,7 +44,7 @@ private:
 class __function_ptr
 {
 public:
-  template <class _F> __function_ptr(_F __f)
+  template <class _F> explicit __function_ptr(_F __f)
     : _M_func(new __function<_F>(std::move(__f))) {}
   void operator()() { _M_func->_Invoke(); }
 
