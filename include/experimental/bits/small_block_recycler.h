@@ -158,6 +158,11 @@ thread_local __small_block_recycler<__max> __small_block_recycler<__max>::_S_ins
 template <class _T>
 class __small_block_allocator
 {
+public:
+  typedef _T* pointer;
+  typedef const _T* const_pointer;
+  typedef _T value_type;
+
   template <class _U>
   struct rebind
   {
@@ -193,6 +198,10 @@ template <>
 class __small_block_allocator<void>
 {
 public:
+  typedef void* pointer;
+  typedef const void* const_pointer;
+  typedef void value_type;
+
   template <class _U>
   struct rebind
   {
