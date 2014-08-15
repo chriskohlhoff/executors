@@ -36,7 +36,7 @@ public:
   {
     __scheduler* _M_scheduler;
     __op_queue<__operation> _M_private_queue;
-    typename __call_stack<__scheduler, _Context>::__context _M_context;
+    __call_stack<__scheduler, _Context>::__context _M_context;
     unique_lock<mutex> _M_lock;
     ptrdiff_t _M_work_delta;
 

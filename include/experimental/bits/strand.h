@@ -32,7 +32,11 @@ struct __strand_impl
   __strand_impl& operator=(const __strand_impl&) = delete;
   ~__strand_impl();
 
+#if defined(_MSC_VER)
+  atomic_flag _M_lock;
+#else
   atomic_flag _M_lock = ATOMIC_FLAG_INIT;
+#endif
   bool _M_ready = false;
   __op_queue<__operation> _M_waiting_queue;
   __op_queue<__operation> _M_ready_queue;
@@ -97,6 +101,10 @@ private:
 inline __strand_impl::__strand_impl(__strand_service& __s)
   : _M_service(&__s)
 {
+#if defined(_MSC_VER)
+  _M_lock.clear();
+#endif
+
   lock_guard<mutex> __lock(_M_service->_M_mutex);
 
   _M_next = _M_service->_M_first;

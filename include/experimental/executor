@@ -141,7 +141,12 @@ template <class _T> struct is_executor : false_type {};
 // requirements.
 
 struct executor_arg_t {};
+
+#if defined(_MSC_VER)
+__declspec(selectany) executor_arg_t executor_arg = executor_arg_t{};
+#else
 constexpr executor_arg_t executor_arg = executor_arg_t{};
+#endif
 
 // The uses_executor trait detects whether _T has an associated executor that
 // is convertible from type _Executor. Meets the BinaryTypeTrait requirements.

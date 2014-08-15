@@ -29,9 +29,15 @@ class use_future_t
 public:
   typedef _Alloc allocator_type;
 
+#if defined(_MSC_VER)
+  use_future_t() noexcept
+  {
+  }
+#else
   constexpr use_future_t() noexcept
   {
   }
+#endif
 
   explicit use_future_t(const _Alloc& __a) noexcept
     : _M_allocator(__a)
@@ -54,7 +60,11 @@ private:
   allocator_type _M_allocator;
 };
 
+#if defined(_MSC_VER)
+__declspec(selectany) use_future_t<> use_future;
+#else
 constexpr use_future_t<> use_future;
+#endif
 
 template <class _Alloc, class _R, class... _Args>
   struct handler_type<use_future_t<_Alloc>, _R(_Args...)>;
@@ -90,7 +100,7 @@ public:
   }
 
 private:
-  template <class, class> friend struct packaged_handler;
+  template <class, class> friend class packaged_handler;
   _Func _M_func;
   _Alloc _M_allocator;
 };

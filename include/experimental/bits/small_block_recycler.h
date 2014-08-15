@@ -47,9 +47,9 @@ public:
   template <class _T>
   struct _Delete
   {
-    constexpr _Delete() noexcept {}
+    _Delete() noexcept {}
     template <class _U> _Delete(const _Delete<_U>&) {}
-    void operator()(_T* __p) const { _S_instance._Destroy(__p); }
+    void operator()(_T* __p) const { _Instance()._Destroy(__p); }
   };
 
   template <class _T>
@@ -70,7 +70,7 @@ public:
   static void _Destroy(_T* __p)
   {
     __p->~_T();
-    _S_instance._Deallocate(__p, sizeof(_T));
+    _Instance()._Deallocate(__p, sizeof(_T));
   }
 
   void* _Allocate(size_t __size)
@@ -126,13 +126,19 @@ public:
 
   static __small_block_recycler& _Instance()
   {
+#if defined(_MSC_VER)
+    if (!_S_instance)
+      _S_instance = new __small_block_recycler;
+    return *_S_instance;
+#else
     return _S_instance;
+#endif
   }
 
 private:
   struct _Init
   {
-    __small_block_recycler& _M_instance = _S_instance;
+    __small_block_recycler& _M_instance = _Instance();
     void* _M_memory = nullptr;
     size_t _M_size = 0;
     ~_Init() { _M_instance._Deallocate(_M_memory, _M_size); }
@@ -142,6 +148,8 @@ private:
   void* _M_next_memory;
 #if defined(__APPLE__) && defined(__clang__)
   static __thread __small_block_recycler _S_instance;
+#elif defined(_MSC_VER)
+  static __declspec(thread) __small_block_recycler* _S_instance;
 #else
   static thread_local __small_block_recycler _S_instance;
 #endif
@@ -150,6 +158,9 @@ private:
 #if defined(__APPLE__) && defined(__clang__)
 template <unsigned char __max>
 __thread __small_block_recycler<__max> __small_block_recycler<__max>::_S_instance;
+#elif defined(_MSC_VER)
+template <unsigned char __max>
+__declspec(thread) __small_block_recycler<__max>* __small_block_recycler<__max>::_S_instance;
 #else
 template <unsigned char __max>
 thread_local __small_block_recycler<__max> __small_block_recycler<__max>::_S_instance;

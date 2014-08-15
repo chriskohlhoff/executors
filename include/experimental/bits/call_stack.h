@@ -73,6 +73,8 @@ private:
   friend class __context;
 #if defined(__APPLE__) && defined(__clang__)
   static __thread __context* _S_top;
+#elif defined(_MSC_VER)
+  static __declspec(thread) __context* _S_top;
 #else
   static thread_local __context* _S_top;
 #endif
@@ -81,6 +83,10 @@ private:
 #if defined(__APPLE__) && defined(__clang__)
 template <class _Key, class _Value>
   __thread typename __call_stack<_Key, _Value>::__context*
+    __call_stack<_Key, _Value>::_S_top;
+#elif defined(_MSC_VER)
+template <class _Key, class _Value>
+  __declspec(thread) typename __call_stack<_Key, _Value>::__context*
     __call_stack<_Key, _Value>::_S_top;
 #else
 template <class _Key, class _Value>

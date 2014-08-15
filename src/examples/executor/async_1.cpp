@@ -1,6 +1,7 @@
 #include <experimental/executor>
 #include <experimental/thread_pool>
 #include <iostream>
+#include <string>
 
 using std::experimental::dispatch;
 using std::experimental::make_work;

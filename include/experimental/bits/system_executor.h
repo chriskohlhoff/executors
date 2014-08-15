@@ -14,6 +14,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <memory>
 #include <type_traits>
 #include <thread>
 #include <vector>
@@ -29,18 +30,36 @@ class __system_executor_impl
 public:
   __system_executor_impl()
   {
+#if defined(_MSC_VER)
+    auto sp = std::make_shared<int>(0);
+    _M_token = sp;
+#endif
     _M_scheduler._Work_started();
     std::size_t __n = thread::hardware_concurrency();
     for (size_t __i = 0; __i < __n; ++__i)
-      _M_threads.emplace_back([this](){ _M_scheduler._Run(); });
+    {
+#if defined(_MSC_VER)
+      _M_threads.emplace_back([sp, this]() { _M_scheduler._Run(); });
+#else
+      _M_threads.emplace_back([this]() { _M_scheduler._Run(); });
+#endif
+    }
   }
 
   ~__system_executor_impl()
   {
     _M_scheduler._Work_finished();
     _M_scheduler._Stop();
+#if defined(_MSC_VER)
+    // Work around MSVC deadlock bug when joining threads in global destructors.
+    while (!_M_token.expired())
+      std::this_thread::yield();
+    for (auto& __t: _M_threads)
+      __t.detach();
+#else
     for (auto& __t: _M_threads)
       __t.join();
+#endif
     shutdown_context();
   }
 
@@ -63,6 +82,9 @@ public:
 private:
   __scheduler _M_scheduler;
   vector<thread> _M_threads;
+#if defined(_MSC_VER)
+  std::weak_ptr<void> _M_token;
+#endif
 };
 
 inline execution_context& system_executor::context() noexcept

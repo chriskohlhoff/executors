@@ -90,11 +90,11 @@ private:
     item(int pri, Func f) : function(std::move(f))
     {
       priority_ = pri;
-      execute_ = [](auto p)
+      execute_ = [](std::shared_ptr<item_base>& p)
       {
-        Func f(std::move(static_cast<item*>(p.get())->function));
+        Func tmp(std::move(static_cast<item*>(p.get())->function));
         p.reset();
-        std::move(f)();
+        std::move(tmp)();
       };
     }
 
