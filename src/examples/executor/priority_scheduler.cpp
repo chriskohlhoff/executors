@@ -67,12 +67,14 @@ public:
 
   void run()
   {
-    for (std::unique_lock<std::mutex> lock(mutex_);! queue_.empty(); lock.lock())
+    std::unique_lock<std::mutex> lock(mutex_);
+    while (!queue_.empty())
     {
       auto p(queue_.top());
       queue_.pop();
       lock.unlock();
       p->execute_(p);
+      lock.lock();
     }
   }
 
