@@ -15,7 +15,7 @@ public:
   class executor_type
   {
   public:
-    executor_type(priority_scheduler& ctx, int pri)
+    executor_type(priority_scheduler& ctx, int pri) noexcept
       : context_(ctx), priority_(pri)
     {
     }
@@ -80,7 +80,6 @@ private:
   struct item_base
   {
     int priority_;
-    std::size_t seq_num_;
     void (*execute_)(std::shared_ptr<item_base>&);
   };
 
