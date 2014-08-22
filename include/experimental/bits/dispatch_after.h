@@ -59,7 +59,7 @@ typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
 template <class _Rep, class _Period, class _ExecutionContext, class... _CompletionTokens>
 typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
   dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
-    const _ExecutionContext& __c, _CompletionTokens&&... __tokens)
+    _ExecutionContext& __c, _CompletionTokens&&... __tokens)
 {
   static_assert(sizeof...(_CompletionTokens) > 0,
     "dispatch_after() must be called with one or more completion tokens");
