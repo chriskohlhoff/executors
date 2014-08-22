@@ -207,6 +207,16 @@ public:
     post(std::forward<Func>(f), a);
   }
 
+  friend bool operator==(const fork_executor& a, const fork_executor& b)
+  {
+    return a.work_count_ == b.work_count_;
+  }
+
+  friend bool operator!=(const fork_executor& a, const fork_executor& b)
+  {
+    return a.work_count_ != b.work_count_;
+  }
+
   void join()
   {
     std::unique_lock<std::mutex> lock(context_.mutex_);
