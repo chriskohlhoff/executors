@@ -227,7 +227,7 @@ private:
       {
         Func tmp(std::move(static_cast<function*>(p.get())->function_));
         p.reset();
-        std::move(tmp)();
+        tmp();
       };
     }
 

@@ -37,7 +37,7 @@ public:
     __timer->wait((wrap)(__e, std::move(*this)));
   }
 
-  void operator()(const error_code&) &&
+  void operator()(const error_code&)
   {
     std::move(_M_tail)();
   }

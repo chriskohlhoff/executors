@@ -236,7 +236,7 @@ public:
   {
   }
 
-  void operator()(_FuncArgs... __args) &&
+  void operator()(_FuncArgs... __args)
   {
     this->_Invoke(is_same<void, _FuncResult>(), forward<_FuncArgs>(__args)...);
   }

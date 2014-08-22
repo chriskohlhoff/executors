@@ -65,7 +65,7 @@ public:
   // continuation invocation:
 
   executor_type get_executor() const noexcept;
-  void operator()(_Args... __args) &&;
+  void operator()(_Args... __args);
 
   // continuation target access:
 

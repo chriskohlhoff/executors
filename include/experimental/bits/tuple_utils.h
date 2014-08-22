@@ -88,7 +88,7 @@ struct __tuple_invoker
   _Handler _M_handler;
   tuple<_Values...> _M_args;
 
-  void operator()() &&
+  void operator()()
   {
     _Tuple_invoke(std::move(_M_handler), std::move(_M_args));
   }

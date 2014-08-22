@@ -42,7 +42,7 @@ public:
   {
   }
 
-  void operator()(_Args... __args) &&
+  void operator()(_Args... __args)
   {
     auto __ex(_M_work.get_executor());
     auto __alloc(associated_allocator<_Passive>::get(_M_passive));
@@ -128,7 +128,7 @@ public:
   {
   }
 
-  void operator()(_Args... __args) &&
+  void operator()(_Args... __args)
   {
     std::move(_M_handler)(forward<_Args>(__args)...);
   }
@@ -215,7 +215,7 @@ public:
   {
   }
 
-  void operator()(_Args... __args) &&
+  void operator()(_Args... __args)
   {
     continuation_of<_Handler(_Args...)>::chain(std::move(_M_handler), std::move(_M_tail))(forward<_Args>(__args)...);
   }

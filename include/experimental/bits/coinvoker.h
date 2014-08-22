@@ -160,7 +160,7 @@ public:
       _M_tail->_Release();
   }
 
-  template <class... _Args> void operator()(_Args&&... __args) &&
+  template <class... _Args> void operator()(_Args&&... __args)
   {
     _M_tail->template _Set_result<_Index>(forward<_Args>(__args)...);
     auto* __t = _M_tail;
@@ -200,7 +200,7 @@ public:
   {
   }
 
-  void operator()() &&
+  void operator()()
   {
     continuation_of<_Handler()>::chain(std::move(_M_handler), std::move(_M_tail))();
   }

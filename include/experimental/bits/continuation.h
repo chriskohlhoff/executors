@@ -197,7 +197,7 @@ continuation<_R(_Args...)>::get_executor() const noexcept
 }
 
 template <class _R, class... _Args>
-inline void continuation<_R(_Args...)>::operator()(_Args... __args) &&
+inline void continuation<_R(_Args...)>::operator()(_Args... __args)
 {
   if (!_M_impl)
     throw bad_continuation();
@@ -228,7 +228,7 @@ struct __continuation_chain
   continuation<_R(_Args...)> _M_head;
   continuation<__make_signature_t<void, _R>> _M_tail;
 
-  void operator()(_Args... __args) &&
+  void operator()(_Args... __args)
   {
     _M_head._M_impl->_Call_with_continuation(forward<_Args>(__args)..., std::move(_M_tail));
   }
@@ -446,7 +446,7 @@ struct __continuation_launcher
   {
   }
 
-  template <class... _Args> void operator()(_Args&&... __args) &&
+  template <class... _Args> void operator()(_Args&&... __args)
   {
     std::move(_M_func)(forward<_Args>(__args)..., std::move(_M_continuation));
   }

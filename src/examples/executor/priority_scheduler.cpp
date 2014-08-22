@@ -120,7 +120,7 @@ private:
       {
         Func tmp(std::move(static_cast<item*>(p.get())->function_));
         p.reset();
-        std::move(tmp)();
+        tmp();
       };
     }
 
