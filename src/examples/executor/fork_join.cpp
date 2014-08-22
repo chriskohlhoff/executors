@@ -143,7 +143,7 @@ private:
     condition_.notify_one();
   }
 
-  // Ask all threads to shut don.
+  // Ask all threads to shut down.
   void stop_threads()
   {
     std::lock_guard<std::mutex> lock(mutex_);
