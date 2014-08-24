@@ -217,6 +217,8 @@ public:
     return a.work_count_ != b.work_count_;
   }
 
+  // Block until all work associated with the executor is complete. While it is
+  // waiting, the thread may be borrowed to execute functions from the queue.
   void join()
   {
     std::unique_lock<std::mutex> lock(context_.mutex_);
