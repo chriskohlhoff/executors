@@ -24,7 +24,7 @@ void async_getline(std::istream& is, Handler handler)
 
         // Pass the result to the handler, via the associated executor.
         dispatch(work.get_executor(),
-            [line=std::move(line), handler=std::move(handler)]
+            [line=std::move(line), handler=std::move(handler)]() mutable
             {
               handler(std::move(line));
             });
