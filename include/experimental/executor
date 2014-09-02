@@ -115,6 +115,7 @@ private:
   execution_context& _M_context;
   const type_info* _M_id;
   service* _M_next;
+  bool _M_shutdown;
 };
 
 // Functions for accessing the services within an execution context.

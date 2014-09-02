@@ -69,7 +69,11 @@ inline void execution_context::shutdown_context()
   service* __s = __first;
   while (__s)
   {
-    __s->shutdown_service();
+    if (!__s->_M_shutdown)
+    {
+      __s->_M_shutdown = true;
+      __s->shutdown_service();
+    }
     __s = __s->_M_next;
   }
 }
@@ -85,7 +89,7 @@ inline void execution_context::destroy_context()
 }
 
 inline execution_context::service::service(execution_context& __c)
-  : _M_context(__c), _M_next(nullptr)
+  : _M_context(__c), _M_next(nullptr), _M_shutdown(false)
 {
 }
 
