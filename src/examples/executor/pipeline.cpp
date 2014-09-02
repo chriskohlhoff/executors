@@ -38,8 +38,7 @@ private:
     virtual void shutdown_service()
     {
       for (auto& t : threads_)
-        if (t.joinable())
-          t.join();
+        t.join();
     }
 
     std::mutex mutex_;
