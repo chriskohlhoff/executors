@@ -7,7 +7,7 @@ th { border: 1px solid gray; }
 td { border: 1px solid gray; }
 h1, h2, h3, h4, h5, div.titlepage { page-break-after: avoid; }
 dl { margin-top: 0px; margin-bottom: 0px; }
-</style><meta http-equiv="Content-Type" content="text/html; charset=US-ASCII"><title>Executors Proposal</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><pre>Doc. no:  D????  (as of commit d4ac7e18cf5c0864d2a03d61f32126bcfcc938c3)
+</style><meta http-equiv="Content-Type" content="text/html; charset=US-ASCII"><title>Executors Proposal</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><pre>Doc. no:  D????  (as of commit 730249b70aee6867e05296030cb5dd93482fa509)
 Date:     2014-??-??
 Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
 </pre>
@@ -124,7 +124,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         for the template parameter <code class="computeroutput"><span class="identifier">Handler</span></code>;
         <code class="computeroutput"><span class="identifier">r</span></code> is a modifiable lvalue
         of type <code class="computeroutput"><span class="identifier">R</span></code>; and <code class="computeroutput"><span class="identifier">h</span></code> is a modifiable lvalue of type <code class="computeroutput"><span class="identifier">Handler</span></code>.
-      </p><div class="table"><a name="idm146435250720"></a><p class="title"><b>Table&#160;1.&#160;async_result specialization requirements</b></p><div class="table-contents"><table class="table" summary="async_result specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm471343076464"></a><p class="title"><b>Table&#160;1.&#160;async_result specialization requirements</b></p><div class="table-contents"><table class="table" summary="async_result specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -262,7 +262,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         is a const reference to an object of type <code class="computeroutput"><span class="identifier">T</span></code>;
         and <code class="computeroutput"><span class="identifier">a</span></code> is an object of type
         <code class="computeroutput"><span class="identifier">Alloc</span></code>.
-      </p><div class="table"><a name="idm146435048768"></a><p class="title"><b>Table&#160;2.&#160;associated_allocator specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_allocator specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm471342868240"></a><p class="title"><b>Table&#160;2.&#160;associated_allocator specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_allocator specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
@@ -502,7 +502,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           (C++ Std, [allocator.requirements]), <code class="computeroutput"><span class="identifier">t</span></code>
           denotes an object of type <code class="computeroutput"><span class="identifier">T</span></code>,
           and <code class="computeroutput"><span class="identifier">u</span></code> denotes an identifier.
-        </p><div class="table"><a name="idm146432345840"></a><p class="title"><b>Table&#160;3.&#160;Executor requirements</b></p><div class="table-contents"><table class="table" summary="Executor requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+        </p><div class="table"><a name="idm471340165312"></a><p class="title"><b>Table&#160;3.&#160;Executor requirements</b></p><div class="table-contents"><table class="table" summary="Executor requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                   <p>
                     expression
                   </p>
@@ -787,14 +787,6 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
           </p></blockquote></div><div class="blockquote"><blockquote class="blockquote"><p>
             [<span class="emphasis"><em>Note:</em></span> <code class="computeroutput"><span class="identifier">destroy_context</span></code>
             is an idempotent operation. &#8212;<span class="emphasis"><em>end note</em></span>]
-          </p></blockquote></div><pre class="programlisting"><span class="keyword">void</span> <span class="identifier">notify_fork</span><span class="special">(</span><span class="identifier">fork_event</span> <span class="identifier">e</span><span class="special">);</span>
-</pre><div class="blockquote"><blockquote class="blockquote"><p>
-            <span class="emphasis"><em>Effects:</em></span> For each service object <code class="computeroutput"><span class="identifier">svc</span></code>
-            in the set:<br> &#8212; If <code class="computeroutput"><span class="identifier">e</span> <span class="special">==</span> <span class="identifier">fork_event</span><span class="special">::</span><span class="identifier">prepare</span></code>,
-            performs <code class="computeroutput"><span class="identifier">svc</span><span class="special">-&gt;</span><span class="identifier">notify_fork</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span></code>
-            in reverse order of the beginning of service object lifetime (C++ Std,
-            [basic.life]).<br> &#8212; Otherwise, performs <code class="computeroutput"><span class="identifier">svc</span><span class="special">-&gt;</span><span class="identifier">notify_fork</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span></code> in order of the beginning of service
-            object lifetime.
           </p></blockquote></div></div><div class="section"><div class="titlepage"><div><div><h4 class="title"><a name="classes.__execution_context__globals"></a>5.10.5.&#160;<code class="literal">execution_context</code> globals</h4></div></div></div><p>
           The functions <code class="computeroutput"><span class="identifier">use_service</span></code>,
           <code class="computeroutput"><span class="identifier">make_service</span></code> and <code class="computeroutput"><span class="identifier">has_service</span></code> shall not introduce data
@@ -1034,7 +1026,7 @@ Reply-To: Christopher Kohlhoff &lt;chris@kohlhoff.com&gt;
         is a const reference to an object of type <code class="computeroutput"><span class="identifier">T</span></code>;
         and <code class="computeroutput"><span class="identifier">e</span></code> is an object of type
         <code class="computeroutput"><span class="identifier">Executor</span></code>.
-      </p><div class="table"><a name="idm146431549392"></a><p class="title"><b>Table&#160;4.&#160;associated_executor specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_executor specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
+      </p><div class="table"><a name="idm471339402832"></a><p class="title"><b>Table&#160;4.&#160;associated_executor specialization requirements</b></p><div class="table-contents"><table class="table" summary="associated_executor specialization requirements"><colgroup><col><col><col></colgroup><thead><tr><th>
                 <p>
                   Expression
                 </p>
