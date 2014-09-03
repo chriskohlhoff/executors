@@ -54,12 +54,20 @@ basic_yield_context<_Executor>::get_executor() const noexcept
 
 struct __yield_context_caller
 {
+#ifdef EXECUTORS_NO_BOOST
+  struct _Coro { void operator()(){} } _M_coro;
+#else
   boost::coroutines::pull_coroutine<void>& _M_coro;
+#endif
 };
 
 struct __yield_context_callee
 {
+#ifdef EXECUTORS_NO_BOOST
+  struct _Coro { void operator()(){} } _M_coro;
+#else
   boost::coroutines::push_coroutine<void> _M_coro;
+#endif
   atomic_flag _M_lock = ATOMIC_FLAG_INIT;
 
   class _Lock_guard
@@ -260,6 +268,7 @@ struct __yield_context_entry_point
     return _M_work.get_executor();
   }
 
+#ifndef EXECUTORS_NO_BOOST
   void operator()(boost::coroutines::pull_coroutine<void>& __coro)
   {
     if (_M_callee.expired()) // Workaround for bug in Boost.Coroutine in Boost 1.55.
@@ -274,6 +283,7 @@ struct __yield_context_entry_point
     typedef decltype(_Tuple_invoke(_M_func, _M_args, __ctx)) _Result;
     this->_Invoke(is_same<_Result, void>(), __ctx);
   }
+#endif
 
   void _Invoke(true_type, const basic_yield_context<_Executor>& __ctx)
   {
@@ -337,7 +347,11 @@ struct __yield_context_launcher
       __ep{std::move(_M_func), std::move(_M_continuation),
         std::tie(forward<_Args>(__args)...), std::move(_M_work), __callee};
 
+#ifdef EXECUTORS_NO_BOOST
+    assert(0 && "boost required to make use of yield_context");
+#else
     __callee->_M_coro = boost::coroutines::push_coroutine<void>(std::move(__ep));
+#endif
 
     typename __yield_context_callee::_Lock_guard __lock(*__callee);
     __callee->_M_coro();
