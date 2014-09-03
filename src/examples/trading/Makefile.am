@@ -32,5 +32,18 @@ market_data_dump_SOURCES = \
 	common/udp_socket.cpp \
 	client/market_data_dump.cpp
 
+EXTRA_DIST = \
+	common/order_side.hpp \
+	common/market_data.hpp \
+	common/udp_socket.hpp \
+	common/order_management.hpp \
+	server/order_management_bus.hpp \
+	server/price_time_order_book.hpp \
+	server/connection_handler.hpp \
+	server/order_book.hpp \
+	server/market_data_bus.hpp \
+	server/market_by_order.hpp \
+	server/market_data_feed.hpp
+
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in

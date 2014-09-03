@@ -17,6 +17,7 @@ nobase_include_HEADERS = \
 	experimental/bits/call_stack.h \
 	experimental/bits/chain.h \
 	experimental/bits/channel.h \
+	experimental/bits/channel_base.h \
 	experimental/bits/channel_void.h \
 	experimental/bits/codefer.h \
 	experimental/bits/codispatch.h \
@@ -35,6 +36,7 @@ nobase_include_HEADERS = \
 	experimental/bits/executor_traits.h \
 	experimental/bits/executor_work.h \
 	experimental/bits/executor_wrapper.h \
+	experimental/bits/executor_wrapper_base.h \
 	experimental/bits/function_traits.h \
 	experimental/bits/get_associated_allocator.h \
 	experimental/bits/get_associated_executor.h \
