@@ -8,6 +8,7 @@
 #include <vector>
 
 using std::experimental::execution_context;
+using std::experimental::executor_wrapper;
 using std::experimental::get_associated_executor;
 using std::experimental::package;
 using std::experimental::post;
@@ -192,7 +193,7 @@ template <class T, class F, class... Tail>
 std::future<void> pipeline(queue_back<T> in, F f, Tail... t)
 {
   // Determine the output queue type.
-  typedef typename std::reference_wrapper<F>::second_argument_type::value_type output_value_type;
+  typedef typename executor_wrapper<F, thread_executor>::second_argument_type::value_type output_value_type;
 
   // Create the output queue and its implementation.
   auto out_impl = std::make_shared<queue_impl<output_value_type>>();
@@ -218,7 +219,7 @@ template <class F, class... Tail>
 std::future<void> pipeline(F f, Tail... t)
 {
   // Determine the output queue type.
-  typedef typename std::reference_wrapper<F>::argument_type::value_type output_value_type;
+  typedef typename executor_wrapper<F, thread_executor>::argument_type::value_type output_value_type;
 
   // Create the output queue and its implementation.
   auto out_impl = std::make_shared<queue_impl<output_value_type>>();
