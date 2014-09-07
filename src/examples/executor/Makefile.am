@@ -12,6 +12,8 @@ noinst_PROGRAMS = \
 	bank_account_9 \
 	fork_join \
 	pipeline \
+	post_1 \
+	post_2 \
 	priority_scheduler \
 	sort_1 \
 	sort_2 \
@@ -36,6 +38,8 @@ bank_account_8_SOURCES = bank_account_8.cpp
 bank_account_9_SOURCES = bank_account_9.cpp
 fork_join_SOURCES = fork_join.cpp
 pipeline_SOURCES = pipeline.cpp
+post_1_SOURCES = post_1.cpp
+post_2_SOURCES = post_2.cpp
 priority_scheduler_SOURCES = priority_scheduler.cpp
 sort_1_SOURCES = sort_1.cpp
 sort_2_SOURCES = sort_2.cpp
