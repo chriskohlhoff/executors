@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 
   std::vector<work> work_list(std::atoi(argv[1]));
 
-  // Spawn a bunch of asynchronous tasks and wait for them to complete.
+  // Start a bunch of asynchronous tasks and wait for them to complete.
   latch l(work_list.size());
   for (auto work: work_list)
   {

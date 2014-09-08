@@ -13,6 +13,7 @@ fork_join
 pipeline
 post_1
 post_2
+post_3
 priority_scheduler
 sort_1
 sort_2
