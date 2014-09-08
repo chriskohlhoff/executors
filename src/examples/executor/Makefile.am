@@ -15,6 +15,8 @@ noinst_PROGRAMS = \
 	post_1 \
 	post_2 \
 	post_3 \
+	post_4 \
+	post_5 \
 	priority_scheduler \
 	sort_1 \
 	sort_2 \
@@ -42,6 +44,8 @@ pipeline_SOURCES = pipeline.cpp
 post_1_SOURCES = post_1.cpp
 post_2_SOURCES = post_2.cpp
 post_3_SOURCES = post_3.cpp
+post_4_SOURCES = post_4.cpp
+post_5_SOURCES = post_5.cpp
 priority_scheduler_SOURCES = priority_scheduler.cpp
 sort_1_SOURCES = sort_1.cpp
 sort_2_SOURCES = sort_2.cpp

@@ -124,8 +124,12 @@ int main(int argc, char* argv[])
   for (auto src: src_files)
   {
     // Post file read on file_pool and content processing on system_executor.
-    post(file_pool, [src, &content_results, &done]{
-        post([content=read_file(src), &content_results, &done]{
+    post(file_pool,
+      [&, src]
+      {
+        post(
+          [&, content=read_file(src)]() mutable
+          {
             auto result = process_content(std::move(content));
             content_results.push_back(std::move(result));
             done.arrive();
@@ -138,10 +142,12 @@ int main(int argc, char* argv[])
   strand<system_executor> merge_executor;
   thread_pool ui_executor(1);
   notifying_latch nl(content_results.size(),
-      wrap(ui_executor, [&out]{ render_content(out); }));
+      wrap(ui_executor, [&]{ render_content(out); }));
   for (auto& result: content_results)
   {
-    post(merge_executor, [&out, &result, &nl]{
+    post(merge_executor,
+      [&]
+      {
         append_content(out, result);
         nl.arrive();
       });

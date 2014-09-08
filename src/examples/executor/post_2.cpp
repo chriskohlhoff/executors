@@ -30,7 +30,9 @@ int main(int argc, char* argv[])
   thread_pool tp(16);
   for (auto work: work_list)
   {
-    post(tp, [work]{
+    post(tp,
+      [work]
+      {
         do_something(work);
       });
   }

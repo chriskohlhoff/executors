@@ -59,7 +59,9 @@ int main(int argc, char* argv[])
   latch l(work_list.size());
   for (auto work: work_list)
   {
-    post([work, &l]{
+    post(
+      [work, &l]
+      {
         do_something(work);
         l.arrive();
       });
