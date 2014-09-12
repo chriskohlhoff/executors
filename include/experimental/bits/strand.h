@@ -378,9 +378,29 @@ void strand<_Executor>::post(_Func&& __f, const _Alloc&)
 }
 
 template <class _Executor> template <class _Func, class _Alloc>
-inline void strand<_Executor>::defer(_Func&& __f, const _Alloc& a)
+inline void strand<_Executor>::defer(_Func&& __f, const _Alloc&)
 {
-  this->post(forward<_Func>(__f), a);
+  typedef typename decay<_Func>::type _DecayFunc;
+  __small_block_recycler<>::_Unique_ptr<__strand_op<_DecayFunc>> __op(
+    __small_block_recycler<>::_Create<__strand_op<_DecayFunc>>(forward<_Func>(__f)));
+
+  {
+    __strand_impl::_Lock_guard __lock(*_M_impl);
+
+    if (_M_impl->_M_ready)
+    {
+      _M_impl->_M_waiting_queue._Push(__op.get());
+      __op.release();
+      return;
+    }
+
+    _M_impl->_M_ready = true;
+  }
+
+  _M_impl->_M_ready_queue._Push(__op.get());
+  __op.release();
+
+  _M_executor.defer(__strand_invoker<_Executor>{_M_executor, _M_impl}, __small_block_allocator<void>());
 }
 
 template <class _Executor>
