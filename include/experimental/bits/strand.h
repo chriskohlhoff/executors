@@ -299,7 +299,7 @@ struct __strand_invoker
       if (__more)
       {
         auto __executor(_M_invoker->_M_work.get_executor());
-        __executor.defer(std::move(*_M_invoker), __small_block_allocator<void>());
+        __executor.defer(std::move(*_M_invoker), __small_block_allocator<void, __strand_impl>());
       }
     }
   };
@@ -348,7 +348,7 @@ void strand<_Executor>::dispatch(_Func&& __f, const _Alloc& __a)
   _M_impl->_M_ready_queue._Push(__op.get());
   __op.release();
 
-  _M_executor.dispatch(__strand_invoker<_Executor>(_M_executor, _M_impl), __small_block_allocator<void>());
+  _M_executor.dispatch(__strand_invoker<_Executor>(_M_executor, _M_impl), __small_block_allocator<void, __strand_impl>());
 }
 
 template <class _Executor> template <class _Func, class _Alloc>
@@ -373,7 +373,7 @@ void strand<_Executor>::post(_Func&& __f, const _Alloc& __a)
   _M_impl->_M_ready_queue._Push(__op.get());
   __op.release();
 
-  _M_executor.post(__strand_invoker<_Executor>{_M_executor, _M_impl}, __small_block_allocator<void>());
+  _M_executor.post(__strand_invoker<_Executor>{_M_executor, _M_impl}, __small_block_allocator<void, __strand_impl>());
 }
 
 template <class _Executor> template <class _Func, class _Alloc>
@@ -398,7 +398,7 @@ inline void strand<_Executor>::defer(_Func&& __f, const _Alloc& __a)
   _M_impl->_M_ready_queue._Push(__op.get());
   __op.release();
 
-  _M_executor.defer(__strand_invoker<_Executor>{_M_executor, _M_impl}, __small_block_allocator<void>());
+  _M_executor.defer(__strand_invoker<_Executor>{_M_executor, _M_impl}, __small_block_allocator<void, __strand_impl>());
 }
 
 template <class _Executor>
