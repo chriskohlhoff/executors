@@ -246,8 +246,8 @@ auto basic_timer<_Clock, _TimerTraits>::wait(_CompletionToken&& __token)
   async_completion<_CompletionToken, void(error_code)> __completion(__token);
 
   typedef __wait_op<_Handler> _Op;
-  __small_block_recycler<>::_Unique_ptr<_Op> __op(
-    __small_block_recycler<>::_Create<_Op>(std::move(__completion.handler)));
+  auto __allocator(get_associated_allocator(__completion.handler));
+  auto __op(_Allocate_small_block<_Op>(__allocator, std::move(__completion.handler)));
 
   _M_service->_M_reactor._Enqueue_timer(_M_service->_M_queue, _M_expiry, _M_data, __op.get());
   __op.release();

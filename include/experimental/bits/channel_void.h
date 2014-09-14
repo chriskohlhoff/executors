@@ -30,13 +30,14 @@ public:
 
   template <class _H> explicit _Op(_H&& __h)
     : _M_handler(forward<_H>(__h)),
-      _M_work(associated_executor<_Handler>::get(_M_handler))
+      _M_work(get_associated_executor(_M_handler))
   {
   }
 
   virtual void _Complete()
   {
-    __small_block_recycler<>::_Unique_ptr<_Op> __op(this);
+    auto __allocator(get_associated_allocator(_M_handler));
+    auto __op(_Adopt_small_block(__allocator, this));
 
     error_code __ec;
     if (this->_M_result == __channel_op::_Result::__operation_canceled)
@@ -46,7 +47,6 @@ public:
 
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
-    auto __allocator(associated_allocator<_Handler>::get(_M_handler));
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec));
     __op.reset();
     __executor.post(std::move(__i), __allocator);
@@ -54,7 +54,8 @@ public:
 
   virtual void _Destroy()
   {
-    __small_block_recycler<>::_Destroy(this);
+    auto __allocator(get_associated_allocator(_M_handler));
+    _Adopt_small_block(__allocator, this);
   }
 
 private:
@@ -203,8 +204,8 @@ auto channel<void, _Cont>::put(_CompletionToken&& __token)
   typedef handler_type_t<_CompletionToken, void(error_code)> _Handler;
   async_completion<_CompletionToken, void(error_code)> __completion(__token);
 
-  __small_block_recycler<>::_Unique_ptr<_Op<_Handler>> __op(
-    __small_block_recycler<>::_Create<_Op<_Handler>>(std::move(__completion.handler)));
+  auto __allocator(get_associated_allocator(__completion.handler));
+  auto __op(_Allocate_small_block<_Op<_Handler>>(__allocator, std::move(__completion.handler)));
 
   _Start_put(__op.get());
   __op.release();
@@ -273,8 +274,8 @@ auto channel<void, _Cont>::get(_CompletionToken&& __token)
   typedef handler_type_t<_CompletionToken, void(error_code)> _Handler;
   async_completion<_CompletionToken, void(error_code)> __completion(__token);
 
-  __small_block_recycler<>::_Unique_ptr<_Op<_Handler>> __op(
-    __small_block_recycler<>::_Create<_Op<_Handler>>(std::move(__completion.handler)));
+  auto __allocator(get_associated_allocator(__completion.handler));
+  auto __op(_Allocate_small_block<_Op<_Handler>>(__allocator, std::move(__completion.handler)));
 
   _Start_get(__op.get());
   __op.release();

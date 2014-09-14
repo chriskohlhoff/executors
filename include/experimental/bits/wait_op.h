@@ -36,24 +36,25 @@ class __wait_op
 {
 public:
   template <class _F> explicit __wait_op(_F&& __f)
-    : _M_func(forward<_F>(__f)), _M_work(associated_executor<_Func>::get(_M_func))
+    : _M_func(forward<_F>(__f)), _M_work(get_associated_executor(_M_func))
   {
   }
 
   virtual void _Complete()
   {
-    __small_block_recycler<>::_Unique_ptr<__wait_op> __op(this);
+    auto __allocator(get_associated_allocator(_M_func));
+    auto __op(_Adopt_small_block(__allocator, this));
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
-    auto __alloc(associated_allocator<_Func>::get(_M_func));
     auto __i(_Make_tuple_invoker(std::move(_M_func), _M_ec));
     __op.reset();
-    __executor.post(std::move(__i), __alloc);
+    __executor.post(std::move(__i), __allocator);
   }
 
   virtual void _Destroy()
   {
-    __small_block_recycler<>::_Destroy(this);
+    auto __allocator(get_associated_allocator(_M_func));
+    _Adopt_small_block(__allocator, this);
   }
 
 private:

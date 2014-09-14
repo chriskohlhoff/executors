@@ -67,13 +67,14 @@ class channel<_T, _Cont>::_PutOp
 public:
   template <class _U, class _H> explicit _PutOp(_U&& __u, _H&& __h)
     : _Op(forward<_U>(__u)), _M_handler(forward<_H>(__h)),
-      _M_work(associated_executor<_Handler>::get(_M_handler))
+      _M_work(get_associated_executor(_M_handler))
   {
   }
 
   virtual void _Complete()
   {
-    __small_block_recycler<>::_Unique_ptr<_PutOp> __op(this);
+    auto __allocator(get_associated_allocator(_M_handler));
+    auto __op(_Adopt_small_block(__allocator, this));
 
     error_code __ec;
     if (this->_M_result == __channel_op::_Result::__operation_canceled)
@@ -83,7 +84,6 @@ public:
 
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
-    auto __allocator(associated_allocator<_Handler>::get(_M_handler));
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec));
     __op.reset();
     __executor.post(std::move(__i), __allocator);
@@ -91,7 +91,8 @@ public:
 
   virtual void _Destroy()
   {
-    __small_block_recycler<>::_Destroy(this);
+    auto __allocator(get_associated_allocator(_M_handler));
+    _Adopt_small_block(__allocator, this);
   }
 
 private:
@@ -106,13 +107,14 @@ class channel<_T, _Cont>::_GetOp
 {
 public:
   template <class _H> explicit _GetOp(_H&& __h)
-    : _M_handler(forward<_H>(__h)), _M_work(associated_executor<_Handler>::get(_M_handler))
+    : _M_handler(forward<_H>(__h)), _M_work(get_associated_executor(_M_handler))
   {
   }
 
   virtual void _Complete()
   {
-    __small_block_recycler<>::_Unique_ptr<_GetOp> __op(this);
+    auto __allocator(get_associated_allocator(_M_handler));
+    auto __op(_Adopt_small_block(__allocator, this));
 
     error_code __ec;
     if (this->_M_result == __channel_op::_Result::__operation_canceled)
@@ -122,7 +124,6 @@ public:
 
     executor_work<_Executor> __work(std::move(_M_work));
     _Executor __executor(__work.get_executor());
-    auto __allocator(associated_allocator<_Handler>::get(_M_handler));
     auto __i(_Make_tuple_invoker(std::move(_M_handler), __ec, this->_Get_value()));
     __op.reset();
     __executor.post(std::move(__i), __allocator);
@@ -130,7 +131,8 @@ public:
 
   virtual void _Destroy()
   {
-    __small_block_recycler<>::_Destroy(this);
+    auto __allocator(get_associated_allocator(_M_handler));
+    _Adopt_small_block(__allocator, this);
   }
 
 private:
@@ -279,9 +281,9 @@ auto channel<_T, _Cont>::put(_U&& __u, _CompletionToken&& __token)
   typedef handler_type_t<_CompletionToken, void(error_code)> _Handler;
   async_completion<_CompletionToken, void(error_code)> __completion(__token);
 
-  __small_block_recycler<>::_Unique_ptr<_PutOp<_Handler>> __op(
-    __small_block_recycler<>::_Create<_PutOp<_Handler>>(
-      forward<_U>(__u), std::move(__completion.handler)));
+  auto __allocator(get_associated_allocator(__completion.handler));
+  auto __op(_Allocate_small_block<_PutOp<_Handler>>(__allocator,
+    forward<_U>(__u), std::move(__completion.handler)));
 
   _Start_put(__op.get());
   __op.release();
@@ -355,8 +357,9 @@ auto channel<_T, _Cont>::get(_CompletionToken&& __token)
   typedef handler_type_t<_CompletionToken, void(error_code, _T)> _Handler;
   async_completion<_CompletionToken, void(error_code, _T)> __completion(__token);
 
-  __small_block_recycler<>::_Unique_ptr<_GetOp<_Handler>> __op(
-    __small_block_recycler<>::_Create<_GetOp<_Handler>>(std::move(__completion.handler)));
+  auto __allocator(get_associated_allocator(__completion.handler));
+  auto __op(_Allocate_small_block<_GetOp<_Handler>>(
+    __allocator, std::move(__completion.handler)));
 
   _Start_get(__op.get());
   __op.release();

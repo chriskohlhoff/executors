@@ -236,7 +236,7 @@ inline void strand<_Executor>::on_work_finished() noexcept
   return _M_executor.on_work_finished();
 }
 
-template <class _Func>
+template <class _Func, class _Alloc>
 class __strand_op
   : public __operation
 {
@@ -244,19 +244,19 @@ public:
   __strand_op(const __strand_op&) = delete;
   __strand_op& operator=(const __strand_op&) = delete;
 
-  template <class _F> __strand_op(_F&& __f)
-    : _M_func(forward<_F>(__f))
+  template <class _F> __strand_op(_F&& __f, const _Alloc& __a)
+    : _M_func(forward<_F>(__f)), _M_alloc(__a)
   {
   }
 
   __strand_op(__strand_op&& __s)
-    : _M_func(std::move(__s._M_func))
+    : _M_func(std::move(__s._M_func)), _M_alloc(std::move(__s._M_alloc))
   {
   }
 
   virtual void _Complete()
   {
-    __small_block_recycler<>::_Unique_ptr<__strand_op> __op(this);
+    auto __op(_Adopt_small_block(_M_alloc, this));
     _Func __tmp(std::move(_M_func));
     __op.reset();
     std::move(__tmp)();
@@ -264,11 +264,12 @@ public:
 
   virtual void _Destroy()
   {
-    __small_block_recycler<>::_Destroy(this);
+    _Adopt_small_block(_M_alloc, this);
   }
 
 private:
   _Func _M_func;
+  _Alloc _M_alloc;
 };
 
 template <class _Executor>
@@ -319,7 +320,7 @@ struct __strand_invoker
 };
 
 template <class _Executor> template <class _Func, class _Alloc>
-void strand<_Executor>::dispatch(_Func&& __f, const _Alloc&)
+void strand<_Executor>::dispatch(_Func&& __f, const _Alloc& __a)
 {
   typedef typename decay<_Func>::type _DecayFunc;
   if (__call_stack<__strand_impl>::_Contains(_M_impl.get()))
@@ -329,8 +330,7 @@ void strand<_Executor>::dispatch(_Func&& __f, const _Alloc&)
   }
 
   typedef typename decay<_Func>::type _DecayFunc;
-  __small_block_recycler<>::_Unique_ptr<__strand_op<_DecayFunc>> __op(
-    __small_block_recycler<>::_Create<__strand_op<_DecayFunc>>(forward<_Func>(__f)));
+  auto __op(_Allocate_small_block<__strand_op<_DecayFunc, _Alloc>>(__a, forward<_Func>(__f), __a));
 
   {
     __strand_impl::_Lock_guard __lock(*_M_impl);
@@ -352,11 +352,10 @@ void strand<_Executor>::dispatch(_Func&& __f, const _Alloc&)
 }
 
 template <class _Executor> template <class _Func, class _Alloc>
-void strand<_Executor>::post(_Func&& __f, const _Alloc&)
+void strand<_Executor>::post(_Func&& __f, const _Alloc& __a)
 {
   typedef typename decay<_Func>::type _DecayFunc;
-  __small_block_recycler<>::_Unique_ptr<__strand_op<_DecayFunc>> __op(
-    __small_block_recycler<>::_Create<__strand_op<_DecayFunc>>(forward<_Func>(__f)));
+  auto __op(_Allocate_small_block<__strand_op<_DecayFunc, _Alloc>>(__a, forward<_Func>(__f), __a));
 
   {
     __strand_impl::_Lock_guard __lock(*_M_impl);
@@ -378,11 +377,10 @@ void strand<_Executor>::post(_Func&& __f, const _Alloc&)
 }
 
 template <class _Executor> template <class _Func, class _Alloc>
-inline void strand<_Executor>::defer(_Func&& __f, const _Alloc&)
+inline void strand<_Executor>::defer(_Func&& __f, const _Alloc& __a)
 {
   typedef typename decay<_Func>::type _DecayFunc;
-  __small_block_recycler<>::_Unique_ptr<__strand_op<_DecayFunc>> __op(
-    __small_block_recycler<>::_Create<__strand_op<_DecayFunc>>(forward<_Func>(__f)));
+  auto __op(_Allocate_small_block<__strand_op<_DecayFunc, _Alloc>>(__a, forward<_Func>(__f), __a));
 
   {
     __strand_impl::_Lock_guard __lock(*_M_impl);
