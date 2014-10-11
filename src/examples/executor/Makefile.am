@@ -12,6 +12,7 @@ noinst_PROGRAMS = \
 	bank_account_7 \
 	bank_account_8 \
 	bank_account_9 \
+	bank_account_10 \
 	fork_join \
 	pipeline \
 	post_1 \
@@ -43,6 +44,7 @@ bank_account_6_SOURCES = bank_account_6.cpp
 bank_account_7_SOURCES = bank_account_7.cpp
 bank_account_8_SOURCES = bank_account_8.cpp
 bank_account_9_SOURCES = bank_account_9.cpp
+bank_account_10_SOURCES = bank_account_10.cpp
 fork_join_SOURCES = fork_join.cpp
 pipeline_SOURCES = pipeline.cpp
 post_1_SOURCES = post_1.cpp

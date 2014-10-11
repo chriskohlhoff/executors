@@ -1,61 +1,55 @@
+#include <experimental/executor>
 #include <experimental/future>
-#include <experimental/thread_pool>
+#include <experimental/strand>
 #include <iostream>
 
+using std::experimental::package;
 using std::experimental::post;
-using std::experimental::thread_pool;
-using std::experimental::use_future;
+using std::experimental::strand;
+using std::experimental::system_executor;
 
-// Traditional active object pattern.
-// The caller chooses how to wait for the operation to finish.
+// Active object sharing a system-wide pool of threads.
+// Member functions block until operation is finished.
 
 class bank_account
 {
   int balance_ = 0;
-  mutable thread_pool pool_{1};
+  mutable strand<system_executor> strand_;
 
 public:
-  template <class CompletionToken>
-  auto deposit(int amount, CompletionToken&& token)
+  void deposit(int amount)
   {
-    return post(pool_, [=]
-      {
-        balance_ += amount;
-      },
-      std::forward<CompletionToken>(token));
+    post(strand_,
+      package([=]
+        {
+          balance_ += amount;
+        })).get();
   }
 
-  template <class CompletionToken>
-  auto withdraw(int amount, CompletionToken&& token)
+  void withdraw(int amount)
   {
-    return post(pool_, [=]
-      {
-        if (balance_ >= amount)
-          balance_ -= amount;
-      },
-      std::forward<CompletionToken>(token));
+    post(strand_,
+      package([=]
+        {
+          if (balance_ >= amount)
+            balance_ -= amount;
+        })).get();
   }
 
-  template <class CompletionToken>
-  auto balance(CompletionToken&& token) const
+  int balance() const
   {
-    return post(pool_, [=]
-      {
-        return balance_;
-      },
-      std::forward<CompletionToken>(token));
+    return post(strand_,
+      package([=]
+        {
+          return balance_;
+        })).get();
   }
 };
 
 int main()
 {
-  bank_account acct1;
-  acct1.deposit(20, []{ std::cout << "deposit complete\n"; });
-  acct1.withdraw(10, []{ std::cout << "withdraw complete\n"; });
-  acct1.balance([](int b){ std::cout << "balance = " << b << "\n"; });
-
-  bank_account acct2;
-  acct2.deposit(40, use_future).get();
-  acct2.withdraw(15, use_future).get();
-  std::cout << "balance = " << acct2.balance(use_future).get() << "\n";
+  bank_account acct;
+  acct.deposit(20);
+  acct.withdraw(10);
+  std::cout << "balance = " << acct.balance() << "\n";
 }

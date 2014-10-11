@@ -1,26 +1,25 @@
+#include <experimental/executor>
 #include <experimental/future>
-#include <experimental/strand>
+#include <experimental/thread_pool>
 #include <iostream>
 
-using std::experimental::dispatch;
-using std::experimental::strand;
-using std::experimental::system_executor;
+using std::experimental::post;
+using std::experimental::thread_pool;
 using std::experimental::use_future;
 
-// Active object sharing a system-wide pool of threads.
+// Traditional active object pattern.
 // The caller chooses how to wait for the operation to finish.
-// Lightweight, immediate execution using dispatch.
 
 class bank_account
 {
   int balance_ = 0;
-  mutable strand<system_executor> ex_;
+  mutable thread_pool pool_{1};
 
 public:
   template <class CompletionToken>
   auto deposit(int amount, CompletionToken&& token)
   {
-    return dispatch(ex_, [=]
+    return post(pool_, [=]
       {
         balance_ += amount;
       },
@@ -30,7 +29,7 @@ public:
   template <class CompletionToken>
   auto withdraw(int amount, CompletionToken&& token)
   {
-    return dispatch(ex_, [=]
+    return post(pool_, [=]
       {
         if (balance_ >= amount)
           balance_ -= amount;
@@ -41,7 +40,7 @@ public:
   template <class CompletionToken>
   auto balance(CompletionToken&& token) const
   {
-    return dispatch(ex_, [=]
+    return post(pool_, [=]
       {
         return balance_;
       },

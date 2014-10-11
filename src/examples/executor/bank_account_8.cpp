@@ -1,35 +1,27 @@
-#include <experimental/await>
 #include <experimental/future>
 #include <experimental/strand>
-#include <experimental/thread_pool>
+#include <experimental/yield>
 #include <iostream>
 #include <vector>
 
-using std::experimental::await_context;
 using std::experimental::dispatch;
-using std::experimental::executor;
 using std::experimental::strand;
-using std::experimental::thread_pool;
+using std::experimental::system_executor;
 using std::experimental::use_future;
 using std::experimental::wrap;
+using std::experimental::yield_context;
 
-// Caller specifies an executor type at compile time.
+// Active object sharing a system-wide pool of threads.
 // The caller chooses how to wait for the operation to finish.
 // Lightweight, immediate execution using dispatch.
-// Composition using resumable functions / stackless coroutines.
+// Composition using resumable functions / stackful coroutines.
 
-template <class Executor>
 class bank_account
 {
   int balance_ = 0;
-  mutable strand<Executor> ex_;
+  mutable strand<system_executor> ex_;
 
 public:
-  explicit bank_account(const Executor& ex)
-    : ex_(ex)
-  {
-  }
-
   template <class CompletionToken>
   auto deposit(int amount, CompletionToken&& token)
   {
@@ -88,21 +80,21 @@ template <class Iterator, class CompletionToken>
 auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
 {
   return dispatch(
-    [i = begin, end, largest_acct = end, balance = int(), largest_balance = int()]
-    (await_context ctx) mutable
+    [=](yield_context yield)
     {
-      reenter (ctx)
+      auto largest_acct = end;
+      int largest_balance = 0;
+
+      for (auto i = begin; i != end; ++i)
       {
-        for (; i != end; ++i)
+        int balance = i->balance(yield);
+        if (largest_acct == end || balance > largest_balance)
         {
-          await balance = i->balance(ctx);
-          if (largest_acct == end || balance > largest_balance)
-          {
-            largest_acct = i;
-            largest_balance = balance;
-          }
+          largest_acct = i;
+          largest_balance = balance;
         }
       }
+
       return largest_acct;
     },
     std::forward<CompletionToken>(token));
@@ -110,9 +102,7 @@ auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
 
 int main()
 {
-  thread_pool pool;
-  auto ex = pool.get_executor();
-  std::vector<bank_account<thread_pool::executor_type>> accts(3, bank_account<thread_pool::executor_type>(ex));
+  std::vector<bank_account> accts(3);
   accts[0].deposit(20, use_future).get();
   accts[1].deposit(30, use_future).get();
   accts[2].deposit(40, use_future).get();

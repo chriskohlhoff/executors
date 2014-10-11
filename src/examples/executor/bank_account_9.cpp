@@ -13,18 +13,19 @@ using std::experimental::thread_pool;
 using std::experimental::use_future;
 using std::experimental::wrap;
 
-// Caller specifies an executor type at runtime.
+// Caller specifies an executor type at compile time.
 // The caller chooses how to wait for the operation to finish.
 // Lightweight, immediate execution using dispatch.
 // Composition using resumable functions / stackless coroutines.
 
+template <class Executor>
 class bank_account
 {
   int balance_ = 0;
-  mutable strand<executor> ex_;
+  mutable strand<Executor> ex_;
 
 public:
-  explicit bank_account(const executor& ex)
+  explicit bank_account(const Executor& ex)
     : ex_(ex)
   {
   }
@@ -111,7 +112,7 @@ int main()
 {
   thread_pool pool;
   auto ex = pool.get_executor();
-  std::vector<bank_account> accts(3, bank_account(ex));
+  std::vector<bank_account<thread_pool::executor_type>> accts(3, bank_account<thread_pool::executor_type>(ex));
   accts[0].deposit(20, use_future).get();
   accts[1].deposit(30, use_future).get();
   accts[2].deposit(40, use_future).get();

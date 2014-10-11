@@ -1,17 +1,19 @@
 #include <experimental/await>
 #include <experimental/future>
 #include <experimental/strand>
+#include <experimental/thread_pool>
 #include <iostream>
 #include <vector>
 
 using std::experimental::await_context;
 using std::experimental::dispatch;
+using std::experimental::executor;
 using std::experimental::strand;
-using std::experimental::system_executor;
+using std::experimental::thread_pool;
 using std::experimental::use_future;
 using std::experimental::wrap;
 
-// Active object sharing a system-wide pool of threads.
+// Caller specifies an executor type at runtime.
 // The caller chooses how to wait for the operation to finish.
 // Lightweight, immediate execution using dispatch.
 // Composition using resumable functions / stackless coroutines.
@@ -19,9 +21,14 @@ using std::experimental::wrap;
 class bank_account
 {
   int balance_ = 0;
-  mutable strand<system_executor> ex_;
+  mutable strand<executor> ex_;
 
 public:
+  explicit bank_account(const executor& ex)
+    : ex_(ex)
+  {
+  }
+
   template <class CompletionToken>
   auto deposit(int amount, CompletionToken&& token)
   {
@@ -102,7 +109,9 @@ auto find_largest_account(Iterator begin, Iterator end, CompletionToken&& token)
 
 int main()
 {
-  std::vector<bank_account> accts(3);
+  thread_pool pool;
+  auto ex = pool.get_executor();
+  std::vector<bank_account> accts(3, bank_account(ex));
   accts[0].deposit(20, use_future).get();
   accts[1].deposit(30, use_future).get();
   accts[2].deposit(40, use_future).get();
