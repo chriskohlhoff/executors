@@ -1,10 +1,11 @@
+#include <experimental/executor>
 #include <experimental/future>
 #include <experimental/thread_pool>
 #include <iostream>
 
+using std::experimental::package;
 using std::experimental::post;
 using std::experimental::thread_pool;
-using std::experimental::use_future;
 
 // Traditional active object pattern.
 // Member functions block until operation is finished.
@@ -17,30 +18,30 @@ class bank_account
 public:
   void deposit(int amount)
   {
-    post(pool_, [=]
-      {
-        balance_ += amount;
-      },
-      use_future).get();
+    post(pool_,
+      package([=]
+        {
+          balance_ += amount;
+        })).get();
   }
 
   void withdraw(int amount)
   {
-    post(pool_, [=]
-      {
-        if (balance_ >= amount)
-          balance_ -= amount;
-      },
-      use_future).get();
+    post(pool_,
+      package([=]
+        {
+          if (balance_ >= amount)
+            balance_ -= amount;
+        })).get();
   }
 
   int balance() const
   {
-    return post(pool_, [=]
-      {
-        return balance_;
-      },
-      use_future).get();
+    return post(pool_,
+      package([=]
+        {
+          return balance_;
+        })).get();
   }
 };
 
