@@ -97,7 +97,7 @@ public:
 
   static __small_block_recycler& _Instance()
   {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__GNUC__)
     if (!_S_instance)
       _S_instance = new __small_block_recycler;
     return *_S_instance;
@@ -113,6 +113,8 @@ private:
   static __thread __small_block_recycler _S_instance;
 #elif defined(_MSC_VER)
   static __declspec(thread) __small_block_recycler* _S_instance;
+#elif defined(__GNUC__)
+  static thread_local __small_block_recycler* _S_instance;
 #else
   static thread_local __small_block_recycler _S_instance;
 #endif
@@ -124,6 +126,9 @@ __thread __small_block_recycler<_Purpose> __small_block_recycler<_Purpose>::_S_i
 #elif defined(_MSC_VER)
 template <class _Purpose>
 __declspec(thread) __small_block_recycler<_Purpose>* __small_block_recycler<_Purpose>::_S_instance;
+#elif defined(__GNUC__)
+template <class _Purpose>
+thread_local __small_block_recycler<_Purpose>* __small_block_recycler<_Purpose>::_S_instance;
 #else
 template <class _Purpose>
 thread_local __small_block_recycler<_Purpose> __small_block_recycler<_Purpose>::_S_instance;
