@@ -1,5 +1,6 @@
 noinst_PROGRAMS = \
 	actor \
+	async_1 \
 	async_op_1 \
 	async_op_2 \
 	bank_account_1 \
@@ -30,6 +31,7 @@ noinst_PROGRAMS = \
 AM_CXXFLAGS = -I$(srcdir)/../../../include
 
 actor_SOURCES = actor.cpp
+async_1_SOURCES = async_1.cpp
 async_op_1_SOURCES = async_op_1.cpp
 async_op_2_SOURCES = async_op_2.cpp
 bank_account_1_SOURCES = bank_account_1.cpp
