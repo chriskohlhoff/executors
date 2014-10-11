@@ -3,8 +3,8 @@
 #include <experimental/strand>
 #include <iostream>
 
+using std::experimental::dispatch;
 using std::experimental::package;
-using std::experimental::post;
 using std::experimental::strand;
 using std::experimental::system_executor;
 
@@ -19,7 +19,7 @@ class bank_account
 public:
   void deposit(int amount)
   {
-    post(strand_,
+    dispatch(strand_,
       package([=]
         {
           balance_ += amount;
@@ -28,7 +28,7 @@ public:
 
   void withdraw(int amount)
   {
-    post(strand_,
+    dispatch(strand_,
       package([=]
         {
           if (balance_ >= amount)
@@ -38,7 +38,7 @@ public:
 
   int balance() const
   {
-    return post(strand_,
+    return dispatch(strand_,
       package([=]
         {
           return balance_;
