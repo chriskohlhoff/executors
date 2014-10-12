@@ -1,10 +1,12 @@
 #include <experimental/executor>
+#include <experimental/loop_scheduler>
 #include <experimental/thread_pool>
 #include <iostream>
 #include <string>
 
 using std::experimental::dispatch;
 using std::experimental::get_associated_executor;
+using std::experimental::loop_scheduler;
 using std::experimental::make_work;
 using std::experimental::post;
 using std::experimental::thread_pool;
@@ -52,6 +54,30 @@ void async_getlines(std::istream& is, std::string init, Handler handler)
         }));
 }
 
+class line_printer
+{
+public:
+  typedef loop_scheduler::executor_type executor_type;
+
+  explicit line_printer(loop_scheduler& s)
+    : executor_(s.get_executor())
+  {
+  }
+
+  executor_type get_executor() const noexcept
+  {
+    return executor_;
+  }
+
+  void operator()(std::string lines)
+  {
+    std::cout << "Lines:\n" << lines << "\n";
+  }
+
+private:
+  loop_scheduler::executor_type executor_;
+};
+
 int main()
 {
   thread_pool pool;
@@ -65,4 +91,12 @@ int main()
         }));
 
   pool.join();
+
+  loop_scheduler scheduler;
+
+  std::cout << "Enter more text, terminating with a blank line:\n";
+
+  async_getlines(std::cin, "", line_printer(scheduler));
+
+  scheduler.run();
 }
