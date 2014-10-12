@@ -77,7 +77,7 @@ public:
 
   executor_type get_executor(int pri = 0) noexcept
   {
-    return executor_type(*const_cast<priority_scheduler*>(this), pri);
+    return executor_type(*this, pri);
   }
 
   void run()
