@@ -81,12 +81,12 @@ public:
     post(std::forward<Func>(f), a);
   }
 
-  friend bool operator==(const thread_executor&, const thread_executor&)
+  friend bool operator==(const thread_executor&, const thread_executor&) noexcept
   {
     return true;
   }
 
-  friend bool operator!=(const thread_executor&, const thread_executor&)
+  friend bool operator!=(const thread_executor&, const thread_executor&) noexcept
   {
     return false;
   }

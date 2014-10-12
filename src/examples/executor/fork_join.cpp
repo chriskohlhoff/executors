@@ -207,12 +207,12 @@ public:
     post(std::forward<Func>(f), a);
   }
 
-  friend bool operator==(const fork_executor& a, const fork_executor& b)
+  friend bool operator==(const fork_executor& a, const fork_executor& b) noexcept
   {
     return a.work_count_ == b.work_count_;
   }
 
-  friend bool operator!=(const fork_executor& a, const fork_executor& b)
+  friend bool operator!=(const fork_executor& a, const fork_executor& b) noexcept
   {
     return a.work_count_ != b.work_count_;
   }

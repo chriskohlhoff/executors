@@ -60,12 +60,12 @@ public:
       post(std::forward<Func>(f), a);
     }
 
-    friend bool operator==(const executor_type& a, const executor_type& b)
+    friend bool operator==(const executor_type& a, const executor_type& b) noexcept
     {
       return &a.context_ == &b.context_;
     }
 
-    friend bool operator!=(const executor_type& a, const executor_type& b)
+    friend bool operator!=(const executor_type& a, const executor_type& b) noexcept
     {
       return &a.context_ != &b.context_;
     }
