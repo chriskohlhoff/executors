@@ -97,7 +97,9 @@ public:
 
   static __small_block_recycler& _Instance()
   {
-#if defined(_MSC_VER) || defined(__GNUC__)
+#if defined(__APPLE__) && defined(__clang__)
+    return _S_instance;
+#elif defined(_MSC_VER) || defined(__GNUC__)
     if (!_S_instance)
       _S_instance = new __small_block_recycler;
     return *_S_instance;
