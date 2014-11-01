@@ -15,11 +15,59 @@
 #include <chrono>
 #include <memory>
 #include <vector>
-#include <experimental/bits/wait_op.h>
 
 namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
+
+template <class _Clock, class _Duration>
+typename _Clock::duration __safe_subtract(
+  const chrono::time_point<_Clock, _Duration>& __t1,
+  const chrono::time_point<_Clock, _Duration>& __t2)
+{
+  typedef chrono::time_point<_Clock, _Duration> time_point;
+  typedef typename time_point::duration duration;
+
+  time_point __epoch;
+  if (__t1 >= __epoch)
+  {
+    if (__t2 >= __epoch)
+    {
+      return __t1 - __t2;
+    }
+    else if (__t2 == (time_point::min)())
+    {
+      return (duration::max)();
+    }
+    else if ((time_point::max)() - __t1 < __epoch - __t2)
+    {
+      return (duration::max)();
+    }
+    else
+    {
+      return __t1 - __t2;
+    }
+  }
+  else // __t1 < __epoch
+  {
+    if (__t2 < __epoch)
+    {
+      return __t1 - __t2;
+    }
+    else if (__t1 == (time_point::min)())
+    {
+      return (duration::min)();
+    }
+    else if ((time_point::max)() - __t2 < __epoch - __t1)
+    {
+      return (duration::min)();
+    }
+    else
+    {
+      return -(__t2 - __t1);
+    }
+  }
+}
 
 class __timer_queue_base
 {
@@ -40,7 +88,7 @@ private:
   __timer_queue_base* _M_next;
 };
 
-template <class _Clock, class _TimerTraits>
+template <class _Clock>
 class __timer_queue
   : public __timer_queue_base
 {
@@ -55,7 +103,7 @@ public:
 
   private:
     friend class __timer_queue;
-    __op_queue<__wait_op_base> _M_ops;
+    __op_queue<__operation> _M_ops;
     size_t _M_heap_index;
     __per_timer_data* _M_next;
     __per_timer_data* _M_prev;
@@ -66,28 +114,7 @@ public:
   {
   }
 
-  void _Move_timer(__per_timer_data& __empty_target, __per_timer_data& __source)
-  {
-    __empty_target._M_ops._Push(__source._M_ops);
-
-    __empty_target._M_heap_index = __source._M_heap_index;
-    __source._M_heap_index = ~size_t(0);
-    if (__empty_target._M_heap_index != ~size_t(0))
-      _M_heap[__empty_target._M_heap_index]._M_timer = &__empty_target;
-
-    __empty_target._M_prev = __source._M_prev;
-    if (__empty_target._M_prev)
-      __empty_target._M_prev->_M_next = &__empty_target;
-
-    __empty_target._M_next = __source._M_next;
-    if (__empty_target._M_next)
-      __empty_target._M_next->_M_prev = &__empty_target;
-
-    if (_M_timers == &__source)
-      _M_timers = &__empty_target;
-  }
-
-  bool _Enqueue_timer(const _Time_point& __t, __per_timer_data& __timer, __wait_op_base* __op)
+  bool _Enqueue_timer(const _Time_point& __t, __per_timer_data& __timer, __operation* __op)
   {
     // Enqueue the timer object.
     if (__timer._M_prev == nullptr && &__timer != _M_timers)
@@ -133,8 +160,7 @@ public:
     if (_M_heap.empty())
       return __max_duration;
 
-    chrono::steady_clock::duration __d =
-      _TimerTraits::to_duration(_M_heap[0]._M_expiry);
+    chrono::steady_clock::duration __d = __safe_subtract(_M_heap[0]._M_expiry, _Clock::now());
     return __d < __max_duration ? __d : __max_duration;
   }
 
@@ -164,25 +190,6 @@ public:
     }
 
     _M_heap.clear();
-  }
-
-  bool _Cancel_timer(__per_timer_data& __timer,
-    __op_queue<__operation>& __ops, size_t __max = ~size_t(0))
-  {
-    size_t __num = 0;
-    if (__timer._M_prev != 0 || &__timer == _M_timers)
-    {
-      while (__wait_op_base* __op = (__num != __max) ? __timer._M_ops._Front() : nullptr)
-      {
-        __op->_M_ec = make_error_code(errc::operation_canceled);
-        __timer._M_ops._Pop();
-        __ops._Push(__op);
-        ++__num;
-      }
-      if (__timer._M_ops._Empty())
-        _Remove_timer(__timer);
-    }
-    return __num != 0;
   }
 
 private:

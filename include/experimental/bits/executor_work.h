@@ -13,7 +13,6 @@
 #define EXECUTORS_EXPERIMENTAL_BITS_EXECUTOR_WORK_H
 
 #include <type_traits>
-#include <experimental/bits/function_traits.h>
 
 namespace std {
 namespace experimental {

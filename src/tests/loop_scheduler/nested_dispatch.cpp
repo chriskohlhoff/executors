@@ -13,12 +13,12 @@ int main()
     [&]()
     {
       int count_before_dispatch = count;
-      std::experimental::dispatch(ex, [&](){ ++count; });
+      std::experimental::dispatch(scheduler, [&](){ ++count; });
       assert(count == count_before_dispatch + 1);
     });
 
   int count_before_dispatch = count;
-  std::experimental::dispatch(ex, [&](){ ++count; });
+  std::experimental::dispatch(scheduler, [&](){ ++count; });
   assert(count == count_before_dispatch);
 
   scheduler.run();

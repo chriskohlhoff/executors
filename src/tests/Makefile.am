@@ -8,7 +8,6 @@ SUBDIRS = \
 	thread_pool \
 	execution_context \
 	strand \
-	timer \
 	performance
 
 MAINTAINERCLEANFILES = \

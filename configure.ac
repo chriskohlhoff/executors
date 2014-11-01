@@ -9,19 +9,7 @@ AC_PROG_CXX
 AC_LANG(C++)
 AC_PROG_RANLIB
 
-AC_ARG_WITH(boost,
-  AC_HELP_STRING([--with-boost=DIR],[location of boost distribution]),
-[
-  if test "${withval}" = no; then
-    CPPFLAGS="$CPPFLAGS -DEXECUTORS_NO_BOOST=1"
-  else
-    CPPFLAGS="$CPPFLAGS -I${withval}"
-    LIBS="$LIBS -L${withval}/stage/lib -lboost_coroutine -lboost_context -lboost_thread -lboost_system"
-  fi
-],
-[
-  CPPFLAGS="$CPPFLAGS -DEXECUTORS_NO_BOOST=1"
-])
+CPPFLAGS="$CPPFLAGS -DEXECUTORS_NO_BOOST=1"
 
 WINDOWS=no
 case $host in
@@ -65,9 +53,7 @@ AC_OUTPUT([
   include/Makefile
   src/Makefile
   src/examples/Makefile
-  src/examples/channel/Makefile
   src/examples/executor/Makefile
-  src/examples/timer/Makefile
   src/examples/trading/Makefile
   src/tests/Makefile
   src/tests/execution_context/Makefile
@@ -79,5 +65,4 @@ AC_OUTPUT([
   src/tests/strand/Makefile
   src/tests/system_executor/Makefile
   src/tests/thread_pool/Makefile
-  src/tests/timer/Makefile
   src/tests/traits/Makefile])

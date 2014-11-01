@@ -413,11 +413,6 @@ inline bool operator!=(const strand<_Executor>& __a, const strand<_Executor>& __
   return !(__a == __b);
 }
 
-template <class _T> inline auto make_strand(_T&& __t)
-{
-  return strand<typename decay<_T>::type>(forward<_T>(__t));
-}
-
 } // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std

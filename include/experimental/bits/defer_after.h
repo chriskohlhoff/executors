@@ -12,66 +12,33 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_DEFER_AFTER_H
 #define EXECUTORS_EXPERIMENTAL_BITS_DEFER_AFTER_H
 
-#include <experimental/bits/invoker.h>
-#include <experimental/bits/timed_invoker.h>
+#include <experimental/bits/defer_at.h>
 
 namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
 
-template <class _Rep, class _Period, class... _CompletionTokens>
-typename __invoke_with_token<_CompletionTokens...>::_Result
-  defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
-    _CompletionTokens&&... __tokens)
+template <class _Rep, class _Period, class _CompletionToken>
+inline auto defer_after(const chrono::duration<_Rep, _Period>& __rel_time, _CompletionToken&& __token)
 {
-  static_assert(sizeof...(_CompletionTokens) > 0,
-    "defer_after() must be called with one or more completion tokens");
-
-  typedef __timed_invoker<chrono::steady_clock, _CompletionTokens...> _Invoker;
-
-  _Invoker __head(__tokens...);
-  async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
-
-  auto __completion_executor(get_associated_executor(__head._Get_tail()));
-  __head._Start(__completion_executor, __rel_time);
-
-  return __result.get();
+  return (defer_at)(chrono::steady_clock::now() + __rel_time, forward<_CompletionToken>(__token));
 }
 
-template <class _Rep, class _Period, class _Executor, class... _CompletionTokens>
-typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-  defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
-    const _Executor& __e, _CompletionTokens&&... __tokens)
+template <class _Rep, class _Period, class _Executor, class _CompletionToken>
+inline auto defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
+  const _Executor& __e, _CompletionToken&& __token,
+    typename enable_if<is_executor<_Executor>::value>::type*)
 {
-  static_assert(sizeof...(_CompletionTokens) > 0,
-    "defer_after() must be called with one or more completion tokens");
-
-  typedef __timed_invoker<chrono::steady_clock, _CompletionTokens...> _Invoker;
-
-  _Invoker __head(__tokens...);
-  async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
-
-  __head._Start(__e, __rel_time);
-
-  return __result.get();
+  return (defer_at)(chrono::steady_clock::now() + __rel_time, __e, forward<_CompletionToken>(__token));
 }
 
-template <class _Rep, class _Period, class _ExecutionContext, class... _CompletionTokens>
-typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-  defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
-    _ExecutionContext& __c, _CompletionTokens&&... __tokens)
+template <class _Rep, class _Period, class _ExecutionContext, class _CompletionToken>
+inline auto defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
+  _ExecutionContext& __c, _CompletionToken&& __token,
+    typename enable_if<is_convertible<
+      _ExecutionContext&, execution_context&>::value>::type*)
 {
-  static_assert(sizeof...(_CompletionTokens) > 0,
-    "defer_after() must be called with one or more completion tokens");
-
-  typedef __timed_invoker<chrono::steady_clock, _CompletionTokens...> _Invoker;
-
-  _Invoker __head(__tokens...);
-  async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
-
-  __head._Start(__c.get_executor(), __rel_time);
-
-  return __result.get();
+  return (defer_at)(chrono::steady_clock::now() + __rel_time, __c, forward<_CompletionToken>(__token));
 }
 
 } // inline namespace concurrency_v1

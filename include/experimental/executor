@@ -14,7 +14,6 @@
 
 #include <experimental/bits/associated_executor.h>
 #include <experimental/bits/executor_wrapper_base.h>
-#include <experimental/bits/function_traits.h>
 #include <experimental/memory>
 #include <experimental/type_traits>
 #include <memory>
@@ -27,26 +26,8 @@ namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
 
-template <class, class> struct __wrap_with_executor;
-template <class, class> struct __wrap_with_execution_context;
-
-template <class, class> struct __get_associated_executor_with_executor;
-template <class, class> struct __get_associated_executor_with_execution_context;
-
-template <class> struct __work_with_executor;
-template <class> struct __work_with_execution_context;
-template <class> struct __work_with_object;
-template <class, class> struct __work_with_object_and_executor;
-template <class, class> struct __work_with_object_and_execution_context;
-
 class __executor_impl_base;
 template <class> class __executor_impl;
-
-template <class...> struct __invoke_with_token;
-template <class, class...> struct __invoke_with_executor;
-template <class, class...> struct __invoke_with_execution_context;
-template <class...> struct __coinvoke_without_executor;
-template <class, class...> struct __coinvoke_with_executor;
 
 class system_executor;
 
@@ -255,23 +236,28 @@ template <class _T, class _Executor, class _Executor1>
 // Helper function to associate an executor with an object.
 
 template <class _Executor, class _T>
-  typename __wrap_with_executor<_Executor, _T>::_Result
-    wrap(const _Executor& __e, _T&& __t);
+  executor_wrapper<typename decay<_T>::type, _Executor>
+    wrap(const _Executor& __e, _T&& __t,
+      typename enable_if<is_executor<_Executor>::value>::type* = 0);
 
 template <class _ExecutionContext, class _T>
-  typename __wrap_with_execution_context<_ExecutionContext, _T>::_Result
-    wrap(_ExecutionContext& __c, _T&& __t);
+  executor_wrapper<typename decay<_T>::type, typename _ExecutionContext::executor_type>
+    wrap(_ExecutionContext& __c, _T&& __t,
+      typename enable_if<is_convertible<
+        _ExecutionContext&, execution_context&>::value>::type* = 0);
 
 // Helper function to obtain an associated executor.
 
 template <class _T>
   associated_executor_t<_T> get_associated_executor(const _T& __t);
 template <class _T, class _Executor>
-  typename __get_associated_executor_with_executor<_T, _Executor>::_Result
-    get_associated_executor(const _T& __t, const _Executor& __e);
+  associated_executor_t<_T, _Executor>
+    get_associated_executor(const _T& __t, const _Executor& __e,
+      typename enable_if<is_executor<_Executor>::value>::type* = 0);
 template <class _T, class _ExecutionContext>
-  typename __get_associated_executor_with_execution_context<_T, _ExecutionContext>::_Result
-    get_associated_executor(const _T& __t, _ExecutionContext& __c);
+  associated_executor_t<_T, typename _ExecutionContext::executor_type>
+    get_associated_executor(const _T& __t, _ExecutionContext& __c,
+      typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 
 // An object of class executor_work controls ownership of executor work within
 // a scope.
@@ -309,20 +295,22 @@ private:
 // Helper function to create work for an executor, execution context or object.
 
 template <class _Executor>
-  typename __work_with_executor<_Executor>::_Result
-    make_work(const _Executor& __e);
+  executor_work<_Executor> make_work(const _Executor& __e,
+    typename enable_if<is_executor<_Executor>::value>::type* = 0);
 template <class _ExecutionContext>
-  typename __work_with_execution_context<_ExecutionContext>::_Result
-    make_work(_ExecutionContext& __c);
+  executor_work<typename _ExecutionContext::executor_type> make_work(_ExecutionContext& __c,
+    typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 template <class _T>
-  typename __work_with_object<_T>::_Result
-    make_work(const _T& __t);
+  executor_work<associated_executor_t<_T>> make_work(const _T& __t,
+    typename enable_if<!is_executor<_T>::value &&
+      !is_convertible<_T&, execution_context&>::value>::type* = 0);
 template <class _T, class _Executor>
-  typename __work_with_object_and_executor<_T, _Executor>::_Result
-    make_work(const _T& __t, const _Executor& __e);
+  executor_work<associated_executor_t<_T, _Executor>> make_work(const _T& __t, const _Executor& __e,
+    typename enable_if<is_executor<_Executor>::value>::type* = 0);
 template <class _T, class _ExecutionContext>
-  typename __work_with_object_and_execution_context<_T, _ExecutionContext>::_Result
-    make_work(const _T& __t, _ExecutionContext& __c);
+  executor_work<associated_executor_t<_T, typename _ExecutionContext::executor_type>>
+    make_work(const _T& __t, _ExecutionContext& __c,
+      typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 
 // The system executor represents an execution context where functions are
 // permitted to run on arbitrary threads. The post() function schedules the
@@ -332,6 +320,8 @@ template <class _T, class _ExecutionContext>
 class system_executor
 {
 public:
+  system_executor() {}
+
   // executor operations:
 
   execution_context& context() noexcept;
@@ -415,75 +405,35 @@ bool operator!=(const executor& __a, const executor& __b) noexcept;
 bool operator!=(const executor& __e, nullptr_t) noexcept;
 bool operator!=(nullptr_t, const executor& __e) noexcept;
 
-// Create a continuation function object from a list of completion tokens.
-
-template <class... _CompletionTokens>
-  auto chain(_CompletionTokens&&... __tokens);
-template <class _Signature, class... _CompletionTokens>
-  auto chain(_CompletionTokens&&... __tokens);
-
 // Schedule a function to run now if possible, later otherwise.
 
-template <class... _CompletionTokens>
-  typename __invoke_with_token<_CompletionTokens...>::_Result
-    dispatch(_CompletionTokens&&... __tokens);
-template <class _Executor, class... _CompletionTokens>
-  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    dispatch(const _Executor& __e, _CompletionTokens&&... __tokens);
-template <class _ExecutionContext, class... _CompletionTokens>
-  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-    dispatch(_ExecutionContext& __c, _CompletionTokens&&... __tokens);
+template <class _CompletionToken> auto dispatch(_CompletionToken&& __token);
+template <class _Executor, class _CompletionToken>
+  auto dispatch(const _Executor& __e, _CompletionToken&& __token,
+    typename enable_if<is_executor<_Executor>::value>::type* = 0);
+template <class _ExecutionContext, class _CompletionToken>
+  auto dispatch(_ExecutionContext& __c, _CompletionToken&& __token,
+    typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 
 // Schedule a function to run later.
 
-template <class... _CompletionTokens>
-  typename __invoke_with_token<_CompletionTokens...>::_Result
-    post(_CompletionTokens&&... __tokens);
-template <class _Executor, class... _CompletionTokens>
-  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    post(const _Executor& __e, _CompletionTokens&&... __tokens);
-template <class _ExecutionContext, class... _CompletionTokens>
-  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-    post(_ExecutionContext& __c, _CompletionTokens&&... __tokens);
+template <class _CompletionToken> auto post(_CompletionToken&& __token);
+template <class _Executor, class _CompletionToken>
+  auto post(const _Executor& __e, _CompletionToken&& __token,
+    typename enable_if<is_executor<_Executor>::value>::type* = 0);
+template <class _ExecutionContext, class _CompletionToken>
+  auto post(_ExecutionContext& __c, _CompletionToken&& __token,
+    typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 
 // Schedule a function to run later, treating the function as a continuation of the caller.
 
-template <class... _CompletionTokens>
-  typename __invoke_with_token<_CompletionTokens...>::_Result
-    defer(_CompletionTokens&&... __tokens);
-template <class _Executor, class... _CompletionTokens>
-  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    defer(const _Executor& __e, _CompletionTokens&&... __tokens);
-template <class _ExecutionContext, class... _CompletionTokens>
-  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-    defer(_ExecutionContext& __c, _CompletionTokens&&... __tokens);
-
-// Schedule functions to run now if possible, run concurrently later otherwise.
-
-template <class... _CompletionTokens>
-  typename __coinvoke_without_executor<_CompletionTokens...>::_Result
-    codispatch(_CompletionTokens&&... __tokens);
-template <class _Executor, class... _CompletionTokens>
-  typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    codispatch(const _Executor& __e, _CompletionTokens&&... __tokens);
-
-// Schedule functions to run concurrently later.
-
-template <class... _CompletionTokens>
-  typename __coinvoke_without_executor<_CompletionTokens...>::_Result
-    copost(_CompletionTokens&&... __tokens);
-template <class _Executor, class... _CompletionTokens>
-  typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    copost(const _Executor& __e, _CompletionTokens&&... __tokens);
-
-// Schedule functions to run concurrently later.
-
-template <class... _CompletionTokens>
-  typename __coinvoke_without_executor<_CompletionTokens...>::_Result
-    codefer(_CompletionTokens&&... __tokens);
-template <class _Executor, class... _CompletionTokens>
-  typename __coinvoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    codefer(const _Executor& __e, _CompletionTokens&&... __tokens);
+template <class _CompletionToken> auto defer(_CompletionToken&& __token);
+template <class _Executor, class _CompletionToken>
+  auto defer(const _Executor& __e, _CompletionToken&& __token,
+    typename enable_if<is_executor<_Executor>::value>::type* = 0);
+template <class _ExecutionContext, class _CompletionToken>
+  auto defer(_ExecutionContext& __c, _CompletionToken&& __token,
+    typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 
 } // inline namespace concurrency_v1
 } // namespace experimental
@@ -502,12 +452,8 @@ template<class _Alloc>
 #include <experimental/bits/executor_work.h>
 #include <experimental/bits/make_work.h>
 #include <experimental/bits/executor.h>
-#include <experimental/bits/chain.h>
 #include <experimental/bits/dispatch.h>
 #include <experimental/bits/post.h>
 #include <experimental/bits/defer.h>
-#include <experimental/bits/codispatch.h>
-#include <experimental/bits/copost.h>
-#include <experimental/bits/codefer.h>
 
 #endif

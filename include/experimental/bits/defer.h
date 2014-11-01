@@ -12,67 +12,40 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_DEFER_H
 #define EXECUTORS_EXPERIMENTAL_BITS_DEFER_H
 
-#include <experimental/bits/invoker.h>
+#include <experimental/bits/work_dispatcher.h>
 
 namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
 
-template <class... _CompletionTokens>
-typename __invoke_with_token<_CompletionTokens...>::_Result
-  defer(_CompletionTokens&&... __tokens)
+template <class _CompletionToken>
+auto defer(_CompletionToken&& __token)
 {
-  static_assert(sizeof...(_CompletionTokens) > 0,
-    "defer() must be called with one or more completion tokens");
-
-  typedef __passive_invoker<void(), _CompletionTokens...> _Invoker;
-
-  _Invoker __head(__tokens...);
-  async_result<_Invoker> __result(__head);
-
-  auto __completion_executor(get_associated_executor(__head));
-  auto __completion_allocator(get_associated_allocator(__head));
-  __completion_executor.defer(std::move(__head), __completion_allocator);
-
-  return __result.get();
+  async_completion<_CompletionToken, void()> __completion(__token);
+  auto __completion_executor(get_associated_executor(__completion.handler));
+  auto __completion_allocator(get_associated_allocator(__completion.handler));
+  __completion_executor.defer(std::move(__completion.handler), __completion_allocator);
+  return __completion.result.get();
 }
 
-template <class _Executor, class... _CompletionTokens>
-typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-  defer(const _Executor& __e, _CompletionTokens&&... __tokens)
+template <class _Executor, class _CompletionToken>
+auto defer(const _Executor& __e, _CompletionToken&& __token,
+  typename enable_if<is_executor<_Executor>::value>::type*)
 {
-  static_assert(sizeof...(_CompletionTokens) > 0,
-    "defer() must be called with one or more completion tokens");
-
-  typedef __active_invoker<void(), _CompletionTokens...> _Invoker;
-
-  _Invoker __head(__tokens...);
-  async_result<_Invoker> __result(__head);
-
-  auto __completion_executor(__e);
-  auto __completion_allocator(get_associated_allocator(__head));
-  __completion_executor.defer(std::move(__head), __completion_allocator);
-
-  return __result.get();
+  typedef typename handler_type<_CompletionToken, void()>::type _Handler;
+  async_completion<_CompletionToken, void()> __completion(__token);
+  _Executor __completion_executor(__e);
+  auto __completion_allocator(get_associated_allocator(__completion.handler));
+  __completion_executor.defer(__work_dispatcher<_Handler>(__completion.handler), __completion_allocator);
+  return __completion.result.get();
 }
 
-template <class _ExecutionContext, class... _CompletionTokens>
-typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-  defer(_ExecutionContext& __c, _CompletionTokens&&... __tokens)
+template <class _ExecutionContext, class _CompletionToken>
+inline auto defer(_ExecutionContext& __c, _CompletionToken&& __token,
+  typename enable_if<is_convertible<
+    _ExecutionContext&, execution_context&>::value>::type*)
 {
-  static_assert(sizeof...(_CompletionTokens) > 0,
-    "defer() must be called with one or more completion tokens");
-
-  typedef __active_invoker<void(), _CompletionTokens...> _Invoker;
-
-  _Invoker __head(__tokens...);
-  async_result<_Invoker> __result(__head);
-
-  auto __completion_executor(__c.get_executor());
-  auto __completion_allocator(get_associated_allocator(__head));
-  __completion_executor.defer(std::move(__head), __completion_allocator);
-
-  return __result.get();
+  return (defer)(__c.get_executor(), forward<_CompletionToken>(__token));
 }
 
 } // inline namespace concurrency_v1

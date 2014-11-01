@@ -15,81 +15,12 @@
 #include <atomic>
 #include <memory>
 #include <experimental/bits/small_block_recycler.h>
+#include <experimental/bits/function_op.h>
+#include <experimental/bits/operation.h>
 
 namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
-
-class __executor_impl_base;
-
-class __function_base
-{
-public:
-  virtual ~__function_base() {}
-  virtual void _Invoke() = 0;
-  virtual void _Destroy() = 0;
-};
-
-template <class _Func, class _Alloc>
-class __function
-  : public __function_base
-{
-public:
-  template <class _F> __function(_F&& __f, const _Alloc& __a)
-    : _M_func(forward<_F>(__f)), _M_alloc(__a)
-  {
-  }
-
-  virtual void _Invoke()
-  {
-    auto __op(_Adopt_small_block(_M_alloc, this));
-    _Func __f(std::move(_M_func));
-    __op.reset();
-    std::move(__f)();
-  }
-
-  virtual void _Destroy()
-  {
-    _Adopt_small_block(_M_alloc, this);
-  }
-
-private:
-  _Func _M_func;
-  _Alloc _M_alloc;
-};
-
-class __function_ptr
-{
-public:
-  template <class _F, class _Alloc> __function_ptr(_F __f, const _Alloc& __a)
-    : _M_func(_Allocate_small_block<__function<_F, _Alloc>>(__a, std::move(__f), __a).release())
-  {
-  }
-
-  __function_ptr(const __function_ptr&) = delete;
-
-  __function_ptr(__function_ptr&& __f)
-    : _M_func(__f._M_func)
-  {
-    __f._M_func = nullptr;
-  }
-
-  ~__function_ptr()
-  {
-    if (_M_func)
-      _M_func->_Destroy();
-  }
-
-  void operator()()
-  {
-    __function_base* __f = _M_func;
-    _M_func = nullptr;
-    __f->_Invoke();
-  }
-
-private:
-  __function_base* _M_func;
-};
 
 class __executor_impl_base
 {

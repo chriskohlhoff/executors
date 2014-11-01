@@ -1,7 +1,7 @@
 //
 // timer
 // ~~~~~
-// Waitable timer.
+// Timer operations.
 //
 // Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
@@ -21,152 +21,82 @@ namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
 
-template <class _Clock, class _TimerTraits>
-class __timer_service;
+template <class _Clock, class _Duration, class _CompletionToken>
+  auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time, _CompletionToken&& __token);
+template <class _Clock, class _Duration, class _Executor, class _CompletionToken>
+  auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    const _Executor& __e, _CompletionToken&& __token,
+      typename enable_if<is_executor<_Executor>::value>::type* = 0);
+template <class _Clock, class _Duration, class _ExecutionContext, class _CompletionToken>
+  auto dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    _ExecutionContext& __c, _CompletionToken&& __token,
+      typename enable_if<is_convertible<
+        _ExecutionContext&, execution_context&>::value>::type* = 0);
 
-template <class _Clock>
-struct timer_traits
-{
-  static typename _Clock::duration to_duration(
-    const typename _Clock::duration& __d);
+template <class _Clock, class _Duration, class _CompletionToken>
+  auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time, _CompletionToken&& __token);
+template <class _Clock, class _Duration, class _Executor, class _CompletionToken>
+  auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    const _Executor& __e, _CompletionToken&& __token,
+      typename enable_if<is_executor<_Executor>::value>::type* = 0);
+template <class _Clock, class _Duration, class _ExecutionContext, class _CompletionToken>
+  auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    _ExecutionContext& __c, _CompletionToken&& __token,
+      typename enable_if<is_convertible<
+        _ExecutionContext&, execution_context&>::value>::type* = 0);
 
-  static typename _Clock::duration to_duration(
-    const typename _Clock::time_point& __t);
-};
+template <class _Clock, class _Duration, class _CompletionToken>
+  auto defer_at(const chrono::time_point<_Clock, _Duration>& __abs_time, _CompletionToken&& __token);
+template <class _Clock, class _Duration, class _Executor, class _CompletionToken>
+  auto defer_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    const _Executor& __e, _CompletionToken&& __token,
+      typename enable_if<is_executor<_Executor>::value>::type* = 0);
+template <class _Clock, class _Duration, class _ExecutionContext, class _CompletionToken>
+  auto defer_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+    _ExecutionContext& __c, _CompletionToken&& __token,
+      typename enable_if<is_convertible<
+        _ExecutionContext&, execution_context&>::value>::type* = 0);
 
-template <class _Clock, class _TimerTraits = timer_traits<_Clock>>
-class basic_timer
-{
-public:
-  typedef _Clock clock_type;
-  typedef typename clock_type::duration duration;
-  typedef typename clock_type::time_point time_point;
-  typedef _TimerTraits traits_type;
+template <class _Rep, class _Period, class _CompletionToken>
+auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time, _CompletionToken&& __token);
+template <class _Rep, class _Period, class _Executor, class _CompletionToken>
+  auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
+    const _Executor& __e, _CompletionToken&& __token,
+      typename enable_if<is_executor<_Executor>::value>::type* = 0);
+template <class _Rep, class _Period, class _ExecutionContext, class _CompletionToken>
+  auto dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
+    _ExecutionContext& __c, _CompletionToken&& __token,
+      typename enable_if<is_convertible<
+        _ExecutionContext&, execution_context&>::value>::type* = 0);
 
-  // construct / copy / destroy:
+template <class _Rep, class _Period, class _CompletionToken>
+auto post_after(const chrono::duration<_Rep, _Period>& __rel_time, _CompletionToken&& __token);
+template <class _Rep, class _Period, class _Executor, class _CompletionToken>
+  auto post_after(const chrono::duration<_Rep, _Period>& __rel_time,
+    const _Executor& __e, _CompletionToken&& __token,
+      typename enable_if<is_executor<_Executor>::value>::type* = 0);
+template <class _Rep, class _Period, class _ExecutionContext, class _CompletionToken>
+  auto post_after(const chrono::duration<_Rep, _Period>& __rel_time,
+    _ExecutionContext& __c, _CompletionToken&& __token,
+      typename enable_if<is_convertible<
+        _ExecutionContext&, execution_context&>::value>::type* = 0);
 
-  basic_timer();
-  explicit basic_timer(const duration& __d);
-  explicit basic_timer(const time_point& __t);
-  explicit basic_timer(execution_context& __c);
-  basic_timer(execution_context& __c, const duration& __d);
-  basic_timer(execution_context& __c, const time_point& __t);
-  basic_timer(const basic_timer&) = delete;
-  basic_timer(basic_timer&& __t);
-
-  basic_timer& operator=(const basic_timer&) = delete;
-  basic_timer& operator=(basic_timer&& __t);
-
-  ~basic_timer();
-
-  // timer operations:
-
-  execution_context& context();
-
-  void cancel();
-  void cancel_one();
-
-  time_point expiry() const;
-  void expires_at(const time_point& __t);
-  void expires_after(const duration& __d);
-
-  void wait();
-  void wait(error_code& __ec);
-  template <class _CompletionToken> auto wait(_CompletionToken&& __token);
-
-private:
-  __timer_service<_Clock, _TimerTraits>* _M_service;
-  time_point _M_expiry;
-  typename __timer_queue<_Clock, _TimerTraits>::__per_timer_data _M_data;
-};
-
-typedef basic_timer<chrono::system_clock> system_timer;
-typedef basic_timer<chrono::steady_clock> steady_timer;
-typedef basic_timer<chrono::high_resolution_clock> high_resolution_timer;
-
-template <class _Clock, class _Duration, class... _CompletionTokens>
-  typename __invoke_with_token<_CompletionTokens...>::_Result
-    dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      _CompletionTokens&&... __tokens);
-template <class _Clock, class _Duration, class _Executor, class... _CompletionTokens>
-  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      const _Executor& __e, _CompletionTokens&&... __tokens);
-template <class _Clock, class _Duration, class _ExecutionContext, class... _CompletionTokens>
-  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-    dispatch_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      _ExecutionContext& __c, _CompletionTokens&&... __tokens);
-
-template <class _Clock, class _Duration, class... _CompletionTokens>
-  typename __invoke_with_token<_CompletionTokens...>::_Result
-    post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      _CompletionTokens&&... __tokens);
-template <class _Clock, class _Duration, class _Executor, class... _CompletionTokens>
-  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      const _Executor& __e, _CompletionTokens&&... __tokens);
-template <class _Clock, class _Duration, class _ExecutionContext, class... _CompletionTokens>
-  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-    post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      _ExecutionContext& __c, _CompletionTokens&&... __tokens);
-
-template <class _Clock, class _Duration, class... _CompletionTokens>
-  typename __invoke_with_token<_CompletionTokens...>::_Result
-    defer_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      _CompletionTokens&&... __tokens);
-template <class _Clock, class _Duration, class _Executor, class... _CompletionTokens>
-  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    defer_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      const _Executor& __e, _CompletionTokens&&... __tokens);
-template <class _Clock, class _Duration, class _ExecutionContext, class... _CompletionTokens>
-  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-    defer_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-      _ExecutionContext& __c, _CompletionTokens&&... __tokens);
-
-template <class _Rep, class _Period, class... _CompletionTokens>
-  typename __invoke_with_token<_CompletionTokens...>::_Result
-    dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      _CompletionTokens&&... __token);
-template <class _Rep, class _Period, class _Executor, class... _CompletionTokens>
-  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      const _Executor& __e, _CompletionTokens&&... __tokens);
-template <class _Rep, class _Period, class _ExecutionContext, class... _CompletionTokens>
-  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-    dispatch_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      _ExecutionContext& __c, _CompletionTokens&&... __tokens);
-
-template <class _Rep, class _Period, class... _CompletionTokens>
-  typename __invoke_with_token<_CompletionTokens...>::_Result
-    post_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      _CompletionTokens&&... __token);
-template <class _Rep, class _Period, class _Executor, class... _CompletionTokens>
-  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    post_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      const _Executor& __e, _CompletionTokens&&... __tokens);
-template <class _Rep, class _Period, class _ExecutionContext, class... _CompletionTokens>
-  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-    post_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      _ExecutionContext& __c, _CompletionTokens&&... __tokens);
-
-template <class _Rep, class _Period, class... _CompletionTokens>
-  typename __invoke_with_token<_CompletionTokens...>::_Result
-    defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      _CompletionTokens&&... __token);
-template <class _Rep, class _Period, class _Executor, class... _CompletionTokens>
-  typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-    defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      const _Executor& __e, _CompletionTokens&&... __tokens);
-template <class _Rep, class _Period, class _ExecutionContext, class... _CompletionTokens>
-  typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-    defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
-      _ExecutionContext& __c, _CompletionTokens&&... __tokens);
+template <class _Rep, class _Period, class _CompletionToken>
+auto defer_after(const chrono::duration<_Rep, _Period>& __rel_time, _CompletionToken&& __token);
+template <class _Rep, class _Period, class _Executor, class _CompletionToken>
+  auto defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
+    const _Executor& __e, _CompletionToken&& __token,
+      typename enable_if<is_executor<_Executor>::value>::type* = 0);
+template <class _Rep, class _Period, class _ExecutionContext, class _CompletionToken>
+  auto defer_after(const chrono::duration<_Rep, _Period>& __rel_time,
+    _ExecutionContext& __c, _CompletionToken&& __token,
+      typename enable_if<is_convertible<
+        _ExecutionContext&, execution_context&>::value>::type* = 0);
 
 } // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
 
-#include <experimental/bits/timer.h>
 #include <experimental/bits/dispatch_at.h>
 #include <experimental/bits/dispatch_after.h>
 #include <experimental/bits/post_at.h>

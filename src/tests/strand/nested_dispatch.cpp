@@ -6,7 +6,7 @@
 int main()
 {
   std::experimental::loop_scheduler scheduler;
-  auto ex = make_strand(scheduler.get_executor());
+  std::experimental::strand<std::experimental::loop_scheduler::executor_type> ex(scheduler.get_executor());
 
   int count = 0;
 

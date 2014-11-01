@@ -1,7 +1,4 @@
 nobase_include_HEADERS = \
-	experimental/await \
-	experimental/channel \
-	experimental/continuation \
 	experimental/executor \
 	experimental/future \
 	experimental/loop_scheduler \
@@ -10,20 +7,9 @@ nobase_include_HEADERS = \
 	experimental/timer \
 	experimental/type_traits \
 	experimental/thread_pool \
-	experimental/yield \
 	experimental/bits/associated_allocator.h \
 	experimental/bits/associated_executor.h \
-	experimental/bits/await_context.h \
 	experimental/bits/call_stack.h \
-	experimental/bits/chain.h \
-	experimental/bits/channel.h \
-	experimental/bits/channel_base.h \
-	experimental/bits/channel_void.h \
-	experimental/bits/codefer.h \
-	experimental/bits/codispatch.h \
-	experimental/bits/coinvoker.h \
-	experimental/bits/continuation.h \
-	experimental/bits/copost.h \
 	experimental/bits/defer.h \
 	experimental/bits/defer_at.h \
 	experimental/bits/defer_after.h \
@@ -33,14 +19,12 @@ nobase_include_HEADERS = \
 	experimental/bits/exception_ptr_executor.h \
 	experimental/bits/execution_context.h \
 	experimental/bits/executor.h \
-	experimental/bits/executor_traits.h \
 	experimental/bits/executor_work.h \
 	experimental/bits/executor_wrapper.h \
 	experimental/bits/executor_wrapper_base.h \
-	experimental/bits/function_traits.h \
+	experimental/bits/function_op.h \
 	experimental/bits/get_associated_allocator.h \
 	experimental/bits/get_associated_executor.h \
-	experimental/bits/invoker.h \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/make_work.h \
 	experimental/bits/operation.h \
@@ -55,13 +39,11 @@ nobase_include_HEADERS = \
 	experimental/bits/strand.h \
 	experimental/bits/system_executor.h \
 	experimental/bits/thread_pool.h \
-	experimental/bits/timed_invoker.h \
-	experimental/bits/timer.h \
+	experimental/bits/timer_op.h \
 	experimental/bits/timer_queue.h \
-	experimental/bits/tuple_utils.h \
-	experimental/bits/wait_op.h \
-	experimental/bits/wrap.h \
-	experimental/bits/yield_context.h
+	experimental/bits/timer_service.h \
+	experimental/bits/work_dispatcher.h \
+	experimental/bits/wrap.h
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in

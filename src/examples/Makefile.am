@@ -1,8 +1,6 @@
 SUBDIRS = \
-	channel \
 	executor \
-	trading \
-	timer
+	trading
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in

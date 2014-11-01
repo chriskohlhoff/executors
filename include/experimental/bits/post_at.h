@@ -12,66 +12,52 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_POST_AT_H
 #define EXECUTORS_EXPERIMENTAL_BITS_POST_AT_H
 
-#include <experimental/bits/invoker.h>
-#include <experimental/bits/timed_invoker.h>
+#include <experimental/bits/timer_op.h>
 
 namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
 
-template <class _Clock, class _Duration, class... _CompletionTokens>
-typename __invoke_with_token<_CompletionTokens...>::_Result
-  post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-    _CompletionTokens&&... __tokens)
+struct __post_action
 {
-  static_assert(sizeof...(_CompletionTokens) > 0,
-    "post_at() must be called with one or more completion tokens");
+  template <class _Executor, class _Handler, class _Allocator>
+  static void _Perform(_Executor& __e, _Handler&& __h, const _Allocator& __a)
+  {
+    __e.post(forward<_Handler>(__h), __a);
+  }
+};
 
-  typedef __timed_invoker<_Clock, _CompletionTokens...> _Invoker;
-
-  _Invoker __head(__tokens...);
-  async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
-
-  auto __completion_executor(get_associated_executor(__head._Get_tail()));
-  __head._Start(__completion_executor, __abs_time);
-
-  return __result.get();
+template <class _Clock, class _Duration, class _CompletionToken>
+auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time, _CompletionToken&& __token)
+{
+  typedef typename handler_type<_CompletionToken, void()>::type _Handler;
+  typedef __timer_op<_Clock, associated_executor_t<_Handler>, __post_action, _Handler> _Op;
+  async_completion<_CompletionToken, void()> __completion(__token);
+  auto __completion_executor((get_associated_executor)(__completion.handler));
+  _Op::_Enqueue(__completion_executor, __abs_time, __completion.handler);
+  return __completion.result.get();
 }
 
-template <class _Clock, class _Duration, class _Executor, class... _CompletionTokens>
-typename __invoke_with_executor<_Executor, _CompletionTokens...>::_Result
-  post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-    const _Executor& __e, _CompletionTokens&&... __tokens)
+template <class _Clock, class _Duration, class _Executor, class _CompletionToken>
+inline auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+  const _Executor& __e, _CompletionToken&& __token,
+    typename enable_if<is_executor<_Executor>::value>::type*)
 {
-  static_assert(sizeof...(_CompletionTokens) > 0,
-    "post_at() must be called with one or more completion tokens");
-
-  typedef __timed_invoker<_Clock, _CompletionTokens...> _Invoker;
-
-  _Invoker __head(__tokens...);
-  async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
-
-  __head._Start(__e, __abs_time);
-
-  return __result.get();
+  typedef typename handler_type<_CompletionToken, void()>::type _Handler;
+  typedef __timer_op<_Clock, _Executor, __post_action, __work_dispatcher<_Handler>> _Op;
+  async_completion<_CompletionToken, void()> __completion(__token);
+  __work_dispatcher<_Handler> __d(__completion.handler);
+  _Op::_Enqueue(__e, __abs_time, __d);
+  return __completion.result.get();
 }
 
-template <class _Clock, class _Duration, class _ExecutionContext, class... _CompletionTokens>
-typename __invoke_with_execution_context<_ExecutionContext, _CompletionTokens...>::_Result
-  post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
-    _ExecutionContext& __c, _CompletionTokens&&... __tokens)
+template <class _Clock, class _Duration, class _ExecutionContext, class _CompletionToken>
+auto post_at(const chrono::time_point<_Clock, _Duration>& __abs_time,
+  _ExecutionContext& __c, _CompletionToken&& __token,
+    typename enable_if<is_convertible<
+      _ExecutionContext&, execution_context&>::value>::type*)
 {
-  static_assert(sizeof...(_CompletionTokens) > 0,
-    "post_at() must be called with one or more completion tokens");
-
-  typedef __timed_invoker<_Clock, _CompletionTokens...> _Invoker;
-
-  _Invoker __head(__tokens...);
-  async_result<typename _Invoker::_Tail> __result(__head._Get_tail());
-
-  __head._Start(__c.get_executor(), __abs_time);
-
-  return __result.get();
+  return (post_at)(__abs_time, __c.get_executor(), forward<_CompletionToken>(__token));
 }
 
 } // inline namespace concurrency_v1

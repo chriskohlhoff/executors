@@ -52,47 +52,28 @@ public:
     __lock.unlock();
   }
 
-  template <class _Clock, class _TimerTraits>
-  void _Add_timer_queue(__timer_queue<_Clock, _TimerTraits>& __q)
+  template <class _Clock>
+  void _Add_timer_queue(__timer_queue<_Clock>& __q)
   {
     unique_lock<mutex> __lock(_M_mutex);
     _M_queues._Insert(&__q);
   }
 
-  template <class _Clock, class _TimerTraits>
-  void _Remove_timer_queue(__timer_queue<_Clock, _TimerTraits>& __q)
+  template <class _Clock>
+  void _Remove_timer_queue(__timer_queue<_Clock>& __q)
   {
     unique_lock<mutex> __lock(_M_mutex);
     _M_queues._Erase(&__q);
   }
 
-  template <class _Clock, class _TimerTraits>
-  void _Move_timer(__timer_queue<_Clock, _TimerTraits>& __q,
-    typename __timer_queue<_Clock, _TimerTraits>::__per_timer_data& __empty_target,
-    typename __timer_queue<_Clock, _TimerTraits>::__per_timer_data& __source)
-  {
-    unique_lock<mutex> __lock(_M_mutex);
-    __q._Move_timer(__empty_target, __source);
-  }
-
-  template <class _Clock, class _TimerTraits>
-  void _Enqueue_timer(__timer_queue<_Clock, _TimerTraits>& __q,
+  template <class _Clock>
+  void _Enqueue_timer(__timer_queue<_Clock>& __q,
     const typename _Clock::time_point& __expiry,
-    typename __timer_queue<_Clock, _TimerTraits>::__per_timer_data& __timer,
-    __wait_op_base* __op)
+    typename __timer_queue<_Clock>::__per_timer_data& __timer,
+    __operation* __op)
   {
     unique_lock<mutex> __lock(_M_mutex);
     if (__q._Enqueue_timer(__expiry, __timer, __op))
-      _M_condition.notify_one();
-  }
-
-  template <class _Clock, class _TimerTraits>
-  void _Cancel_timer(__timer_queue<_Clock, _TimerTraits>& __q,
-      typename __timer_queue<_Clock, _TimerTraits>::__per_timer_data& __timer,
-      size_t __max = ~size_t(0))
-  {
-    unique_lock<mutex> __lock(_M_mutex);
-    if (__q._Cancel_timer(__timer, _M_ops, __max))
       _M_condition.notify_one();
   }
 

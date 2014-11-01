@@ -1,45 +1,36 @@
 noinst_PROGRAMS = \
-	chain_int \
-	chain_int_int \
-	chain_int_void \
-	chain_void \
-	dispatch_int \
-	dispatch_void \
-	dispatch_after_int \
-	dispatch_after_void \
-	dispatch_at_int \
-	dispatch_at_void \
-	post_int \
-	post_void
+	defer \
+	defer_after \
+	defer_at \
+	dispatch \
+	dispatch_after \
+	dispatch_at \
+	post \
+	post_after \
+	post_at
 
 TESTS = \
-	chain_int \
-	chain_int_int \
-	chain_int_void \
-	chain_void \
-	dispatch_int \
-	dispatch_void \
-	dispatch_after_int \
-	dispatch_after_void \
-	dispatch_at_int \
-	dispatch_at_void \
-	post_int \
-	post_void
+	defer \
+	defer_after \
+	defer_at \
+	dispatch \
+	dispatch_after \
+	dispatch_at \
+	post \
+	post_after
+	post_at
 
 AM_CXXFLAGS = -I$(srcdir)/../../../include
 
-chain_int_SOURCES = chain_int.cpp
-chain_int_int_SOURCES = chain_int_int.cpp
-chain_int_void_SOURCES = chain_int_void.cpp
-chain_void_SOURCES = chain_void.cpp
-dispatch_int_SOURCES = dispatch_int.cpp
-dispatch_void_SOURCES = dispatch_void.cpp
-dispatch_after_int_SOURCES = dispatch_after_int.cpp
-dispatch_after_void_SOURCES = dispatch_after_void.cpp
-dispatch_at_int_SOURCES = dispatch_at_int.cpp
-dispatch_at_void_SOURCES = dispatch_at_void.cpp
-post_int_SOURCES = post_int.cpp
-post_void_SOURCES = post_void.cpp
+defer_SOURCES = defer.cpp
+defer_after_SOURCES = defer_after.cpp
+defer_at_SOURCES = defer_at.cpp
+dispatch_SOURCES = dispatch.cpp
+dispatch_after_SOURCES = dispatch_after.cpp
+dispatch_at_SOURCES = dispatch_at.cpp
+post_SOURCES = post.cpp
+post_after_SOURCES = post_after.cpp
+post_at_SOURCES = post_at.cpp
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in

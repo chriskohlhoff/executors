@@ -166,23 +166,6 @@ struct __is_executor_wrapper : false_type {};
 template <class _T, class _Executor>
 struct __is_executor_wrapper<executor_wrapper<_T, _Executor>> : true_type {};
 
-template <class _T, class _Executor, class... _Args>
-struct continuation_of<executor_wrapper<_T, _Executor>(_Args...)>
-{
-  typedef continuation_of<
-    typename executor_wrapper<_T, _Executor>::wrapped_type(_Args...)> _Wrapped_continuation_of;
-
-  typedef typename _Wrapped_continuation_of::signature signature;
-
-  template <class _C>
-  static auto chain(executor_wrapper<_T, _Executor>&& __f, _C&& __c)
-  {
-    return (wrap)(__f.get_executor(),
-      _Wrapped_continuation_of::chain(std::move(__f.unwrap()),
-        forward<_C>(__c)));
-  }
-};
-
 } // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std
