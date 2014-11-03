@@ -48,8 +48,9 @@ public:
     auto __allocator((get_associated_allocator)(_M_handler));
     auto __op(_Adopt_small_block(__allocator, this));
     _Handler __handler(std::move(_M_handler));
-    executor_work<associated_executor_t<_Handler>> __work(std::move(_M_work_2));
-    associated_executor_t<_Handler> __executor(__work.get_executor());
+    executor_work<_Executor> __work_1(std::move(_M_work_1));
+    executor_work<associated_executor_t<_Handler>> __work_2(std::move(_M_work_2));
+    _Executor __executor(__work_1.get_executor());
     __op.reset();
     _Action::_Perform(__executor, std::move(__handler), __allocator);
   }
