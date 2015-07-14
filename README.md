@@ -256,7 +256,7 @@ we will always incur the cost of a context switch (plus an extra context switch 
         std::forward<CompletionToken>(token));
     }
 
-> *Full example: [bank_account_4.cpp](src/examples/executor/bank_account_4.cpp)*
+> *Full example: [bank_account_5.cpp](src/examples/executor/bank_account_5.cpp)*
 
 then the enclosed function object can be executed before `dispatch()` returns. The only condition where it will run later is when the strand is already busy on another thread. In this case, in order to meet the strand's non-concurrency guarantee, the function object must be added to the strand's work queue. In the common case there is no contention on the strand and the cost is minimised.
 
@@ -271,7 +271,7 @@ A first attempt at solving this might use a `std::future`:
       // ...
 
       template <class CompletionToken>
-      auto transfer(bank_account& to_acct, CompletionToken&& token)
+      auto transfer(int amount, bank_account& to_acct, CompletionToken&& token)
       {
         return std::experimental::dispatch(ex_, [=, &to_acct]
           {
@@ -332,7 +332,7 @@ For our bank account example, what is more important is that the variadic `post(
         std::forward<CompletionToken>(token));
     }
 
-> *Full example: [bank_account_5.cpp](src/examples/executor/bank_account_5.cpp)*
+> *Full example: [bank_account_6.cpp](src/examples/executor/bank_account_6.cpp)*
 
 Here, the first function object:
 
@@ -389,7 +389,7 @@ Stackless coroutines are identified by having a last argument of type `await_con
         std::forward<CompletionToken>(token));
     }
 
-> *Full example: [bank_account_6.cpp](src/examples/executor/bank_account_6.cpp)*
+> *Full example: [bank_account_7.cpp](src/examples/executor/bank_account_7.cpp)*
 
 In this library, stackless coroutines are implemented using macros and a switch-based mechanism similar to Duff's Device. The `reenter` macro:
 
@@ -433,7 +433,7 @@ Stackful coroutines are identified by having a last argument of type `yield_cont
         std::forward<CompletionToken>(token));
     }
 
-> *Full example: [bank_account_7.cpp](src/examples/executor/bank_account_7.cpp)*
+> *Full example: [bank_account_8.cpp](src/examples/executor/bank_account_8.cpp)*
 
 The `yield` object is a completion token that means that, when the call out to a bank account object is reached:
 
@@ -464,7 +464,7 @@ Ultimately, executors are defined by a set of type requirements, and each of the
       // ...
     };
 
-> *Full example: [bank_account_8.cpp](src/examples/executor/bank_account_8.cpp)*
+> *Full example: [bank_account_9.cpp](src/examples/executor/bank_account_9.cpp)*
 
 On the other hand, in many situations runtime polymorphism will be preferred. To support this, the library provides the `executor` class, a polymorphic wrapper:
 
@@ -482,7 +482,7 @@ On the other hand, in many situations runtime polymorphism will be preferred. To
       // ...
     };
 
-> *Full example: [bank_account_9.cpp](src/examples/executor/bank_account_9.cpp)*
+> *Full example: [bank_account_10.cpp](src/examples/executor/bank_account_10.cpp)*
 
 The `bank_account` class can then be constructed using an explicitly-specified thread pool:
 
