@@ -78,7 +78,7 @@ public:
   {
   }
 
-  void shutdown_service()
+  void shutdown() noexcept override
   {
     __op_queue<__operation> __ops;
     lock_guard<mutex> __lock(_M_mutex);

@@ -28,8 +28,8 @@ inline execution_context::execution_context()
 
 inline execution_context::~execution_context()
 {
-  shutdown_context();
-  destroy_context();
+  shutdown();
+  destroy();
 }
 
 inline void execution_context::notify_fork(fork_event __e)
@@ -60,7 +60,7 @@ inline void execution_context::notify_fork(fork_event __e)
       __services[__i - 1]->notify_fork(__e);
 }
 
-inline void execution_context::shutdown_context()
+inline void execution_context::shutdown() noexcept
 {
   _M_mutex.lock();
   execution_context::service* const __first = _M_first_service;
@@ -72,13 +72,13 @@ inline void execution_context::shutdown_context()
     if (!__s->_M_shutdown)
     {
       __s->_M_shutdown = true;
-      __s->shutdown_service();
+      __s->shutdown();
     }
     __s = __s->_M_next;
   }
 }
 
-inline void execution_context::destroy_context()
+inline void execution_context::destroy() noexcept
 {
   while (_M_first_service)
   {

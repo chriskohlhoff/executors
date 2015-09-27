@@ -26,13 +26,13 @@ public:
   }
 
 private:
-  void shutdown_service()
+  void shutdown() noexcept override
   {
     assert(shutdown_count == 2);
     ++shutdown_count;
   }
 
-  void notify_fork(std::experimental::fork_event e)
+  void notify_fork(std::experimental::fork_event e) override
   {
     if (e == std::experimental::fork_event::prepare)
     {
@@ -65,13 +65,13 @@ public:
   }
 
 private:
-  void shutdown_service()
+  void shutdown() noexcept override
   {
     assert(shutdown_count == 1);
     ++shutdown_count;
   }
 
-  void notify_fork(std::experimental::fork_event e)
+  void notify_fork(std::experimental::fork_event e) override
   {
     if (e == std::experimental::fork_event::prepare)
     {
@@ -104,13 +104,13 @@ public:
   }
 
 private:
-  void shutdown_service()
+  void shutdown() noexcept override
   {
     assert(shutdown_count == 0);
     ++shutdown_count;
   }
 
-  void notify_fork(std::experimental::fork_event e)
+  void notify_fork(std::experimental::fork_event e) override
   {
     if (e == std::experimental::fork_event::prepare)
     {

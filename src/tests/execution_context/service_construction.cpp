@@ -12,7 +12,7 @@ public:
   }
 
 private:
-  void shutdown_service() {}
+  void shutdown() noexcept override {}
 };
 
 class service2
@@ -25,7 +25,7 @@ public:
   }
 
 private:
-  void shutdown_service() {}
+  void shutdown() noexcept override {}
 };
 
 int main()

@@ -185,8 +185,8 @@ protected:
 
   // execution context protected operations:
 
-  void shutdown_context();
-  void destroy_context();
+  void shutdown() noexcept;
+  void destroy() noexcept;
 
 private:
   template <class _Service> friend _Service& use_service(execution_context& __c);
@@ -210,7 +210,7 @@ protected:
 private:
   friend class execution_context;
 
-  virtual void shutdown_service() = 0;
+  virtual void shutdown() noexcept = 0;
   virtual void notify_fork(fork_event __e);
 
   template <class _Service> friend _Service& use_service(execution_context& __c);

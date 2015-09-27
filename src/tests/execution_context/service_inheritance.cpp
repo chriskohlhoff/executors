@@ -17,7 +17,7 @@ protected:
   }
 
 private:
-  void shutdown_service() {}
+  void shutdown() noexcept override {}
 };
 
 class service1
@@ -48,7 +48,7 @@ public:
   virtual void do_something() = 0;
 
 private:
-  void shutdown_service() {}
+  void shutdown() noexcept override {}
 };
 
 class service2
@@ -81,7 +81,7 @@ public:
   }
 
 private:
-  void shutdown_service() {}
+  void shutdown() noexcept override {}
 };
 
 class service3

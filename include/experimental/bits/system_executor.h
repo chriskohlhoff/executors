@@ -60,7 +60,7 @@ public:
     for (auto& __t: _M_threads)
       __t.join();
 #endif
-    shutdown_context();
+    shutdown();
   }
 
   static __system_executor_impl& _Instance()
