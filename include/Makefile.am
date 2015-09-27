@@ -8,7 +8,6 @@ nobase_include_HEADERS = \
 	experimental/bits/call_stack.h \
 	experimental/bits/defer.h \
 	experimental/bits/dispatch.h \
-	experimental/bits/exception_ptr_executor.h \
 	experimental/bits/execution_context.h \
 	experimental/bits/executor.h \
 	experimental/bits/executor_binder.h \
