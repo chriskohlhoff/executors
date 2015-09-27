@@ -4,12 +4,12 @@
 #include <iostream>
 #include <string>
 
+using std::experimental::bind_executor;
 using std::experimental::dispatch;
-using std::experimental::loop_scheduler;;
+using std::experimental::loop_scheduler;
 using std::experimental::make_work;
 using std::experimental::post;
 using std::experimental::thread_pool;
-using std::experimental::wrap;
 
 // A function to asynchronously read a single line from an input stream.
 template <class Handler>
@@ -64,7 +64,7 @@ int main()
   std::cout << "Enter a line: ";
 
   async_getline(std::cin,
-      wrap(pool, [](std::string line)
+      bind_executor(pool, [](std::string line)
         {
           std::cout << "Line: " << line << "\n";
         }));

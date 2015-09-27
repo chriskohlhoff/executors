@@ -8,7 +8,7 @@ int main()
 
   work w1 = std::experimental::make_work(pool.get_executor());
   work w2 = std::experimental::make_work(pool);
-  work w3 = std::experimental::make_work(std::experimental::wrap(pool, []{}));
+  work w3 = std::experimental::make_work(std::experimental::bind_executor(pool, []{}));
   work w4 = std::experimental::make_work([]{}, pool.get_executor());
   work w5 = std::experimental::make_work([]{}, pool);
 

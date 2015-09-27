@@ -14,6 +14,7 @@
 #include <thread>
 #include <vector>
 
+using std::experimental::bind_executor;
 using std::experimental::executor;
 using std::experimental::executor_work;
 using std::experimental::make_work;
@@ -21,7 +22,6 @@ using std::experimental::post;
 using std::experimental::strand;
 using std::experimental::system_executor;
 using std::experimental::thread_pool;
-using std::experimental::wrap;
 
 class latch
 {
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
   strand<system_executor> merge_executor;
   thread_pool ui_executor(1);
   notifying_latch nl(content_results.size(),
-      wrap(ui_executor, [&]{ render_content(out); }));
+      bind_executor(ui_executor, [&]{ render_content(out); }));
   for (auto& result: content_results)
   {
     post(merge_executor,

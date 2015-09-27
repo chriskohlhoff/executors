@@ -21,7 +21,7 @@ struct handler3
   handler3() {}
   handler3(const handler3&) = delete;
   handler3(handler3&&) {}
-  void operator()() && { ++handler_count; }
+  void operator()() { ++handler_count; }
 };
 
 int handler4()
@@ -37,14 +37,14 @@ int main()
 
   std::experimental::thread_pool pool;
 
-  std::experimental::defer(std::experimental::wrap(pool, handler1));
-  std::experimental::defer(std::experimental::wrap(pool, &handler1));
-  std::experimental::defer(std::experimental::wrap(pool, handler2()));
-  std::experimental::defer(std::experimental::wrap(pool, h2));
-  std::experimental::defer(std::experimental::wrap(pool, ch2));
-  std::experimental::defer(std::experimental::wrap(pool, handler3()));
-  std::experimental::defer(std::experimental::wrap(pool, std::move(h3)));
-  std::future<void> fut1 = std::experimental::defer(std::experimental::wrap(pool, std::experimental::use_future));
+  std::experimental::defer(std::experimental::bind_executor(pool, handler1));
+  std::experimental::defer(std::experimental::bind_executor(pool, &handler1));
+  std::experimental::defer(std::experimental::bind_executor(pool, handler2()));
+  std::experimental::defer(std::experimental::bind_executor(pool, h2));
+  std::experimental::defer(std::experimental::bind_executor(pool, ch2));
+  std::experimental::defer(std::experimental::bind_executor(pool, handler3()));
+  std::experimental::defer(std::experimental::bind_executor(pool, std::move(h3)));
+  std::future<void> fut1 = std::experimental::defer(std::experimental::bind_executor(pool, std::experimental::use_future));
   fut1.get();
 
   pool.join();

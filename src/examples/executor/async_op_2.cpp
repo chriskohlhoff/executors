@@ -4,13 +4,13 @@
 #include <iostream>
 #include <string>
 
+using std::experimental::bind_executor;
 using std::experimental::dispatch;
 using std::experimental::get_associated_executor;
 using std::experimental::loop_scheduler;
 using std::experimental::make_work;
 using std::experimental::post;
 using std::experimental::thread_pool;
-using std::experimental::wrap;
 
 // A function to asynchronously read a single line from an input stream.
 template <class Handler>
@@ -43,7 +43,7 @@ void async_getlines(std::istream& is, std::string init, Handler handler)
 
   // Use the associated executor for each operation in the composition.
   async_getline(is,
-      wrap(ex,
+      bind_executor(ex,
         [&is, lines=std::move(init), handler=std::move(handler)]
         (std::string line) mutable
         {
@@ -85,7 +85,7 @@ int main()
   std::cout << "Enter text, terminating with a blank line:\n";
 
   async_getlines(std::cin, "",
-      wrap(pool, [](std::string lines)
+      bind_executor(pool, [](std::string lines)
         {
           std::cout << "Lines:\n" << lines << "\n";
         }));

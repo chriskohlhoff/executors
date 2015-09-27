@@ -20,7 +20,7 @@ struct handler3
   handler3() {}
   handler3(const handler3&) = delete;
   handler3(handler3&&) {}
-  void operator()() && { ++handler_count; }
+  void operator()() { ++handler_count; }
 };
 
 int handler4()
@@ -36,20 +36,20 @@ int main()
 
   const std::experimental::system_executor ex;
 
-  std::experimental::post(std::experimental::wrap(ex, handler1));
-  std::experimental::post(std::experimental::wrap(ex, &handler1));
-  std::experimental::post(std::experimental::wrap(ex, handler2()));
-  std::experimental::post(std::experimental::wrap(ex, h2));
-  std::experimental::post(std::experimental::wrap(ex, ch2));
-  std::experimental::post(std::experimental::wrap(ex, handler3()));
-  std::experimental::post(std::experimental::wrap(ex, std::move(h3)));
-  std::future<void> fut1 = std::experimental::post(std::experimental::wrap(ex, std::experimental::use_future));
+  std::experimental::post(std::experimental::bind_executor(ex, handler1));
+  std::experimental::post(std::experimental::bind_executor(ex, &handler1));
+  std::experimental::post(std::experimental::bind_executor(ex, handler2()));
+  std::experimental::post(std::experimental::bind_executor(ex, h2));
+  std::experimental::post(std::experimental::bind_executor(ex, ch2));
+  std::experimental::post(std::experimental::bind_executor(ex, handler3()));
+  std::experimental::post(std::experimental::bind_executor(ex, std::move(h3)));
+  std::future<void> fut1 = std::experimental::post(std::experimental::bind_executor(ex, std::experimental::use_future));
   fut1.get();
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
   assert(handler_count == 7);
 
-  std::future<int> fut2 = std::experimental::post(std::experimental::wrap(ex, std::experimental::package(handler4)));
+  std::future<int> fut2 = std::experimental::post(std::experimental::bind_executor(ex, std::experimental::package(handler4)));
   try
   {
     fut2.get();

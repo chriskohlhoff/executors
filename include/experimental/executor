@@ -1,7 +1,7 @@
 //
 // executor
 // ~~~~~~~~
-// Polymorphic executor wrapper and generic executor utility functions.
+// Asynchronous model and generic executor utility functions.
 //
 // Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
@@ -14,7 +14,7 @@
 
 #include <experimental/bits/associated_allocator.h>
 #include <experimental/bits/associated_executor.h>
-#include <experimental/bits/executor_wrapper_base.h>
+#include <experimental/bits/executor_binder_base.h>
 #include <future>
 #include <memory>
 #include <mutex>
@@ -281,93 +281,81 @@ struct associated_executor
 template <class _T, class _Executor = system_executor>
 using associated_executor_t = typename associated_executor<_T, _Executor>::type;
 
-// A call wrapper type to associate an object of type _T with an executor of
-// type _Executor.
+// A call wrapper type to bind an executor of type _Executor to an object of
+// type _T.
 
 template <class _T, class _Executor>
-class executor_wrapper
-  : public __executor_wrapper_base_executor<_Executor>,
-    public __executor_wrapper_base_wrapped<_T>,
-    public __executor_wrapper_base_argument_type<_T>,
-    public __executor_wrapper_base_argument_types<_T>
+class executor_binder
+  : public __executor_binder_base_executor<_Executor>,
+    public __executor_binder_base_target<_T>
 {
 public:
-  typedef _T wrapped_type;
+  typedef _T target_type;
   typedef _Executor executor_type;
-  // typedef ... result_type;
-  // typedef ... argument_type;
-  // typedef ... first_argument_type;
-  // typedef ... second_argument_type;
 
   // construct / copy / destroy:
 
-  executor_wrapper(_T __t, const _Executor& __ex);
-  executor_wrapper(const executor_wrapper& __w) = default;
-  executor_wrapper(executor_wrapper&& __w) = default;
+  executor_binder(_T __t, const _Executor& __ex);
+  executor_binder(const executor_binder& __w) = default;
+  executor_binder(executor_binder&& __w) = default;
   template <class _U, class _OtherExecutor>
-    executor_wrapper(const executor_wrapper<_U, _OtherExecutor>& __w);
+    executor_binder(const executor_binder<_U, _OtherExecutor>& __w);
   template <class _U, class _OtherExecutor>
-    executor_wrapper(executor_wrapper<_U, _OtherExecutor>&& __w);
+    executor_binder(executor_binder<_U, _OtherExecutor>&& __w);
   template <class _U, class _OtherExecutor>
-    executor_wrapper(executor_arg_t, const _Executor& __ex,
-      const executor_wrapper<_U, _OtherExecutor>& __w);
+    executor_binder(executor_arg_t, const _Executor& __ex,
+      const executor_binder<_U, _OtherExecutor>& __w);
   template <class _U, class _OtherExecutor>
-    executor_wrapper(executor_arg_t, const _Executor& __ex,
-      executor_wrapper<_U, _OtherExecutor>&& __w);
+    executor_binder(executor_arg_t, const _Executor& __ex,
+      executor_binder<_U, _OtherExecutor>&& __w);
 
-  ~executor_wrapper();
+  ~executor_binder();
 
-  // executor wrapper operations:
+  // executor binder operations:
 
-  _T& unwrap() noexcept;
-  const _T& unwrap() const noexcept;
+  _T& get() noexcept;
+  const _T& get() const noexcept;
   executor_type get_executor() const noexcept;
 
   template <class... _Args>
     typename result_of<_T&(_Args&&...)>::type
-      operator()(_Args&&... __args) &;
+      operator()(_Args&&... __args);
   template <class... _Args>
     typename result_of<const _T&(_Args&&...)>::type
-      operator()(_Args&&... __args) const &;
-  template <class... _Args>
-    typename result_of<_T&&(_Args&&...)>::type
-      operator()(_Args&&... __args) &&;
-  template <class... _Args>
-    typename result_of<const _T&&(_Args&&...)>::type
-      operator()(_Args&&... __args) const &&;
+      operator()(_Args&&... __args) const;
 
 private:
-  template <class _U, class _E> friend class executor_wrapper;
-  template <class _E, class _U> executor_wrapper(int, _E&& __e, _U&& __u);
-  template <class _E, class _U> executor_wrapper(_E&& __e, _U&& __u, true_type);
-  template <class _E, class _U> executor_wrapper(_E&& __e, _U&& __u, false_type);
+  template <class _U, class _E> friend class executor_binder;
+  template <class _E, class _U> executor_binder(int, _E&& __e, _U&& __u);
+  template <class _E, class _U> executor_binder(_E&& __e, _U&& __u, true_type);
+  template <class _E, class _U> executor_binder(_E&& __e, _U&& __u, false_type);
 };
 
 template <class _T, class _Executor>
-  struct uses_executor<executor_wrapper<_T, _Executor>, _Executor> : true_type {};
+  struct uses_executor<executor_binder<_T, _Executor>, _Executor> : true_type {};
 
 template <class _T, class _Executor, class _Signature>
-  struct handler_type<executor_wrapper<_T, _Executor>, _Signature>;
+  struct handler_type<executor_binder<_T, _Executor>, _Signature>;
 
 template <class _T, class _Executor>
-  class async_result<executor_wrapper<_T, _Executor>>;
+  class async_result<executor_binder<_T, _Executor>>;
 
 template <class _T, class _Executor, class _Alloc>
-  struct associated_allocator<executor_wrapper<_T, _Executor>, _Alloc>;
+  struct associated_allocator<executor_binder<_T, _Executor>, _Alloc>;
 
 template <class _T, class _Executor, class _Executor1>
-  struct associated_executor<executor_wrapper<_T, _Executor>, _Executor1>;
+  struct associated_executor<executor_binder<_T, _Executor>, _Executor1>;
 
 // Helper function to associate an executor with an object.
 
 template <class _Executor, class _T>
-  executor_wrapper<typename decay<_T>::type, _Executor>
-    wrap(const _Executor& __e, _T&& __t,
+  executor_binder<typename decay<_T>::type, _Executor>
+    bind_executor(const _Executor& __e, _T&& __t,
       typename enable_if<is_executor<_Executor>::value>::type* = 0);
 
 template <class _ExecutionContext, class _T>
-  executor_wrapper<typename decay<_T>::type, typename _ExecutionContext::executor_type>
-    wrap(_ExecutionContext& __c, _T&& __t,
+  executor_binder<typename decay<_T>::type, typename _ExecutionContext::executor_type>
+    bind_executor(_ExecutionContext& __c, _T&& __t,
       typename enable_if<is_convertible<
         _ExecutionContext&, execution_context&>::value>::type* = 0);
 
@@ -756,8 +744,8 @@ template<class _Alloc>
 #include <experimental/bits/get_associated_allocator.h>
 #include <experimental/bits/execution_context.h>
 #include <experimental/bits/system_executor.h>
-#include <experimental/bits/executor_wrapper.h>
-#include <experimental/bits/wrap.h>
+#include <experimental/bits/executor_binder.h>
+#include <experimental/bits/bind_executor.h>
 #include <experimental/bits/get_associated_executor.h>
 #include <experimental/bits/executor_work.h>
 #include <experimental/bits/make_work.h>

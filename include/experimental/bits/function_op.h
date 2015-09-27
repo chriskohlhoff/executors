@@ -46,7 +46,7 @@ public:
     auto __op(_Adopt_small_block(_M_allocator, this));
     _Func __tmp(std::move(_M_func));
     __op.reset();
-    std::move(__tmp)();
+    __tmp();
   }
 
   virtual void _Destroy()

@@ -21,7 +21,7 @@ struct handler3
   handler3() {}
   handler3(const handler3&) = delete;
   handler3(handler3&&) {}
-  void operator()() && { ++handler_count; }
+  void operator()() { ++handler_count; }
 };
 
 int handler4()
@@ -40,14 +40,14 @@ int main()
   std::experimental::strand<std::experimental::loop_scheduler::executor_type> ex(scheduler.get_executor());
   std::thread t([&](){ scheduler.run(); });
 
-  std::experimental::defer(std::experimental::wrap(ex, handler1));
-  std::experimental::defer(std::experimental::wrap(ex, &handler1));
-  std::experimental::defer(std::experimental::wrap(ex, handler2()));
-  std::experimental::defer(std::experimental::wrap(ex, h2));
-  std::experimental::defer(std::experimental::wrap(ex, ch2));
-  std::experimental::defer(std::experimental::wrap(ex, handler3()));
-  std::experimental::defer(std::experimental::wrap(ex, std::move(h3)));
-  std::future<void> fut1 = std::experimental::defer(std::experimental::wrap(ex, std::experimental::use_future));
+  std::experimental::defer(std::experimental::bind_executor(ex, handler1));
+  std::experimental::defer(std::experimental::bind_executor(ex, &handler1));
+  std::experimental::defer(std::experimental::bind_executor(ex, handler2()));
+  std::experimental::defer(std::experimental::bind_executor(ex, h2));
+  std::experimental::defer(std::experimental::bind_executor(ex, ch2));
+  std::experimental::defer(std::experimental::bind_executor(ex, handler3()));
+  std::experimental::defer(std::experimental::bind_executor(ex, std::move(h3)));
+  std::future<void> fut1 = std::experimental::defer(std::experimental::bind_executor(ex, std::experimental::use_future));
   fut1.get();
 
   w.reset();

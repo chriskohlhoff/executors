@@ -29,7 +29,7 @@ struct handler3
   handler3() {}
   handler3(const handler3&) = delete;
   handler3(handler3&&) {}
-  void operator()(int, int) && { ++success_count; }
+  void operator()(int, int) { ++success_count; }
 };
 
 int main()

@@ -7,7 +7,7 @@
 #include <vector>
 
 using std::experimental::execution_context;
-using std::experimental::executor_wrapper;
+using std::experimental::executor_binder;
 using std::experimental::get_associated_executor;
 using std::experimental::package;
 using std::experimental::post;
@@ -175,6 +175,32 @@ private:
   std::shared_ptr<queue_impl<T>> impl_;
 };
 
+// Helper to determine the argument type of a function.
+template <class F>
+struct argument_type
+{
+  typedef typename std::reference_wrapper<F>::argument_type type;
+};
+
+template <class F, class E>
+struct argument_type<executor_binder<F, E>>
+{
+  typedef typename std::reference_wrapper<F>::argument_type type;
+};
+
+// Helper to determine the second argument type of a function.
+template <class F>
+struct second_argument_type
+{
+  typedef typename std::reference_wrapper<F>::second_argument_type type;
+};
+
+template <class F, class E>
+struct second_argument_type<executor_binder<F, E>>
+{
+  typedef typename std::reference_wrapper<F>::second_argument_type type;
+};
+
 // Launch the last stage in a pipeline.
 template <class T, class F>
 std::future<void> pipeline(queue_back<T> in, F f)
@@ -192,7 +218,7 @@ template <class T, class F, class... Tail>
 std::future<void> pipeline(queue_back<T> in, F f, Tail... t)
 {
   // Determine the output queue type.
-  typedef typename executor_wrapper<F, thread_executor>::second_argument_type::value_type output_value_type;
+  typedef typename second_argument_type<F>::type::value_type output_value_type;
 
   // Create the output queue and its implementation.
   auto out_impl = std::make_shared<queue_impl<output_value_type>>();
@@ -218,7 +244,7 @@ template <class F, class... Tail>
 std::future<void> pipeline(F f, Tail... t)
 {
   // Determine the output queue type.
-  typedef typename executor_wrapper<F, thread_executor>::argument_type::value_type output_value_type;
+  typedef typename argument_type<F>::type::value_type output_value_type;
 
   // Create the output queue and its implementation.
   auto out_impl = std::make_shared<queue_impl<output_value_type>>();
@@ -245,8 +271,8 @@ std::future<void> pipeline(F f, Tail... t)
 #include <iostream>
 #include <string>
 
+using std::experimental::bind_executor;
 using std::experimental::thread_pool;
-using std::experimental::wrap;
 
 void reader(queue_front<std::string> out)
 {
@@ -287,6 +313,6 @@ int main()
 {
   thread_pool pool;
 
-  auto f = pipeline(reader, filter, wrap(pool, upper), writer);
+  auto f = pipeline(reader, filter, bind_executor(pool, upper), writer);
   f.wait();
 }

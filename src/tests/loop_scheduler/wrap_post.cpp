@@ -21,7 +21,7 @@ struct handler3
   handler3() {}
   handler3(const handler3&) = delete;
   handler3(handler3&&) {}
-  void operator()() && { ++handler_count; }
+  void operator()() { ++handler_count; }
 };
 
 int handler4()
@@ -39,14 +39,14 @@ int main()
   std::experimental::executor_work<std::experimental::loop_scheduler::executor_type> w(scheduler.get_executor());
   std::thread t([&](){ scheduler.run(); });
 
-  std::experimental::post(std::experimental::wrap(scheduler, handler1));
-  std::experimental::post(std::experimental::wrap(scheduler, &handler1));
-  std::experimental::post(std::experimental::wrap(scheduler, handler2()));
-  std::experimental::post(std::experimental::wrap(scheduler, h2));
-  std::experimental::post(std::experimental::wrap(scheduler, ch2));
-  std::experimental::post(std::experimental::wrap(scheduler, handler3()));
-  std::experimental::post(std::experimental::wrap(scheduler, std::move(h3)));
-  std::future<void> fut1 = std::experimental::post(std::experimental::wrap(scheduler, std::experimental::use_future));
+  std::experimental::post(std::experimental::bind_executor(scheduler, handler1));
+  std::experimental::post(std::experimental::bind_executor(scheduler, &handler1));
+  std::experimental::post(std::experimental::bind_executor(scheduler, handler2()));
+  std::experimental::post(std::experimental::bind_executor(scheduler, h2));
+  std::experimental::post(std::experimental::bind_executor(scheduler, ch2));
+  std::experimental::post(std::experimental::bind_executor(scheduler, handler3()));
+  std::experimental::post(std::experimental::bind_executor(scheduler, std::move(h3)));
+  std::future<void> fut1 = std::experimental::post(std::experimental::bind_executor(scheduler, std::experimental::use_future));
   fut1.get();
 
   w.reset();
