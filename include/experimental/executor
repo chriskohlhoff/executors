@@ -306,24 +306,24 @@ template <class _T, class _ExecutionContext>
     get_associated_executor(const _T& __t, _ExecutionContext& __c,
       typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 
-// An object of class executor_work controls ownership of executor work within
+// An object of class executor_work_guard controls ownership of executor work within
 // a scope.
 
 template <class _Executor>
-class executor_work
+class executor_work_guard
 {
 public:
   typedef _Executor executor_type;
 
   // construct / copy / destroy:
 
-  explicit executor_work(const executor_type& __e) noexcept;
-  executor_work(const executor_work& __w) noexcept;
-  executor_work(executor_work&& __w) noexcept;
+  explicit executor_work_guard(const executor_type& __e) noexcept;
+  executor_work_guard(const executor_work_guard& __w) noexcept;
+  executor_work_guard(executor_work_guard&& __w) noexcept;
 
-  executor_work operator=(const executor_type&) = delete;
+  executor_work_guard operator=(const executor_type&) = delete;
 
-  ~executor_work();
+  ~executor_work_guard();
 
   // executor work observers:
 
@@ -342,21 +342,21 @@ private:
 // Helper function to create work for an executor, execution context or object.
 
 template <class _Executor>
-  executor_work<_Executor> make_work(const _Executor& __e,
+  executor_work_guard<_Executor> make_work_guard(const _Executor& __e,
     typename enable_if<is_executor<_Executor>::value>::type* = 0);
 template <class _ExecutionContext>
-  executor_work<typename _ExecutionContext::executor_type> make_work(_ExecutionContext& __c,
+  executor_work_guard<typename _ExecutionContext::executor_type> make_work_guard(_ExecutionContext& __c,
     typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 template <class _T>
-  executor_work<associated_executor_t<_T>> make_work(const _T& __t,
+  executor_work_guard<associated_executor_t<_T>> make_work_guard(const _T& __t,
     typename enable_if<!is_executor<_T>::value &&
       !is_convertible<_T&, execution_context&>::value>::type* = 0);
 template <class _T, class _Executor>
-  executor_work<associated_executor_t<_T, _Executor>> make_work(const _T& __t, const _Executor& __e,
+  executor_work_guard<associated_executor_t<_T, _Executor>> make_work_guard(const _T& __t, const _Executor& __e,
     typename enable_if<is_executor<_Executor>::value>::type* = 0);
 template <class _T, class _ExecutionContext>
-  executor_work<associated_executor_t<_T, typename _ExecutionContext::executor_type>>
-    make_work(const _T& __t, _ExecutionContext& __c,
+  executor_work_guard<associated_executor_t<_T, typename _ExecutionContext::executor_type>>
+    make_work_guard(const _T& __t, _ExecutionContext& __c,
       typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 
 // Class system_context implements the execution context associated with
@@ -647,8 +647,8 @@ template<class _Alloc>
 #include <experimental/bits/executor_binder.h>
 #include <experimental/bits/bind_executor.h>
 #include <experimental/bits/get_associated_executor.h>
-#include <experimental/bits/executor_work.h>
-#include <experimental/bits/make_work.h>
+#include <experimental/bits/executor_work_guard.h>
+#include <experimental/bits/make_work_guard.h>
 #include <experimental/bits/executor.h>
 #include <experimental/bits/dispatch.h>
 #include <experimental/bits/post.h>

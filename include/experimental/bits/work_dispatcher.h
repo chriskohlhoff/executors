@@ -35,7 +35,7 @@ public:
   }
 
 private:
-  executor_work<typename associated_executor<_Handler>::type> _M_work;
+  executor_work_guard<associated_executor_t<_Handler>> _M_work;
   _Handler _M_handler;
 };
 

@@ -275,7 +275,7 @@ private:
 template <class _Executor>
 struct __strand_invoker
 {
-  executor_work<_Executor> _M_work;
+  executor_work_guard<_Executor> _M_work;
   shared_ptr<__strand_impl> _M_impl;
 
   __strand_invoker(const _Executor& __e, const shared_ptr<__strand_impl>& __i)

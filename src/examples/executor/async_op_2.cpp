@@ -8,7 +8,7 @@ using std::experimental::bind_executor;
 using std::experimental::dispatch;
 using std::experimental::get_associated_executor;
 using std::experimental::loop_scheduler;
-using std::experimental::make_work;
+using std::experimental::make_work_guard;
 using std::experimental::post;
 using std::experimental::thread_pool;
 
@@ -17,7 +17,7 @@ template <class Handler>
 void async_getline(std::istream& is, Handler handler)
 {
   // Create executor_work for the handler's associated executor.
-  auto work = make_work(handler);
+  auto work = make_work_guard(handler);
 
   // Post a function object to do the work asynchronously.
   post([&is, work, handler=std::move(handler)]() mutable

@@ -12,13 +12,13 @@ nobase_include_HEADERS = \
 	experimental/bits/executor.h \
 	experimental/bits/executor_binder.h \
 	experimental/bits/executor_binder_base.h \
-	experimental/bits/executor_work.h \
+	experimental/bits/executor_work_guard.h \
 	experimental/bits/function_op.h \
 	experimental/bits/get_associated_allocator.h \
 	experimental/bits/get_associated_executor.h \
 	experimental/bits/is_executor.h \
 	experimental/bits/loop_scheduler.h \
-	experimental/bits/make_work.h \
+	experimental/bits/make_work_guard.h \
 	experimental/bits/operation.h \
 	experimental/bits/packaged_task.h \
 	experimental/bits/post.h \

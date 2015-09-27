@@ -13,7 +13,7 @@
 #include <vector>
 
 using std::experimental::loop_scheduler;
-using std::experimental::make_work;
+using std::experimental::make_work_guard;
 using std::experimental::post;
 using std::experimental::strand;
 using std::experimental::system_executor;
@@ -41,7 +41,7 @@ private:
   void read_file(const std::string& filename)
   {
     post(file_pool_,
-      [this, work=make_work(ui_executor_), filename]
+      [this, work=make_work_guard(ui_executor_), filename]
       {
         std::ifstream file(filename.c_str());
         std::istreambuf_iterator<char> iter(file.rdbuf()), end;
@@ -52,7 +52,7 @@ private:
   void process_content(std::vector<char> content)
   {
     post(
-      [this, work=make_work(ui_executor_), content=std::move(content)]() mutable
+      [this, work=make_work_guard(ui_executor_), content=std::move(content)]() mutable
       {
         for (char& c: content)
           c = std::toupper(c);
@@ -63,7 +63,7 @@ private:
   void merge_content(std::vector<char> result)
   {
     post(merge_executor_,
-      [this, work=make_work(ui_executor_), result=std::move(result)]
+      [this, work=make_work_guard(ui_executor_), result=std::move(result)]
       {
         out_.insert(out_.end(), result.begin(), result.end());
         if (--pending_results_ == 0)

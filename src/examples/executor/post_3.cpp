@@ -16,8 +16,7 @@
 
 using std::experimental::bind_executor;
 using std::experimental::executor;
-using std::experimental::executor_work;
-using std::experimental::make_work;
+using std::experimental::make_work_guard;
 using std::experimental::post;
 using std::experimental::strand;
 using std::experimental::system_executor;
@@ -57,7 +56,7 @@ public:
   template <class Handler>
   explicit notifying_latch(std::size_t initial_count, Handler handler)
     : count_(initial_count),
-      handler_([work=make_work(handler), handler]{
+      handler_([work=make_work_guard(handler), handler]{
           post(work.get_executor(), handler);
         })
   {

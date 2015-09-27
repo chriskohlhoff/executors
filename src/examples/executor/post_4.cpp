@@ -11,7 +11,7 @@
 #include <thread>
 #include <vector>
 
-using std::experimental::make_work;
+using std::experimental::make_work_guard;
 using std::experimental::post;
 using std::experimental::strand;
 using std::experimental::system_executor;
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
   {
     // Post file read on file_pool and content processing on system_executor.
     post(file_pool,
-      [&, work=make_work(ui_executor), src]
+      [&, work=make_work_guard(ui_executor), src]
       {
         post(
           [&, work, content=read_file(src)]() mutable

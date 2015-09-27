@@ -36,7 +36,7 @@ int main()
   handler3 h3;
 
   std::experimental::loop_scheduler scheduler;
-  std::experimental::executor_work<std::experimental::loop_scheduler::executor_type> w(scheduler.get_executor());
+  std::experimental::executor_work_guard<std::experimental::loop_scheduler::executor_type> w(scheduler.get_executor());
   std::thread t([&](){ scheduler.run(); });
 
   std::experimental::dispatch(scheduler, handler1);
