@@ -4,18 +4,13 @@ nobase_include_HEADERS = \
 	experimental/loop_scheduler \
 	experimental/memory \
 	experimental/strand \
-	experimental/timer \
 	experimental/type_traits \
 	experimental/thread_pool \
 	experimental/bits/associated_allocator.h \
 	experimental/bits/associated_executor.h \
 	experimental/bits/call_stack.h \
 	experimental/bits/defer.h \
-	experimental/bits/defer_at.h \
-	experimental/bits/defer_after.h \
 	experimental/bits/dispatch.h \
-	experimental/bits/dispatch_at.h \
-	experimental/bits/dispatch_after.h \
 	experimental/bits/exception_ptr_executor.h \
 	experimental/bits/execution_context.h \
 	experimental/bits/executor.h \
@@ -30,18 +25,12 @@ nobase_include_HEADERS = \
 	experimental/bits/operation.h \
 	experimental/bits/packaged_task.h \
 	experimental/bits/post.h \
-	experimental/bits/post_at.h \
-	experimental/bits/post_after.h \
 	experimental/bits/promise_handler.h \
-	experimental/bits/reactor.h \
 	experimental/bits/scheduler.h \
 	experimental/bits/small_block_recycler.h \
 	experimental/bits/strand.h \
 	experimental/bits/system_executor.h \
 	experimental/bits/thread_pool.h \
-	experimental/bits/timer_op.h \
-	experimental/bits/timer_queue.h \
-	experimental/bits/timer_service.h \
 	experimental/bits/work_dispatcher.h \
 	experimental/bits/wrap.h
 

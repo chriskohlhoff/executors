@@ -31,10 +31,6 @@ public:
   {
   }
 
-// The clang compiler shipped with Xcode doesn't support the thread_local
-// keyword. We make do with the __thread keyword extension, but this means we
-// cannot have a non-trivial destructor.
-#if !defined(__APPLE__) || !defined(__clang__)
   ~__small_block_recycler()
   {
     if (_M_memory)
@@ -42,7 +38,6 @@ public:
     if (_M_next_memory)
       ::operator delete(_M_next_memory);
   }
-#endif
 
   void* _Allocate(size_t __size)
   {
@@ -97,9 +92,8 @@ public:
 
   static __small_block_recycler& _Instance()
   {
-#if defined(__APPLE__) && defined(__clang__)
-    return _S_instance;
-#elif defined(_MSC_VER) || defined(__GNUC__)
+#if defined(__APPLE__) && defined(__clang__) \
+    || defined(_MSC_VER) || defined(__GNUC__)
     if (!_S_instance)
       _S_instance = new __small_block_recycler;
     return *_S_instance;
@@ -112,7 +106,7 @@ private:
   void* _M_memory;
   void* _M_next_memory;
 #if defined(__APPLE__) && defined(__clang__)
-  static __thread __small_block_recycler _S_instance;
+  static __thread __small_block_recycler* _S_instance;
 #elif defined(_MSC_VER)
   static __declspec(thread) __small_block_recycler* _S_instance;
 #elif defined(__GNUC__)
@@ -124,7 +118,7 @@ private:
 
 #if defined(__APPLE__) && defined(__clang__)
 template <class _Purpose>
-__thread __small_block_recycler<_Purpose> __small_block_recycler<_Purpose>::_S_instance;
+__thread __small_block_recycler<_Purpose>* __small_block_recycler<_Purpose>::_S_instance;
 #elif defined(_MSC_VER)
 template <class _Purpose>
 __declspec(thread) __small_block_recycler<_Purpose>* __small_block_recycler<_Purpose>::_S_instance;

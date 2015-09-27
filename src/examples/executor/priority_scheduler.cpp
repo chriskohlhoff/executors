@@ -1,5 +1,4 @@
 #include <experimental/executor>
-#include <experimental/timer>
 #include <condition_variable>
 #include <iostream>
 #include <memory>
@@ -7,7 +6,6 @@
 #include <queue>
 
 using std::experimental::dispatch;
-using std::experimental::dispatch_after;
 using std::experimental::execution_context;
 
 class priority_scheduler : public execution_context
@@ -153,6 +151,7 @@ namespace std { namespace experimental { inline namespace concurrency_v1 {
 int main()
 {
   priority_scheduler sched;
+  auto lowest = sched.get_executor(-1);
   auto low = sched.get_executor(0);
   auto med = sched.get_executor(1);
   auto high = sched.get_executor(2);
@@ -163,6 +162,6 @@ int main()
   dispatch(high, []{ std::cout << "3\n"; });
   dispatch(high, []{ std::cout << "33\n"; });
   dispatch(high, []{ std::cout << "333\n"; });
-  dispatch_after(std::chrono::seconds(1), sched, [&]{ sched.stop(); });
+  dispatch(lowest, [&]{ sched.stop(); });
   sched.run();
 }

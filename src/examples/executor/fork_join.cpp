@@ -269,13 +269,10 @@ private:
 
 //------------------------------------------------------------------------------
 
-#include <experimental/timer>
 #include <algorithm>
 #include <iostream>
 #include <random>
 #include <vector>
-
-using std::experimental::dispatch_after;
 
 fork_join_pool pool;
 
@@ -315,14 +312,7 @@ int main(int argc, char* argv[])
   std::shuffle(vec.begin(), vec.end(), g);
 
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-
-  {
-    fork_executor fork(pool);
-    join_guard join(fork);
-    dispatch(fork, [&]{ fork_join_sort(vec.begin(), vec.end()); });
-    dispatch_after(std::chrono::milliseconds(std::atoll(argv[2])), fork, []{});
-  }
-
+  fork_join_sort(vec.begin(), vec.end());
   std::chrono::steady_clock::duration elapsed = std::chrono::steady_clock::now() - start;
 
   std::cout << "sort took ";
