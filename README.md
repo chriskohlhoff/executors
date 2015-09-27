@@ -41,5 +41,3 @@ Run a function asynchronously, on your own thread pool, and wait for the result:
       }));
 
     std::cout << f.get() << std::endl;
-
-[endsect]
