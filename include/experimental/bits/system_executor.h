@@ -43,9 +43,21 @@ inline system_context::system_context(int)
 
 inline system_context::~system_context()
 {
-  _Work_finished();
   _Stop();
-  join();
+  if (!_M_threads.empty())
+  {
+    _Work_finished();
+#if defined(_MSC_VER)
+    // Work around MSVC deadlock bug when joining threads in global destructors.
+    while (!_M_token.expired())
+      std::this_thread::yield();
+    for (auto& __t: _M_threads)
+      __t.detach();
+#else
+    for (auto& __t: _M_threads)
+      __t.join();
+#endif
+  }
   shutdown();
 }
 
@@ -66,16 +78,13 @@ inline bool system_context::stopped() const noexcept
 
 inline void system_context::join()
 {
-#if defined(_MSC_VER)
-  // Work around MSVC deadlock bug when joining threads in global destructors.
-  while (!_M_token.expired())
-    std::this_thread::yield();
-  for (auto& __t: _M_threads)
-    __t.detach();
-#else
-  for (auto& __t: _M_threads)
-    __t.join();
-#endif
+  if (!_M_threads.empty())
+  {
+    _Work_finished();
+    for (auto& __t: _M_threads)
+      __t.join();
+    _M_threads.clear();
+  }
 }
 
 inline system_context& system_context::_Instance()
