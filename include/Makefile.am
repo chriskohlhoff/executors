@@ -17,6 +17,7 @@ nobase_include_HEADERS = \
 	experimental/bits/function_op.h \
 	experimental/bits/get_associated_allocator.h \
 	experimental/bits/get_associated_executor.h \
+	experimental/bits/is_executor.h \
 	experimental/bits/loop_scheduler.h \
 	experimental/bits/make_work.h \
 	experimental/bits/operation.h \

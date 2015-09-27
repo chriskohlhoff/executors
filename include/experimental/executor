@@ -171,13 +171,10 @@ template <class _Service, class... _Args> _Service&
   make_service(execution_context& __c, _Args&&... __args);
 template <class _Service> bool has_service(execution_context& __c) noexcept;
 
-// The is_executor trait detects whether _T meets the Executor type
-// requirements. Meets the UnaryTypeTrait requirements. The implementation
-// shall provide a definition that is derived from false_type. A program may
-// specialize this template to derive from true_type for a user-defined type _T
-// the meets the Executor requirements.
+// The is_executor trait detects whether _T meets the syntactic requirements of
+// an Executor type.
 
-template <class _T> struct is_executor : false_type {};
+template <class _T> struct is_executor;
 
 // The executor_arg_t struct is an empty structure type used as a unique type
 // to disambiguate constructor and function overloading. Specifically, some
@@ -388,8 +385,6 @@ public:
 bool operator==(const system_executor&, const system_executor&) noexcept;
 bool operator!=(const system_executor&, const system_executor&) noexcept;
 
-template <> struct is_executor<system_executor> : true_type {};
-
 class bad_executor;
 
 // Polymorphic executor wrapper.
@@ -443,8 +438,6 @@ private:
   explicit executor(__executor_impl_base* __i) : _M_impl(__i) {}
   __executor_impl_base* _M_impl;
 };
-
-template <> struct is_executor<executor> : true_type {};
 
 bool operator==(const executor& __a, const executor& __b) noexcept;
 bool operator==(const executor& __e, nullptr_t) noexcept;
@@ -540,8 +533,6 @@ template <class _Executor>
 template <class _Executor>
   bool operator!=(const strand<_Executor>& __a, const strand<_Executor>& __b) noexcept;
 
-template <class _Executor> struct is_executor<strand<_Executor>> : true_type {};
-
 // The class template use_future_t defines a set of completion token types for
 // use with asynchronous operations.
 
@@ -611,6 +602,7 @@ template<class _Alloc>
 
 #include <experimental/bits/get_associated_allocator.h>
 #include <experimental/bits/execution_context.h>
+#include <experimental/bits/is_executor.h>
 #include <experimental/bits/system_executor.h>
 #include <experimental/bits/executor_binder.h>
 #include <experimental/bits/bind_executor.h>

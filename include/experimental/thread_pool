@@ -88,8 +88,6 @@ bool operator==(const thread_pool::executor_type& __a,
 bool operator!=(const thread_pool::executor_type& __a,
                 const thread_pool::executor_type& __b) noexcept;
 
-template <> struct is_executor<thread_pool::executor_type> : true_type {};
-
 } // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std

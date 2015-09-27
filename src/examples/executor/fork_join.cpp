@@ -250,10 +250,6 @@ private:
   std::shared_ptr<std::size_t> work_count_;
 };
 
-namespace std { namespace experimental { inline namespace concurrency_v2 {
-  template <> struct is_executor<fork_executor> : std::true_type {};
-}}}
-
 // Helper class to automatically join a fork_executor when exiting a scope.
 class join_guard
 {

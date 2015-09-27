@@ -35,7 +35,7 @@ private:
     }
 
   private:
-    virtual void shutdown_service()
+    void shutdown() noexcept override
     {
       for (auto& t : threads_)
         t.join();
@@ -90,10 +90,6 @@ public:
     return false;
   }
 };
-
-namespace std { namespace experimental { inline namespace concurrency_v2 {
-  template <> struct is_executor<thread_executor> : std::true_type {};
-}}}
 
 // Base class for all thread-safe queue implementations.
 class queue_impl_base
