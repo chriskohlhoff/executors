@@ -1,6 +1,4 @@
 #include <experimental/executor>
-#include <experimental/future>
-#include <experimental/strand>
 #include <iostream>
 
 using std::experimental::dispatch;

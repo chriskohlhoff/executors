@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <experimental/executor>
 #include <experimental/loop_scheduler>
-#include <experimental/strand>
 #include <experimental/thread_pool>
 #include <fstream>
 #include <iostream>

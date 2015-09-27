@@ -14,7 +14,6 @@
 
 #include <string>
 #include <experimental/executor>
-#include <experimental/strand>
 #include "common/udp_socket.hpp"
 #include "market_data_feed.hpp"
 

@@ -17,7 +17,6 @@
 #include <queue>
 #include <string>
 #include <experimental/executor>
-#include <experimental/strand>
 #include "order_book.hpp"
 
 class market_data_bus;

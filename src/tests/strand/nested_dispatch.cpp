@@ -1,4 +1,3 @@
-#include <experimental/strand>
 #include <experimental/executor>
 #include <experimental/loop_scheduler>
 #include <cassert>

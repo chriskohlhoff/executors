@@ -4,7 +4,6 @@
 #include <condition_variable>
 #include <cstdlib>
 #include <experimental/executor>
-#include <experimental/strand>
 #include <experimental/thread_pool>
 #include <fstream>
 #include <functional>

@@ -1,7 +1,6 @@
 #include <condition_variable>
 #include <deque>
 #include <experimental/executor>
-#include <experimental/strand>
 #include <memory>
 #include <mutex>
 #include <typeinfo>

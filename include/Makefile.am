@@ -1,10 +1,6 @@
 nobase_include_HEADERS = \
 	experimental/executor \
-	experimental/future \
 	experimental/loop_scheduler \
-	experimental/memory \
-	experimental/strand \
-	experimental/type_traits \
 	experimental/thread_pool \
 	experimental/bits/associated_allocator.h \
 	experimental/bits/associated_executor.h \

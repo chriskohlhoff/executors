@@ -1,5 +1,4 @@
-#include <experimental/type_traits>
-#include <experimental/future>
+#include <experimental/executor>
 #include <cassert>
 
 template <class CompletionToken>

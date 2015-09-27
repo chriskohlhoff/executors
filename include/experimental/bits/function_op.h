@@ -12,7 +12,6 @@
 #ifndef EXECUTORS_EXPERIMENTAL_BITS_FUNCTION_OP_H
 #define EXECUTORS_EXPERIMENTAL_BITS_FUNCTION_OP_H
 
-#include <experimental/memory>
 #include <experimental/bits/operation.h>
 #include <experimental/bits/small_block_recycler.h>
 
