@@ -1,9 +1,3 @@
 defer
-defer_after
-defer_at
 dispatch
-dispatch_after
-dispatch_at
 post
-post_after
-post_at
