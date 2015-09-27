@@ -38,20 +38,11 @@ inline executor_work_guard<associated_executor_t<_T>> make_work_guard(const _T& 
   return executor_work_guard<associated_executor_t<_T>>(associated_executor<_T>::get(__t));
 }
 
-template <class _T, class _Executor>
-inline executor_work_guard<associated_executor_t<_T, _Executor>> make_work_guard(const _T& __t, const _Executor& __e,
-  typename enable_if<is_executor<_Executor>::value>::type*)
+template <class _T, class _U>
+inline auto make_work_guard(const _T& __t, _U&& __u)
+  -> decltype(make_work_guard(get_associated_executor(__t, forward<_U>(__u))))
 {
-  return executor_work_guard<associated_executor_t<_T, _Executor>>(associated_executor<_T, _Executor>::get(__t, __e));
-}
-
-template <class _T, class _ExecutionContext>
-inline executor_work_guard<associated_executor_t<_T, typename _ExecutionContext::executor_type>>
-make_work_guard(const _T& __t, _ExecutionContext& __c,
-  typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type*)
-{
-  return executor_work_guard<associated_executor_t<_T, typename _ExecutionContext::executor_type>>(
-    associated_executor<_T, typename _ExecutionContext::executor_type>::get(__t, __c.get_executor()));
+  return make_work_guard(get_associated_executor(__t, forward<_U>(__u)));
 }
 
 } // inline namespace concurrency_v2

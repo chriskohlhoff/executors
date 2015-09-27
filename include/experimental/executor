@@ -351,13 +351,9 @@ template <class _T>
   executor_work_guard<associated_executor_t<_T>> make_work_guard(const _T& __t,
     typename enable_if<!is_executor<_T>::value &&
       !is_convertible<_T&, execution_context&>::value>::type* = 0);
-template <class _T, class _Executor>
-  executor_work_guard<associated_executor_t<_T, _Executor>> make_work_guard(const _T& __t, const _Executor& __e,
-    typename enable_if<is_executor<_Executor>::value>::type* = 0);
-template <class _T, class _ExecutionContext>
-  executor_work_guard<associated_executor_t<_T, typename _ExecutionContext::executor_type>>
-    make_work_guard(const _T& __t, _ExecutionContext& __c,
-      typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
+template <class _T, class _U>
+  auto make_work_guard(const _T& __t, _U&& __u)
+    -> decltype(make_work_guard(get_associated_executor(__t, forward<_U>(__u))));
 
 // Class system_context implements the execution context associated with
 // system_executor objects.
