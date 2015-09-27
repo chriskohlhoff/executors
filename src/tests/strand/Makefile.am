@@ -1,4 +1,5 @@
 noinst_PROGRAMS = \
+	allocator \
 	defer \
 	dispatch \
 	nested_dispatch \
@@ -9,6 +10,7 @@ noinst_PROGRAMS = \
 	wrap_post
 
 TESTS = \
+	allocator \
 	defer \
 	dispatch \
 	nested_dispatch \
@@ -20,6 +22,7 @@ TESTS = \
 
 AM_CXXFLAGS = -I$(srcdir)/../../../include
 
+allocator_SOURCES = allocator.cpp
 defer_SOURCES = defer.cpp
 dispatch_SOURCES = dispatch.cpp
 nested_dispatch_SOURCES = nested_dispatch.cpp

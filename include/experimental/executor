@@ -529,6 +529,8 @@ public:
   template <class _Dummy = int> strand(_Dummy = 0,
     typename enable_if<is_default_constructible<_Executor>::value, _Dummy>::type* = 0);
   explicit strand(_Executor __e);
+  template<class _ProtoAllocator>
+    strand(allocator_arg_t, const _ProtoAllocator& __a, _Executor __e);
   strand(const strand& __s);
   strand(strand&& __s);
   template <class _OtherExecutor> strand(const strand<_OtherExecutor>& __s);

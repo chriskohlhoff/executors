@@ -139,6 +139,14 @@ inline strand<_Executor>::strand(_Executor __e)
 {
 }
 
+template <class _Executor> template <class _ProtoAllocator>
+inline strand<_Executor>::strand(allocator_arg_t, const _ProtoAllocator& __a, _Executor __e)
+  : _M_executor(std::move(__e)),
+    _M_impl(allocate_shared<__strand_impl>(typename _ProtoAllocator::template rebind<char>::other(__a),
+      use_service<__strand_service>(_M_executor.context())))
+{
+}
+
 template <class _Executor>
 inline strand<_Executor>::strand(const strand& __s)
   : _M_executor(__s._M_executor), _M_impl(__s._M_impl)
