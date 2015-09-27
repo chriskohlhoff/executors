@@ -21,7 +21,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _Func, class _Promise>
 struct __promise_invoker
@@ -228,7 +228,7 @@ struct handler_type<use_future_t<_Alloc>, _R(_Args...)>
   typedef __promise_handler<_Args...> type;
 };
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

@@ -144,7 +144,7 @@ private:
   bool stopped_ = false;
 };
 
-namespace std { namespace experimental { inline namespace concurrency_v1 {
+namespace std { namespace experimental { inline namespace concurrency_v2 {
   template <> struct is_executor<priority_scheduler::executor_type> : std::true_type {};
 }}}
 

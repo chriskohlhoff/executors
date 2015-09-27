@@ -250,7 +250,7 @@ private:
   std::shared_ptr<std::size_t> work_count_;
 };
 
-namespace std { namespace experimental { inline namespace concurrency_v1 {
+namespace std { namespace experimental { inline namespace concurrency_v2 {
   template <> struct is_executor<fork_executor> : std::true_type {};
 }}}
 

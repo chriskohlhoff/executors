@@ -14,7 +14,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _Executor, class _T>
 inline executor_wrapper<typename decay<_T>::type, _Executor>
@@ -34,7 +34,7 @@ wrap(_ExecutionContext& __c, _T&& __t,
     typename _ExecutionContext::executor_type>(forward<_T>(__t), __c.get_executor());
 }
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

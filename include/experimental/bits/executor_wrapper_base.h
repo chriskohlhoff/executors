@@ -16,7 +16,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _Executor>
 class __executor_wrapper_base_executor
@@ -112,7 +112,7 @@ struct __executor_wrapper_base_argument_types<_T,
   typedef typename _T::second_argument_type second_argument_type;
 };
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

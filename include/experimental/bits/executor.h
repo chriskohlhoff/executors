@@ -20,7 +20,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 class __executor_impl_base
 {
@@ -451,7 +451,7 @@ inline bool operator!=(nullptr_t, const executor& __e) noexcept
   return static_cast<bool>(__e);
 }
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

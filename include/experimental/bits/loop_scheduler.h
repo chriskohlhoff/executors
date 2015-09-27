@@ -16,7 +16,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 inline loop_scheduler::loop_scheduler()
 {
@@ -147,7 +147,7 @@ inline bool operator!=(const loop_scheduler::executor_type& __a, const loop_sche
   return !(__a == __b);
 }
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

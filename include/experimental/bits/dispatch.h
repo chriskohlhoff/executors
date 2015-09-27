@@ -16,7 +16,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _CompletionToken>
 auto dispatch(_CompletionToken&& __token)
@@ -48,7 +48,7 @@ inline auto dispatch(_ExecutionContext& __c, _CompletionToken&& __token,
   return (dispatch)(__c.get_executor(), forward<_CompletionToken>(__token));
 }
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

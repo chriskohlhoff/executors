@@ -14,7 +14,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _T>
 inline associated_allocator_t<_T> get_associated_allocator(const _T& __t)
@@ -29,7 +29,7 @@ get_associated_allocator(const _T& __t, const _Alloc& __a)
   return associated_allocator<_T, _Alloc>::get(__t, __a);
 }
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

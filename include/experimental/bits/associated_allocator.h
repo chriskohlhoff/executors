@@ -16,7 +16,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class>
 struct __associated_allocator_check
@@ -47,7 +47,7 @@ struct __associated_allocator<_T, _A,
   }
 };
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

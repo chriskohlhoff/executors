@@ -14,7 +14,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _Handler>
 class __work_dispatcher
@@ -39,7 +39,7 @@ private:
   _Handler _M_handler;
 };
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

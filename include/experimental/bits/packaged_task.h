@@ -14,7 +14,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _Func, class _Alloc, class _R, class... _Args>
 struct handler_type<packaged_token<_Func, _Alloc>, _R(_Args...)>
@@ -54,7 +54,7 @@ private:
   type _M_future;
 };
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

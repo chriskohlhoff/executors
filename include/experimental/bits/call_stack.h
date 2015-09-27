@@ -14,7 +14,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _Key, class _Value = unsigned char>
 class __call_stack
@@ -94,7 +94,7 @@ template <class _Key, class _Value>
     __call_stack<_Key, _Value>::_S_top;
 #endif
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

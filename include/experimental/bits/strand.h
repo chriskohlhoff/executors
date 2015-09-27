@@ -21,7 +21,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 class __strand_service;
 
@@ -413,7 +413,7 @@ inline bool operator!=(const strand<_Executor>& __a, const strand<_Executor>& __
   return !(__a == __b);
 }
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

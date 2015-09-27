@@ -14,7 +14,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _T>
 inline associated_executor_t<_T> get_associated_executor(const _T& __t)
@@ -38,7 +38,7 @@ inline associated_executor_t<_T, typename _ExecutionContext::executor_type>
   return associated_executor<_T, typename _ExecutionContext::executor_type>::get(__t, __c.get_executor());
 }
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

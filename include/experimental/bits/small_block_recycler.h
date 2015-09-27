@@ -18,7 +18,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 template <class _Purpose = void>
 class __small_block_recycler
@@ -269,7 +269,7 @@ inline __small_block_ptr<_Allocator, _T> _Adopt_small_block(const _Allocator& __
   return __small_block_ptr<_Allocator, _T>(__p, __small_block_delete<_Allocator, _T>(__alloc));
 }
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 

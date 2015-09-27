@@ -91,7 +91,7 @@ public:
   }
 };
 
-namespace std { namespace experimental { inline namespace concurrency_v1 {
+namespace std { namespace experimental { inline namespace concurrency_v2 {
   template <> struct is_executor<thread_executor> : std::true_type {};
 }}}
 

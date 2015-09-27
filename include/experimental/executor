@@ -24,7 +24,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 // Trait used to obtain an object's associated allocator.
 
@@ -744,7 +744,7 @@ private:
 template <class _Signature, class _Alloc>
 class async_result<packaged_handler<_Signature, _Alloc>>;
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 
 template<class _Alloc>

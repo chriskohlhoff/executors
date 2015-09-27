@@ -22,7 +22,7 @@
 
 namespace std {
 namespace experimental {
-inline namespace concurrency_v1 {
+inline namespace concurrency_v2 {
 
 class __system_executor_impl
   : public execution_context
@@ -131,7 +131,7 @@ inline bool operator!=(const system_executor&, const system_executor&) noexcept
   return false;
 }
 
-} // inline namespace concurrency_v1
+} // inline namespace concurrency_v2
 } // namespace experimental
 } // namespace std
 
