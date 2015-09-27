@@ -22,7 +22,7 @@ inline loop_scheduler::loop_scheduler()
 {
 }
 
-inline loop_scheduler::loop_scheduler(size_t __concurrency_hint)
+inline loop_scheduler::loop_scheduler(int __concurrency_hint)
   : __scheduler(__concurrency_hint)
 {
 }
@@ -36,50 +36,50 @@ inline loop_scheduler::executor_type loop_scheduler::get_executor() const noexce
   return executor_type(const_cast<loop_scheduler*>(this));
 }
 
-inline size_t loop_scheduler::run()
+inline loop_scheduler::count_type loop_scheduler::run()
 {
   return _Run();
 }
 
 template <class _Rep, class _Period>
-size_t loop_scheduler::run_for(
+inline loop_scheduler::count_type loop_scheduler::run_for(
   const chrono::duration<_Rep, _Period>& __rel_time)
 {
   return this->_Run_for(__rel_time);
 }
 
 template <class _Clock, class _Duration>
-size_t loop_scheduler::run_until(
+inline loop_scheduler::count_type loop_scheduler::run_until(
   const chrono::time_point<_Clock, _Duration>& __abs_time)
 {
   return this->_Run_until(__abs_time);
 }
 
-inline size_t loop_scheduler::run_one()
+inline loop_scheduler::count_type loop_scheduler::run_one()
 {
   return _Run_one();
 }
 
 template <class _Rep, class _Period>
-size_t loop_scheduler::run_one_for(
+inline loop_scheduler::count_type loop_scheduler::run_one_for(
   const chrono::duration<_Rep, _Period>& __rel_time)
 {
   return this->_Run_one_for(__rel_time);
 }
 
 template <class _Clock, class _Duration>
-size_t loop_scheduler::run_one_until(
+inline loop_scheduler::count_type loop_scheduler::run_one_until(
   const chrono::time_point<_Clock, _Duration>& __abs_time)
 {
   return this->_Run_one_until(__abs_time);
 }
 
-inline size_t loop_scheduler::poll()
+inline loop_scheduler::count_type loop_scheduler::poll()
 {
   return _Poll();
 }
 
-inline size_t loop_scheduler::poll_one()
+inline loop_scheduler::count_type loop_scheduler::poll_one()
 {
   return _Poll_one();
 }
@@ -120,19 +120,19 @@ inline void loop_scheduler::executor_type::on_work_finished() noexcept
 }
 
 template <class _Func, class _Alloc>
-void loop_scheduler::executor_type::dispatch(_Func&& __f, const _Alloc& __a)
+inline void loop_scheduler::executor_type::dispatch(_Func&& __f, const _Alloc& __a)
 {
   _M_scheduler->_Dispatch(forward<_Func>(__f), __a);
 }
 
 template <class _Func, class _Alloc>
-void loop_scheduler::executor_type::post(_Func&& __f, const _Alloc& __a)
+inline void loop_scheduler::executor_type::post(_Func&& __f, const _Alloc& __a)
 {
   _M_scheduler->_Post(forward<_Func>(__f), __a);
 }
 
 template <class _Func, class _Alloc>
-void loop_scheduler::executor_type::defer(_Func&& __f, const _Alloc& __a)
+inline void loop_scheduler::executor_type::defer(_Func&& __f, const _Alloc& __a)
 {
   _M_scheduler->_Defer(forward<_Func>(__f), __a);
 }

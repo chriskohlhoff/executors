@@ -81,7 +81,7 @@ public:
 
   typedef __call_stack<__scheduler, _Context> _Call_stack;
 
-  __scheduler(size_t __concurrency_hint = ~size_t(0))
+  __scheduler(int __concurrency_hint = 0)
     : _M_outstanding_work(0), _M_stopped(false),
       _M_one_thread(__concurrency_hint == 1)
   {

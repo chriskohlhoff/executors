@@ -28,11 +28,12 @@ class loop_scheduler
 {
 public:
   class executor_type;
+  typedef size_t count_type;
 
   // construct / copy / destroy:
 
   loop_scheduler();
-  explicit loop_scheduler(size_t __concurrency_hint);
+  explicit loop_scheduler(int __concurrency_hint);
   loop_scheduler(const loop_scheduler&) = delete;
   loop_scheduler& operator=(const loop_scheduler&) = delete;
   ~loop_scheduler();
@@ -41,21 +42,21 @@ public:
 
   executor_type get_executor() const noexcept;
 
-  size_t run();
+  count_type run();
   template <class _Rep, class _Period>
-    size_t run_for(const chrono::duration<_Rep, _Period>& __rel_time);
+    count_type run_for(const chrono::duration<_Rep, _Period>& __rel_time);
   template <class _Clock, class _Duration>
-    size_t run_until(const chrono::time_point<_Clock, _Duration>& __abs_time);
+    count_type run_until(const chrono::time_point<_Clock, _Duration>& __abs_time);
 
-  size_t run_one();
+  count_type run_one();
   template <class _Rep, class _Period>
-    size_t run_one_for(const chrono::duration<_Rep, _Period>& __rel_time);
+    count_type run_one_for(const chrono::duration<_Rep, _Period>& __rel_time);
   template <class _Clock, class _Duration>
-    size_t run_one_until(const chrono::time_point<_Clock, _Duration>& __abs_time);
+    count_type run_one_until(const chrono::time_point<_Clock, _Duration>& __abs_time);
 
-  size_t poll();
+  count_type poll();
 
-  size_t poll_one();
+  count_type poll_one();
 
   void stop();
 
