@@ -107,21 +107,20 @@ executor_binder<_T, _Executor>::operator()(_Args&&... __args) const
 }
 
 template <class _T, class _Executor, class _Signature>
-struct handler_type<executor_binder<_T, _Executor>, _Signature>
-{
-  typedef executor_binder<handler_type_t<_T, _Signature>, _Executor> type;
-};
-
-template <class _T, class _Executor>
-class async_result<executor_binder<_T, _Executor>>
+class async_result<executor_binder<_T, _Executor>, _Signature>
 {
 public:
-  typedef typename async_result<_T>::type type;
-  explicit async_result(executor_binder<_T, _Executor>& __w) : _M_target(__w.get()) {}
-  type get() { return _M_target.get(); }
+  typedef executor_binder<
+    typename async_result<_T, _Signature>::completion_handler_type,
+      _Executor> completion_handler_type;
+
+  typedef typename async_result<_T, _Signature>::return_type return_type;
+
+  explicit async_result(completion_handler_type& __h) : _M_target(__h.get()) {}
+  return_type get() { return _M_target.get(); }
 
 private:
-  async_result<_T> _M_target;
+  async_result<_T, _Signature> _M_target;
 };
 
 template <class _T, class _Executor, class _Alloc>

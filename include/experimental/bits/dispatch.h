@@ -22,9 +22,9 @@ template <class _CompletionToken>
 auto dispatch(_CompletionToken&& __token)
 {
   async_completion<_CompletionToken, void()> __completion(__token);
-  auto __completion_executor(get_associated_executor(__completion.handler));
-  auto __completion_allocator(get_associated_allocator(__completion.handler));
-  __completion_executor.dispatch(std::move(__completion.handler), __completion_allocator);
+  auto __completion_executor(get_associated_executor(__completion.completion_handler));
+  auto __completion_allocator(get_associated_allocator(__completion.completion_handler));
+  __completion_executor.dispatch(std::move(__completion.completion_handler), __completion_allocator);
   return __completion.result.get();
 }
 
@@ -32,11 +32,11 @@ template <class _Executor, class _CompletionToken>
 auto dispatch(const _Executor& __e, _CompletionToken&& __token,
   typename enable_if<is_executor<_Executor>::value>::type*)
 {
-  typedef typename handler_type<_CompletionToken, void()>::type _Handler;
+  typedef typename async_completion<_CompletionToken, void()>::completion_handler_type _Handler;
   async_completion<_CompletionToken, void()> __completion(__token);
   _Executor __completion_executor(__e);
-  auto __completion_allocator(get_associated_allocator(__completion.handler));
-  __completion_executor.dispatch(__work_dispatcher<_Handler>(__completion.handler), __completion_allocator);
+  auto __completion_allocator(get_associated_allocator(__completion.completion_handler));
+  __completion_executor.dispatch(__work_dispatcher<_Handler>(__completion.completion_handler), __completion_allocator);
   return __completion.result.get();
 }
 

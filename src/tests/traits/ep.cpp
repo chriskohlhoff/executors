@@ -12,11 +12,11 @@ auto async_foo(bool fail, CompletionToken&& tok)
     if (fail)
       throw std::runtime_error("fail");
 
-    std::move(completion.handler)(std::exception_ptr());
+    std::move(completion.completion_handler)(std::exception_ptr());
   }
   catch (...)
   {
-    std::move(completion.handler)(std::current_exception());
+    std::move(completion.completion_handler)(std::current_exception());
   }
 
   return completion.result.get();

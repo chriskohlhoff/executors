@@ -9,9 +9,9 @@
 using std::experimental::execution_context;
 using std::experimental::executor_binder;
 using std::experimental::get_associated_executor;
-using std::experimental::package;
 using std::experimental::post;
 using std::experimental::system_executor;
+using std::experimental::use_future;
 using std::experimental::use_service;
 
 // An executor that launches a new thread for each function submitted to it.
@@ -210,7 +210,7 @@ std::future<void> pipeline(queue_back<T> in, F f)
 
   // Run the function, and as we're the last stage return a future so that the
   // caller can wait for the pipeline to finish.
-  return post(ex, package([in, f = std::move(f)]() mutable { f(in); }));
+  return post(ex, use_future([in, f = std::move(f)]() mutable { f(in); }));
 }
 
 // Launch an intermediate stage in a pipeline.

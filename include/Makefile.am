@@ -22,12 +22,12 @@ nobase_include_HEADERS = \
 	experimental/bits/operation.h \
 	experimental/bits/packaged_task.h \
 	experimental/bits/post.h \
-	experimental/bits/promise_handler.h \
 	experimental/bits/scheduler.h \
 	experimental/bits/small_block_recycler.h \
 	experimental/bits/strand.h \
 	experimental/bits/system_executor.h \
 	experimental/bits/thread_pool.h \
+	experimental/bits/use_future.h \
 	experimental/bits/work_dispatcher.h
 
 MAINTAINERCLEANFILES = \

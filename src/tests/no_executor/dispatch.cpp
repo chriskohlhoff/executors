@@ -46,7 +46,7 @@ int main()
 
   assert(handler_count == 7);
 
-  std::future<int> fut2 = std::experimental::dispatch(std::experimental::package(handler4));
+  std::future<int> fut2 = std::experimental::dispatch(std::experimental::use_future(handler4));
   try
   {
     fut2.get();

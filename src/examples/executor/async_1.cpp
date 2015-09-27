@@ -4,14 +4,14 @@
 #include <string>
 
 using std::experimental::post;
-using std::experimental::package;
+using std::experimental::use_future;
 
 // Emulate std::async() when used with launch::async.
 template <class F, class... Args>
 auto async(F&& f, Args&&... args)
 {
   return post(
-    package(
+    use_future(
       std::bind(std::forward<F>(f),
         std::forward<Args>(args)...)));
 }

@@ -8,9 +8,9 @@ auto async_foo(bool fail, CompletionToken&& tok)
   std::experimental::async_completion<CompletionToken, void(std::error_code, int)> completion(tok);
 
   if (fail)
-    std::move(completion.handler)(make_error_code(std::errc::invalid_argument), 1);
+    std::move(completion.completion_handler)(make_error_code(std::errc::invalid_argument), 1);
   else
-    std::move(completion.handler)(std::error_code(), 1);
+    std::move(completion.completion_handler)(std::error_code(), 1);
 
   return completion.result.get();
 }

@@ -1,7 +1,7 @@
 //
-// promise_handler.h
-// ~~~~~~~~~~~~~~~~~
-// A function object adapter to allow a promise to be used in a callback.
+// use_future.h
+// ~~~~~~~~~~~~
+// A completion token used so that asynchronous operations return futures.
 //
 // Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
@@ -9,8 +9,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef EXECUTORS_EXPERIMENTAL_BITS_PROMISE_HANDLER_H
-#define EXECUTORS_EXPERIMENTAL_BITS_PROMISE_HANDLER_H
+#ifndef EXECUTORS_EXPERIMENTAL_BITS_USE_FUTURE_H
+#define EXECUTORS_EXPERIMENTAL_BITS_USE_FUTURE_H
 
 #include <exception>
 #include <memory>
@@ -37,7 +37,7 @@ struct __promise_invoker
   {
     try
     {
-      std::move(_M_func)();
+      _M_func();
     }
     catch (...)
     {
@@ -203,30 +203,97 @@ struct __promise_handler<exception_ptr, _Args...>
   }
 };
 
-template <class... _Args>
-class async_result<__promise_handler<_Args...>>
+template <class _Alloc, class _R, class... _Args>
+class async_result<use_future_t<_Alloc>, _R(_Args...)>
 {
 public:
-  typedef __promise_handler<_Args...> _Handler;
-  typedef decltype(*declval<_Handler>()._M_promise) _Promise;
-  typedef decltype(declval<_Promise>().get_future()) type;
+  typedef __promise_handler<_Args...> completion_handler_type;
+  typedef decltype(*declval<completion_handler_type>()._M_promise) _Promise;
+  typedef decltype(declval<_Promise>().get_future()) return_type;
 
-  async_result(_Handler& __h)
-    : _M_future(__h._M_promise->get_future()) {}
+  async_result(completion_handler_type& __h) : _M_future(__h._M_promise->get_future()) {}
   async_result(const async_result&) = delete;
   async_result& operator=(const async_result&) = delete;
 
-  type get() { return std::move(_M_future); }
+  return_type get() { return std::move(_M_future); }
 
 private:
-  type _M_future;
+  return_type _M_future;
 };
 
-template <class _Alloc, class _R, class... _Args>
-struct handler_type<use_future_t<_Alloc>, _R(_Args...)>
+template <class _Func, class _Alloc>
+struct __packaged_token
 {
-  typedef __promise_handler<_Args...> type;
+  _Func _M_func;
+  _Alloc _M_allocator;
 };
+
+template <class _Func, class _Alloc, class... _Args>
+struct __packaged_handler
+{
+  typedef promise<typename result_of<_Func(_Args...)>::type> _Promise;
+  typedef __promise_executor<_Promise> executor_type;
+  typedef _Alloc allocator_type;
+
+  shared_ptr<_Promise> _M_promise;
+  _Func _M_func;
+  _Alloc _M_allocator;
+
+  __packaged_handler(__packaged_token<_Func, _Alloc>&& __token)
+    : _M_promise(make_shared<_Promise>(allocator_arg, __token._M_allocator)),
+      _M_func(std::move(__token._M_func)),
+      _M_allocator(__token._M_allocator)
+  {
+  }
+
+  executor_type get_executor() const noexcept
+  {
+    return __promise_executor<_Promise>{_M_promise};
+  }
+
+  allocator_type get_allocator() const noexcept
+  {
+    return _M_allocator;
+  }
+
+  void operator()(_Args... __args)
+  {
+    try
+    {
+      _M_func(forward<_Args>(__args)...);
+    }
+    catch (...)
+    {
+      _M_promise->set_exception(current_exception());
+    }
+  }
+};
+
+template <class _Func, class _Alloc, class _R, class... _Args>
+class async_result<__packaged_token<_Func, _Alloc>, _R(_Args...)>
+{
+public:
+  typedef __packaged_handler<_Func, _Alloc, _Args...> completion_handler_type;
+  typedef decltype(*declval<completion_handler_type>()._M_promise) _Promise;
+  typedef decltype(declval<_Promise>().get_future()) return_type;
+
+  async_result(completion_handler_type& __h) : _M_future(__h._M_promise->get_future()) {}
+  async_result(const async_result&) = delete;
+  async_result& operator=(const async_result&) = delete;
+
+  return_type get() { return std::move(_M_future); }
+
+private:
+  return_type _M_future;
+};
+
+template <class _Alloc> template <class _F>
+inline __packaged_token<typename decay<_F>::type, _Alloc>
+use_future_t<_Alloc>::operator()(_F&& __f) const
+{
+  return __packaged_token<typename decay<_F>::type,
+    _Alloc>{std::forward<_F>(__f), _M_allocator};
+}
 
 } // inline namespace concurrency_v2
 } // namespace experimental

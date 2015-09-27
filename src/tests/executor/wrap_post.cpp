@@ -54,7 +54,7 @@ int main()
   std::this_thread::sleep_for(std::chrono::seconds(1));
   assert(handler_count == 7);
 
-  std::future<int> fut2 = std::experimental::post(std::experimental::bind_executor(ex, std::experimental::package(handler4)));
+  std::future<int> fut2 = std::experimental::post(std::experimental::bind_executor(ex, std::experimental::use_future(handler4)));
   try
   {
     fut2.get();

@@ -2,9 +2,9 @@
 #include <iostream>
 
 using std::experimental::dispatch;
-using std::experimental::package;
 using std::experimental::strand;
 using std::experimental::system_executor;
+using std::experimental::use_future;
 
 // Active object sharing a system-wide pool of threads.
 // Member functions block until operation is finished.
@@ -18,7 +18,7 @@ public:
   void deposit(int amount)
   {
     dispatch(strand_,
-      package([=]
+      use_future([=]
         {
           balance_ += amount;
         })).get();
@@ -27,7 +27,7 @@ public:
   void withdraw(int amount)
   {
     dispatch(strand_,
-      package([=]
+      use_future([=]
         {
           if (balance_ >= amount)
             balance_ -= amount;
@@ -37,7 +37,7 @@ public:
   int balance() const
   {
     return dispatch(strand_,
-      package([=]
+      use_future([=]
         {
           return balance_;
         })).get();

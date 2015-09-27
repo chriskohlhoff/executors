@@ -6,7 +6,7 @@ auto async_foo(CompletionToken&& tok)
 {
   std::experimental::async_completion<CompletionToken, void(int)> completion(tok);
 
-  std::move(completion.handler)(1);
+  std::move(completion.completion_handler)(1);
 
   return completion.result.get();
 }
