@@ -4,6 +4,7 @@ defer_at
 dispatch
 dispatch_after
 dispatch_at
+join
 post
 post_after
 post_at

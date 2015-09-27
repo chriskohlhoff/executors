@@ -15,12 +15,14 @@
 #include <experimental/bits/associated_allocator.h>
 #include <experimental/bits/associated_executor.h>
 #include <experimental/bits/executor_binder_base.h>
+#include <experimental/bits/scheduler.h>
 #include <future>
 #include <memory>
 #include <mutex>
 #include <scoped_allocator>
 #include <typeinfo>
 #include <utility>
+#include <vector>
 
 namespace std {
 namespace experimental {
@@ -357,6 +359,44 @@ template <class _T, class _ExecutionContext>
     make_work(const _T& __t, _ExecutionContext& __c,
       typename enable_if<is_convertible<_ExecutionContext&, execution_context&>::value>::type* = 0);
 
+// Class system_context implements the execution context associated with
+// system_executor objects.
+
+class system_context
+  : public execution_context,
+    private __scheduler
+{
+public:
+  // types:
+
+  typedef system_executor executor_type;
+
+  // construct / copy / destroy:
+
+  system_context() = delete;
+  system_context(const system_context&) = delete;
+  system_context& operator=(const system_context&) = delete;
+  ~system_context();
+
+  // system_context operations:
+
+  executor_type get_executor() noexcept;
+
+  void stop();
+  bool stopped() const noexcept;
+  void join();
+
+private:
+  friend class system_executor;
+  explicit system_context(int);
+  static system_context& _Instance();
+
+  vector<thread> _M_threads;
+#if defined(_MSC_VER)
+  std::weak_ptr<void> _M_token;
+#endif
+};
+
 // The system executor represents an execution context where functions are
 // permitted to run on arbitrary threads. The post() function schedules the
 // function to run on an unspecified system thread pool, and dispatch() invokes
@@ -369,7 +409,7 @@ public:
 
   // executor operations:
 
-  execution_context& context() noexcept;
+  system_context& context() noexcept;
 
   void on_work_started() noexcept;
   void on_work_finished() noexcept;

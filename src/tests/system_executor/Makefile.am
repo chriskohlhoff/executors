@@ -1,6 +1,7 @@
 noinst_PROGRAMS = \
 	defer \
 	dispatch \
+	join \
 	post \
 	wrap_defer \
 	wrap_dispatch \
@@ -9,6 +10,7 @@ noinst_PROGRAMS = \
 TESTS = \
 	defer \
 	dispatch \
+	join \
 	post \
 	wrap_defer \
 	wrap_dispatch \
@@ -18,6 +20,7 @@ AM_CXXFLAGS = -I$(srcdir)/../../../include
 
 defer_SOURCES = defer.cpp
 dispatch_SOURCES = dispatch.cpp
+join_SOURCES = join.cpp
 post_SOURCES = post.cpp
 wrap_defer_SOURCES = wrap_defer.cpp
 wrap_dispatch_SOURCES = wrap_dispatch.cpp
