@@ -1,8 +1,9 @@
+#include <atomic>
 #include <experimental/executor>
 #include <cassert>
 #include <string>
 
-int handler_count = 0;
+std::atomic<int> handler_count{0};
 
 void handler1()
 {
