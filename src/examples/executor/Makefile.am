@@ -3,6 +3,7 @@ noinst_PROGRAMS = \
 	async_1 \
 	async_op_1 \
 	async_op_2 \
+	async_op_3 \
 	bank_account_1 \
 	bank_account_2 \
 	bank_account_3 \
@@ -21,6 +22,7 @@ actor_SOURCES = actor.cpp
 async_1_SOURCES = async_1.cpp
 async_op_1_SOURCES = async_op_1.cpp
 async_op_2_SOURCES = async_op_2.cpp
+async_op_3_SOURCES = async_op_3.cpp
 bank_account_1_SOURCES = bank_account_1.cpp
 bank_account_2_SOURCES = bank_account_2.cpp
 bank_account_3_SOURCES = bank_account_3.cpp
