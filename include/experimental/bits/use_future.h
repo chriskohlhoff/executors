@@ -105,7 +105,7 @@ struct __value_pack
 
   static void _Apply(promise<_Type>& __p, _Args... __args)
   {
-    __p.set_value(std::make_tuple(forward<_Args>(__args)...));
+    __p.set_value(std::forward_as_tuple(std::forward<_Args>(__args)...));
   }
 };
 
