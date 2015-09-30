@@ -31,9 +31,17 @@ struct __is_executor : false_type {};
 template <class _T>
 struct __is_executor<_T,
   typename __is_executor_check<decltype(
-    declval<_T>().context(),
-    declval<_T>().on_work_started(),
-    declval<_T>().on_work_finished())>::_Type> : true_type {};
+    _T(declval<const _T&>()),
+    _T(declval<_T>()),
+    declval<const _T&>() == declval<const _T&>(),
+    declval<const _T&>() != declval<const _T&>(),
+    declval<_T&>().context(),
+    declval<_T&>().on_work_started(),
+    declval<_T&>().on_work_finished(),
+    declval<_T&>().dispatch(declval<void(*)()>(), declval<const allocator<void>&>()),
+    declval<_T&>().post(declval<void(*)()>(), declval<const allocator<void>&>()),
+    declval<_T&>().defer(declval<void(*)()>(), declval<const allocator<void>&>())
+  )>::_Type> : true_type {};
 
 template <class _T>
 struct is_executor : __is_executor<_T> {};
