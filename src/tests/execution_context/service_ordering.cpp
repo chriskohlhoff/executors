@@ -12,6 +12,8 @@ class service1
   : public std::experimental::execution_context::service
 {
 public:
+  typedef service1 key_type;
+
   service1(std::experimental::execution_context& ctx)
     : std::experimental::execution_context::service(ctx)
   {
@@ -51,6 +53,8 @@ class service2
   : public std::experimental::execution_context::service
 {
 public:
+  typedef service2 key_type;
+
   explicit service2(std::experimental::execution_context& ctx)
     : std::experimental::execution_context::service(ctx)
   {
@@ -90,6 +94,8 @@ class service3
   : public std::experimental::execution_context::service
 {
 public:
+  typedef service3 key_type;
+
   explicit service3(std::experimental::execution_context& ctx)
     : std::experimental::execution_context::service(ctx)
   {

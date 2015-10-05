@@ -69,6 +69,8 @@ class __strand_service
   : public execution_context::service
 {
 public:
+  typedef __strand_service key_type;
+
   __strand_service(execution_context& __c)
     : execution_context::service(__c), _M_first(nullptr)
   {

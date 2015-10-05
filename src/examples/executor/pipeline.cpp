@@ -23,6 +23,8 @@ private:
   class thread_bag : public execution_context::service
   {
   public:
+    typedef thread_bag key_type;
+
     explicit thread_bag(execution_context& ctx)
       : execution_context::service(ctx)
     {

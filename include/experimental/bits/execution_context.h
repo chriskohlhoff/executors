@@ -134,22 +134,6 @@ struct __service_void_type
   typedef void _Type;
 };
 
-template <class _Service, class = void>
-struct __service_key_type
-{
-  typedef _Service _Type;
-};
-
-template <class _Service>
-struct __service_key_type<_Service,
-  typename __service_void_type<typename _Service::key_type>::_Type>
-{
-  typedef typename _Service::key_type _Type;
-};
-
-template <class _Service>
-using __service_key = typename __service_key_type<_Service>::_Type;
-
 template <class _Service> _Service& use_service(execution_context& __c)
 {
   unique_lock<mutex> __lock(__c._M_mutex);
@@ -157,7 +141,7 @@ template <class _Service> _Service& use_service(execution_context& __c)
   __lock.unlock();
 
   // Check if service already exists.
-  const type_info* __id = &typeid(__service_key<_Service>);
+  const type_info* __id = &typeid(typename _Service::key_type);
   execution_context::service* __s = __first;
   while (__s)
   {
@@ -196,7 +180,7 @@ template <class _Service, class... _Args> _Service&
   __lock.unlock();
 
   // Check if service already exists.
-  const type_info* __id = &typeid(__service_key<_Service>);
+  const type_info* __id = &typeid(typename _Service::key_type);
   execution_context::service* __s = __first;
   while (__s)
   {
@@ -232,7 +216,7 @@ template <class _Service> bool has_service(execution_context& __c) noexcept
   execution_context::service* const __first = __c._M_first_service;
   __c._M_mutex.unlock();
 
-  const type_info* __id = &typeid(__service_key<_Service>);
+  const type_info* __id = &typeid(typename _Service::key_type);
   execution_context::service* __s = __first;
   while (__s)
   {
