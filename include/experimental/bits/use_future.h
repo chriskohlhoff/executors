@@ -95,9 +95,6 @@ struct __promise_executor
   }
 };
 
-template <class _Promise>
-struct is_executor<__promise_executor<_Promise>> : true_type {};
-
 template <class... _Args>
 struct __value_pack
 {
