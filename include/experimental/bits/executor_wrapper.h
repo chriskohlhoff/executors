@@ -50,21 +50,21 @@ inline executor_wrapper<_T, _Executor>::executor_wrapper(executor_arg_t,
 
 template <class _T, class _Executor> template <class _E, class _U>
 inline executor_wrapper<_T, _Executor>::executor_wrapper(int, _E&& __e, _U&& __u)
-  : executor_wrapper(forward<_E>(__e), forward<_U>(__u), uses_executor<_T, _Executor>())
+  : executor_wrapper(std::forward<_E>(__e), std::forward<_U>(__u), uses_executor<_T, _Executor>())
 {
 }
 
 template <class _T, class _Executor> template <class _E, class _U>
 inline executor_wrapper<_T, _Executor>::executor_wrapper(_E&& __e, _U&& __u, true_type)
-  : __executor_wrapper_base_executor<_Executor>(forward<_E>(__e)),
-    __executor_wrapper_base_wrapped<_T>(executor_arg, this->_M_executor, forward<_U>(__u))
+  : __executor_wrapper_base_executor<_Executor>(std::forward<_E>(__e)),
+    __executor_wrapper_base_wrapped<_T>(executor_arg, this->_M_executor, std::forward<_U>(__u))
 {
 }
 
 template <class _T, class _Executor> template <class _E, class _U>
 inline executor_wrapper<_T, _Executor>::executor_wrapper(_E&& __e, _U&& __u, false_type)
-  : __executor_wrapper_base_executor<_Executor>(forward<_E>(__e)),
-    __executor_wrapper_base_wrapped<_T>(forward<_U>(__u))
+  : __executor_wrapper_base_executor<_Executor>(std::forward<_E>(__e)),
+    __executor_wrapper_base_wrapped<_T>(std::forward<_U>(__u))
 {
 }
 
@@ -96,28 +96,28 @@ template <class _T, class _Executor> template <class... _Args>
 inline typename result_of<_T&(_Args&&...)>::type
 executor_wrapper<_T, _Executor>::operator()(_Args&&... __args) &
 {
-  return this->_M_wrapped(forward<_Args>(__args)...);
+  return this->_M_wrapped(std::forward<_Args>(__args)...);
 }
 
 template <class _T, class _Executor> template <class... _Args>
 inline typename result_of<const _T&(_Args&&...)>::type
 executor_wrapper<_T, _Executor>::operator()(_Args&&... __args) const &
 {
-  return this->_M_wrapped(forward<_Args>(__args)...);
+  return this->_M_wrapped(std::forward<_Args>(__args)...);
 }
 
 template <class _T, class _Executor> template <class... _Args>
 inline typename result_of<_T&&(_Args&&...)>::type
 executor_wrapper<_T, _Executor>::operator()(_Args&&... __args) &&
 {
-  return std::move(this->_M_wrapped)(forward<_Args>(__args)...);
+  return std::move(this->_M_wrapped)(std::forward<_Args>(__args)...);
 }
 
 template <class _T, class _Executor> template <class... _Args>
 inline typename result_of<const _T&&(_Args&&...)>::type
 executor_wrapper<_T, _Executor>::operator()(_Args&&... __args) const &&
 {
-  return std::move(this->_M_wrapped)(forward<_Args>(__args)...);
+  return std::move(this->_M_wrapped)(std::forward<_Args>(__args)...);
 }
 
 template <class _T, class _Executor, class _Signature>
@@ -179,7 +179,7 @@ struct continuation_of<executor_wrapper<_T, _Executor>(_Args...)>
   {
     return (wrap)(__f.get_executor(),
       _Wrapped_continuation_of::chain(std::move(__f.unwrap()),
-        forward<_C>(__c)));
+        std::forward<_C>(__c)));
   }
 };
 

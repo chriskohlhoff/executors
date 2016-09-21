@@ -23,7 +23,7 @@ struct __coinvoke_dispatch
   template <class _E, class _F, class _A>
   void operator()(_E& __e, _F&& __f, const _A& __a)
   {
-    __e.dispatch(forward<_F>(__f), __a);
+    __e.dispatch(std::forward<_F>(__f), __a);
   }
 };
 
@@ -45,7 +45,7 @@ struct __coinvoke_dispatch_ex
   template <class _E, class _F, class _A>
   void operator()(_E&, _F&& __f, const _A& __a)
   {
-    __e.dispatch(forward<_F>(__f), __a);
+    __e.dispatch(std::forward<_F>(__f), __a);
   }
 };
 

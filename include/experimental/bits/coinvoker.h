@@ -49,7 +49,7 @@ public:
   template <class... _Args> void _Set_value(_Args&&... __args)
   {
     assert(!_M_has_value);
-    new (&_M_value) _Result(forward<_Args>(__args)...);
+    new (&_M_value) _Result(std::forward<_Args>(__args)...);
     _M_has_value = true;
   }
 
@@ -95,7 +95,7 @@ public:
 
   template <size_t _Index, class... _Args> void _Set_result(_Args&&... __args)
   {
-    get<_Index>(_M_results)._Set_value(forward<_Args>(__args)...);
+    get<_Index>(_M_results)._Set_value(std::forward<_Args>(__args)...);
   }
 
   void _Complete()
@@ -162,7 +162,7 @@ public:
 
   template <class... _Args> void operator()(_Args&&... __args)
   {
-    _M_tail->template _Set_result<_Index>(forward<_Args>(__args)...);
+    _M_tail->template _Set_result<_Index>(std::forward<_Args>(__args)...);
     auto* __t = _M_tail;
     _M_tail = 0;
     __t->_Complete();
@@ -260,7 +260,7 @@ private:
   {
     _M_tail->_Prime();
     _M_tail.release();
-    (_Go_2)(__a, forward<_Invokers>(__i)...);
+    (_Go_2)(__a, std::forward<_Invokers>(__i)...);
   }
 
   template <class _Action> static void _Go_2(_Action&) {}
@@ -271,7 +271,7 @@ private:
     auto __executor(__i._Get_executor());
     auto __allocator(__i._Get_allocator());
     __a(__executor, std::move(__i), __allocator);
-    (_Go_2)(__a, forward<_Invokers>(__j)...);
+    (_Go_2)(__a, std::forward<_Invokers>(__j)...);
   }
 
   unique_ptr<__coinvoker_tail<tuple<_HeadTokens...>, tuple<_TailToken>>> _M_tail;

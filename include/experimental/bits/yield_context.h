@@ -101,7 +101,7 @@ struct __yield_context_result
   template <class... _Args>
   void _Set_value(_Args&&... __args)
   {
-    _M_value = std::make_tuple(forward<_Args>(__args)...);
+    _M_value = std::make_tuple(std::forward<_Args>(__args)...);
   }
 
   decltype(_Tuple_get(declval<tuple<_Values...>>())) _Get()
@@ -131,7 +131,7 @@ struct __yield_context_handler
 
   template <class... _Args> void operator()(_Args&&... __args)
   {
-    _M_result->_Set_value(forward<_Args>(__args)...);
+    _M_result->_Set_value(std::forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
     {
       typename __yield_context_callee::_Lock_guard __lock(*_M_callee);
@@ -168,7 +168,7 @@ struct __yield_context_handler<_Executor, error_code, _Values...>
       *_M_error_code = __e;
     else if (__e)
       _M_result->_M_exception = make_exception_ptr(system_error(__e));
-    _M_result->_Set_value(forward<_Args>(__args)...);
+    _M_result->_Set_value(std::forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
     {
       typename __yield_context_callee::_Lock_guard __lock(*_M_callee);
@@ -203,7 +203,7 @@ struct __yield_context_handler<_Executor, exception_ptr, _Values...>
   template <class... _Args> void operator()(const exception_ptr& __e, _Args&&... __args)
   {
     _M_result->_M_exception = __e;
-    _M_result->_Set_value(forward<_Args>(__args)...);
+    _M_result->_Set_value(std::forward<_Args>(__args)...);
     if (_M_result->_M_ready.test_and_set())
     {
       typename __yield_context_callee::_Lock_guard __lock(*_M_callee);
@@ -318,19 +318,19 @@ struct __yield_context_launcher
   executor_work<_Executor> _M_work;
 
   template <class _F> __yield_context_launcher(_F&& __f)
-    : _M_func(forward<_F>(__f)), _M_work(associated_executor<_Func>::get(_M_func))
+    : _M_func(std::forward<_F>(__f)), _M_work(associated_executor<_Func>::get(_M_func))
   {
   }
 
   template <class _F> __yield_context_launcher(
     executor_arg_t, const _Executor& __e, _F&& __f)
-      : _M_func(forward<_F>(__f)), _M_work(__e)
+      : _M_func(std::forward<_F>(__f)), _M_work(__e)
   {
   }
 
   template <class _F, class _C> __yield_context_launcher(
     true_type, const executor_work<_Executor>& __w, _F&& __f, _C&& __c)
-      : _M_func(forward<_F>(__f)), _M_continuation(forward<_C>(__c)), _M_work(__w)
+      : _M_func(std::forward<_F>(__f)), _M_continuation(std::forward<_C>(__c)), _M_work(__w)
   {
   }
 
@@ -345,7 +345,7 @@ struct __yield_context_launcher
 
     __yield_context_entry_point<_Executor, _Func, _Continuation, typename decay<_Args>::type...>
       __ep{std::move(_M_func), std::move(_M_continuation),
-        std::tie(forward<_Args>(__args)...), std::move(_M_work), __callee};
+        std::tie(std::forward<_Args>(__args)...), std::move(_M_work), __callee};
 
 #ifdef EXECUTORS_NO_BOOST
     assert(0 && "boost required to make use of yield_context");
@@ -393,7 +393,7 @@ struct continuation_of<__yield_context_launcher<_Executor, _Func>(_Args...)>
   {
     return __yield_context_launcher<_Executor, _Func,
       typename decay<_Continuation>::type>(true_type(), std::move(__f._M_work),
-        std::move(__f._M_func), forward<_Continuation>(__c));
+        std::move(__f._M_func), std::forward<_Continuation>(__c));
   }
 };
 

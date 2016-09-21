@@ -29,7 +29,7 @@ public:
   typedef executor_work<_Executor> _Work;
 
   template <class _H> explicit _Op(_H&& __h)
-    : _M_handler(forward<_H>(__h)),
+    : _M_handler(std::forward<_H>(__h)),
       _M_work(get_associated_executor(_M_handler))
   {
   }

@@ -173,8 +173,8 @@ struct continuation_of<_Func(_Args...)>
   >::type::signature signature;
 
   // If _Func and decay<_Func>::type are different types, returns
-  // continuation_of<typename decay<_Func>::type>::chain(forward<_F>(__f),
-  // forward<_Continuation>(__c)). Otherwise, returns a function object that,
+  // continuation_of<typename decay<_Func>::type>::chain(std::forward<_F>(__f),
+  // std::forward<_Continuation>(__c)). Otherwise, returns a function object that,
   // when invoked, calls a copy of __f, and then passes the result to a copy of
   // __c.
   template <class _F, class _Continuation>
@@ -182,7 +182,7 @@ struct continuation_of<_Func(_Args...)>
   {
     return continuation_of::_Chain(
       is_same<_Func, typename decay<_Func>::type>(),
-        forward<_F>(__f), forward<_Continuation>(__c));
+        std::forward<_F>(__f), std::forward<_Continuation>(__c));
   }
 
 private:
@@ -191,14 +191,14 @@ private:
   {
     return __chain<_Func, __signature_t<_Func>,
       typename decay<_Continuation>::type>(
-        forward<_F>(__f), forward<_Continuation>(__c));
+        std::forward<_F>(__f), std::forward<_Continuation>(__c));
   }
 
   template <class _F, class _Continuation>
   static auto _Chain(false_type, _F&& __f, _Continuation&& __c)
   {
     return continuation_of<typename decay<_Func>::type>::chain(
-      forward<_F>(__f), forward<_Continuation>(__c));
+      std::forward<_F>(__f), std::forward<_Continuation>(__c));
   }
 };
 

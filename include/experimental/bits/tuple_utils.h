@@ -41,42 +41,42 @@ template <class _Func, size_t... _I, class... _Values, class... _Args>
 inline auto _Tuple_invoke_impl(_Func&& __f, _Index_sequence<_I...>,
   tuple<_Values...>& __values, _Args&&... __args)
 {
-  return forward<_Func>(__f)(get<_I>(__values)..., forward<_Args>(__args)...);
+  return std::forward<_Func>(__f)(get<_I>(__values)..., std::forward<_Args>(__args)...);
 }
 
 template <class _Func, size_t... _I, class... _Values, class... _Args>
 inline auto _Tuple_invoke_impl(_Func&& __f, _Index_sequence<_I...>,
   tuple<_Values...>&& __values, _Args&&... __args)
 {
-  return forward<_Func>(__f)(std::move(get<_I>(__values))..., forward<_Args>(__args)...);
+  return std::forward<_Func>(__f)(std::move(get<_I>(__values))..., std::forward<_Args>(__args)...);
 }
 
 template <class _Func, class... _Values, class... _Args>
 inline auto _Tuple_invoke(_Func&& __f, tuple<_Values...>& __values, _Args&&... __args)
 {
-  return _Tuple_invoke_impl(forward<_Func>(__f),
+  return _Tuple_invoke_impl(std::forward<_Func>(__f),
     typename _Make_index_sequence<sizeof...(_Values)>::_Type(),
-      __values, forward<_Args>(__args)...);
+      __values, std::forward<_Args>(__args)...);
 }
 
 template <class _Func, class... _Values, class... _Args>
 inline auto _Tuple_invoke(_Func&& __f, tuple<_Values...>&& __values, _Args&&... __args)
 {
-  return _Tuple_invoke_impl(forward<_Func>(__f),
+  return _Tuple_invoke_impl(std::forward<_Func>(__f),
     typename _Make_index_sequence<sizeof...(_Values)>::_Type(),
-      std::move(__values), forward<_Args>(__args)...);
+      std::move(__values), std::forward<_Args>(__args)...);
 }
 
 template <class _Func, class... _Args>
 inline auto _Tuple_invoke(_Func&& __f, tuple<>&, _Args&&... __args)
 {
-  return forward<_Func>(__f)(forward<_Args>(__args)...);
+  return std::forward<_Func>(__f)(std::forward<_Args>(__args)...);
 }
 
 template <class _Func, class... _Args>
 inline auto _Tuple_invoke(_Func&& __f, tuple<>&&, _Args&&... __args)
 {
-  return forward<_Func>(__f)(forward<_Args>(__args)...);
+  return std::forward<_Func>(__f)(std::forward<_Args>(__args)...);
 }
 
 // _Make_tuple_invoker: Creates a function object to call a function using
@@ -98,14 +98,14 @@ template <class _Handler, class... _Values>
 inline auto _Make_tuple_invoker(_Handler&& __h, tuple<_Values...>&& __t)
 {
   return __tuple_invoker<typename decay<_Handler>::type, _Values...>{
-    forward<_Handler>(__h), std::move(__t)};
+    std::forward<_Handler>(__h), std::move(__t)};
 }
 
 template <class _Handler, class... _Values>
 inline auto _Make_tuple_invoker(_Handler&& __h, _Values&&... __v)
 {
   return __tuple_invoker<typename decay<_Handler>::type, typename decay<_Values>::type...>{
-    forward<_Handler>(__h), std::make_tuple(forward<_Values>(__v)...)};
+    std::forward<_Handler>(__h), std::make_tuple(std::forward<_Values>(__v)...)};
 }
 
 // __args_tuple: Determines tuple type corresponding to a signature's argument list.

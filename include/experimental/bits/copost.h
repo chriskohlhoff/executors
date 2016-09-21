@@ -23,7 +23,7 @@ struct __coinvoke_post
   template <class _E, class _F, class _A>
   void operator()(_E& __e, _F&& __f, const _A& __a)
   {
-    __e.post(forward<_F>(__f), __a);
+    __e.post(std::forward<_F>(__f), __a);
   }
 };
 
@@ -45,7 +45,7 @@ struct __coinvoke_post_ex
   template <class _E, class _F, class _A>
   void operator()(_E&, _F&& __f, const _A& __a)
   {
-    __e.post(forward<_F>(__f), __a);
+    __e.post(std::forward<_F>(__f), __a);
   }
 };
 

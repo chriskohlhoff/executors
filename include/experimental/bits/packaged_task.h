@@ -34,7 +34,7 @@ public:
 template <class _F, class _Alloc>
 inline packaged_token<typename decay<_F>::type, _Alloc> package(_F&& __f, const _Alloc& __a)
 {
-  return packaged_token<typename decay<_F>::type, _Alloc>(forward<_F>(__f), __a);
+  return packaged_token<typename decay<_F>::type, _Alloc>(std::forward<_F>(__f), __a);
 }
 
 template <class _R, class... _Args>

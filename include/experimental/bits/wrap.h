@@ -51,7 +51,7 @@ template <class _Executor, class _T>
 inline typename __wrap_with_executor<_Executor, _T>::_Result
   wrap(const _Executor& __e, _T&& __t)
 {
-  return executor_wrapper<typename decay<_T>::type, _Executor>(forward<_T>(__t), __e);
+  return executor_wrapper<typename decay<_T>::type, _Executor>(std::forward<_T>(__t), __e);
 }
 
 template <class _ExecutionContext, class _T>
@@ -59,7 +59,7 @@ inline typename __wrap_with_execution_context<_ExecutionContext, _T>::_Result
   wrap(_ExecutionContext& __c, _T&& __t)
 {
   return executor_wrapper<typename decay<_T>::type,
-    typename _ExecutionContext::executor_type>(forward<_T>(__t), __c.get_executor());
+    typename _ExecutionContext::executor_type>(std::forward<_T>(__t), __c.get_executor());
 }
 
 } // inline namespace concurrency_v1

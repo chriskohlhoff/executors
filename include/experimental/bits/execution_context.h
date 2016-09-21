@@ -207,7 +207,7 @@ template <class _Service, class... _Args> _Service&
 
   // Creation is performed without holding lock, to allow reentrancy.
   unique_ptr<execution_context::service> __new_s(
-    new _Service(__c, forward<_Args>(__args)...));
+    new _Service(__c, std::forward<_Args>(__args)...));
   __new_s->_M_id = __id;
 
   // Check if a duplicate was created while lock was not held.

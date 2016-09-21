@@ -259,7 +259,7 @@ __small_block_ptr<_Allocator, _T> _Allocate_small_block(const _Allocator& __allo
   _T* __raw_p = __rebound_alloc.allocate(1);
   try
   {
-    _T* __p =  new (__raw_p) _T(forward<_Args>(__args)...);
+    _T* __p =  new (__raw_p) _T(std::forward<_Args>(__args)...);
     return __small_block_ptr<_Allocator, _T>(__p, __small_block_delete<_Allocator, _T>(__rebound_alloc));
   }
   catch (...)
