@@ -36,7 +36,7 @@ class __wait_op
 {
 public:
   template <class _F> explicit __wait_op(_F&& __f)
-    : _M_func(forward<_F>(__f)), _M_work(get_associated_executor(_M_func))
+    : _M_func(std::forward<_F>(__f)), _M_work(get_associated_executor(_M_func))
   {
   }
 

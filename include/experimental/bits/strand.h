@@ -245,7 +245,7 @@ public:
   __strand_op& operator=(const __strand_op&) = delete;
 
   template <class _F> __strand_op(_F&& __f, const _Alloc& __a)
-    : _M_func(forward<_F>(__f)), _M_alloc(__a)
+    : _M_func(std::forward<_F>(__f)), _M_alloc(__a)
   {
   }
 
@@ -325,12 +325,12 @@ void strand<_Executor>::dispatch(_Func&& __f, const _Alloc& __a)
   typedef typename decay<_Func>::type _DecayFunc;
   if (__call_stack<__strand_impl>::_Contains(_M_impl.get()))
   {
-    _DecayFunc(forward<_Func>(__f))();
+    _DecayFunc(std::forward<_Func>(__f))();
     return;
   }
 
   typedef typename decay<_Func>::type _DecayFunc;
-  auto __op(_Allocate_small_block<__strand_op<_DecayFunc, _Alloc>>(__a, forward<_Func>(__f), __a));
+  auto __op(_Allocate_small_block<__strand_op<_DecayFunc, _Alloc>>(__a, std::forward<_Func>(__f), __a));
 
   {
     __strand_impl::_Lock_guard __lock(*_M_impl);
@@ -355,7 +355,7 @@ template <class _Executor> template <class _Func, class _Alloc>
 void strand<_Executor>::post(_Func&& __f, const _Alloc& __a)
 {
   typedef typename decay<_Func>::type _DecayFunc;
-  auto __op(_Allocate_small_block<__strand_op<_DecayFunc, _Alloc>>(__a, forward<_Func>(__f), __a));
+  auto __op(_Allocate_small_block<__strand_op<_DecayFunc, _Alloc>>(__a, std::forward<_Func>(__f), __a));
 
   {
     __strand_impl::_Lock_guard __lock(*_M_impl);
@@ -380,7 +380,7 @@ template <class _Executor> template <class _Func, class _Alloc>
 inline void strand<_Executor>::defer(_Func&& __f, const _Alloc& __a)
 {
   typedef typename decay<_Func>::type _DecayFunc;
-  auto __op(_Allocate_small_block<__strand_op<_DecayFunc, _Alloc>>(__a, forward<_Func>(__f), __a));
+  auto __op(_Allocate_small_block<__strand_op<_DecayFunc, _Alloc>>(__a, std::forward<_Func>(__f), __a));
 
   {
     __strand_impl::_Lock_guard __lock(*_M_impl);
@@ -415,7 +415,7 @@ inline bool operator!=(const strand<_Executor>& __a, const strand<_Executor>& __
 
 template <class _T> inline auto make_strand(_T&& __t)
 {
-  return strand<typename decay<_T>::type>(forward<_T>(__t));
+  return strand<typename decay<_T>::type>(std::forward<_T>(__t));
 }
 
 } // inline namespace concurrency_v1

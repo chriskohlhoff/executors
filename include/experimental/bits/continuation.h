@@ -71,13 +71,13 @@ public:
     "continuation's continuation must accept specified return value");
 
   template <class _T> explicit __continuation_impl(_T&& __t)
-    : _M_continuation(forward<_T>(__t)), _M_executor(associated_executor<_Continuation>::get(_M_continuation))
+    : _M_continuation(std::forward<_T>(__t)), _M_executor(associated_executor<_Continuation>::get(_M_continuation))
   {
   }
 
   virtual void _Call(_Args... __args)
   {
-    std::move(_M_continuation)(forward<_Args>(__args)...);
+    std::move(_M_continuation)(std::forward<_Args>(__args)...);
   }
 
   virtual void _Call_with_continuation(_Args... __args,
@@ -85,7 +85,7 @@ public:
   {
     continuation_of<_Continuation(_Args...)>::chain(
       std::move(_M_continuation), std::move(__c))(
-        forward<_Args>(__args)...);
+        std::forward<_Args>(__args)...);
   }
 
   virtual const type_info& _Target_type()
@@ -201,7 +201,7 @@ inline void continuation<_R(_Args...)>::operator()(_Args... __args)
 {
   if (!_M_impl)
     throw bad_continuation();
-  _M_impl->_Call(forward<_Args>(__args)...);
+  _M_impl->_Call(std::forward<_Args>(__args)...);
 }
 
 template <class _R, class... _Args>
@@ -230,7 +230,7 @@ struct __continuation_chain
 
   void operator()(_Args... __args)
   {
-    _M_head._M_impl->_Call_with_continuation(forward<_Args>(__args)..., std::move(_M_tail));
+    _M_head._M_impl->_Call_with_continuation(std::forward<_Args>(__args)..., std::move(_M_tail));
   }
 };
 
@@ -242,7 +242,7 @@ struct continuation_of<continuation<_R(_Args...)>(_Args2...)>
   template <class _C>
   static auto chain(continuation<_R(_Args...)>&& __f, _C&& __c)
   {
-    return __continuation_chain<_R, _Args...>{std::move(__f), forward<_C>(__c)};
+    return __continuation_chain<_R, _Args...>{std::move(__f), std::forward<_C>(__c)};
   }
 };
 
@@ -437,18 +437,18 @@ struct __continuation_launcher
   continuation<_Signature> _M_continuation;
 
   template <class _F> explicit __continuation_launcher(_F&& __f)
-    : _M_func(forward<_F>(__f))
+    : _M_func(std::forward<_F>(__f))
   {
   }
 
   template <class _F, class _C> __continuation_launcher(_F&& __f, _C&& __c)
-    : _M_func(forward<_F>(__f)), _M_continuation(forward<_C>(__c))
+    : _M_func(std::forward<_F>(__f)), _M_continuation(std::forward<_C>(__c))
   {
   }
 
   template <class... _Args> void operator()(_Args&&... __args)
   {
-    std::move(_M_func)(forward<_Args>(__args)..., std::move(_M_continuation));
+    std::move(_M_func)(std::forward<_Args>(__args)..., std::move(_M_continuation));
   }
 };
 
@@ -461,7 +461,7 @@ struct continuation_of<__continuation_launcher<_Func, _Signature>(_Args...)>
   static auto chain(__continuation_launcher<_Func, _Signature>&& __f, _Continuation&& __c)
   {
     return __continuation_launcher<_Func, _Signature>(
-      std::move(__f._M_func), forward<_Continuation>(__c));
+      std::move(__f._M_func), std::forward<_Continuation>(__c));
   }
 };
 

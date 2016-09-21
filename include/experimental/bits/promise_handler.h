@@ -31,7 +31,7 @@ struct __promise_invoker
 
   template <class _F>
   __promise_invoker(const shared_ptr<_Promise>& __p, _F&& __f)
-    : _M_promise(__p), _M_func(forward<_F>(__f)) {}
+    : _M_promise(__p), _M_func(std::forward<_F>(__f)) {}
 
   void operator()()
   {
@@ -67,21 +67,21 @@ struct __promise_executor
   template <class _F, class _A> void dispatch(_F&& __f, const _A&)
   {
     typedef typename decay<_F>::type _Func;
-    __promise_invoker<_Func, _Promise>(_M_promise, forward<_F>(__f))();
+    __promise_invoker<_Func, _Promise>(_M_promise, std::forward<_F>(__f))();
   }
 
   template <class _F, class _A> void post(_F&& __f, const _A& __a)
   {
     typedef typename decay<_F>::type _Func;
     system_executor().post(
-      __promise_invoker<_Func, _Promise>(_M_promise, forward<_F>(__f)), __a);
+      __promise_invoker<_Func, _Promise>(_M_promise, std::forward<_F>(__f)), __a);
   }
 
   template <class _F, class _A> void defer(_F&& __f, const _A& __a)
   {
     typedef typename decay<_F>::type _Func;
     system_executor().defer(
-      __promise_invoker<_Func, _Promise>(_M_promise, forward<_F>(__f)), __a);
+      __promise_invoker<_Func, _Promise>(_M_promise, std::forward<_F>(__f)), __a);
   }
 
   friend bool operator==(const __promise_executor& __a, const __promise_executor& __b) noexcept
@@ -105,7 +105,7 @@ struct __value_pack
 
   static void _Apply(promise<_Type>& __p, _Args... __args)
   {
-    __p.set_value(std::make_tuple(forward<_Args>(__args)...));
+    __p.set_value(std::make_tuple(std::forward<_Args>(__args)...));
   }
 };
 
@@ -116,7 +116,7 @@ struct __value_pack<_Arg>
 
   static void _Apply(promise<_Type>& __p, _Arg __arg)
   {
-    __p.set_value(forward<_Arg>(__arg));
+    __p.set_value(std::forward<_Arg>(__arg));
   }
 };
 
@@ -149,7 +149,7 @@ struct __promise_handler
 
   void operator()(_Args... __args)
   {
-    __value_pack<_Args...>::_Apply(*_M_promise, forward<_Args>(__args)...);
+    __value_pack<_Args...>::_Apply(*_M_promise, std::forward<_Args>(__args)...);
   }
 };
 
@@ -174,7 +174,7 @@ struct __promise_handler<error_code, _Args...>
     if (__e)
       _M_promise->set_exception(make_exception_ptr(system_error(__e)));
     else
-      __value_pack<_Args...>::_Apply(*_M_promise, forward<_Args>(__args)...);
+      __value_pack<_Args...>::_Apply(*_M_promise, std::forward<_Args>(__args)...);
   }
 };
 
@@ -199,7 +199,7 @@ struct __promise_handler<exception_ptr, _Args...>
     if (__e)
       _M_promise->set_exception(__e);
     else
-      __value_pack<_Args...>::_Apply(*_M_promise, forward<_Args>(__args)...);
+      __value_pack<_Args...>::_Apply(*_M_promise, std::forward<_Args>(__args)...);
   }
 };
 

@@ -232,25 +232,25 @@ class __chain<_Func, _FuncResult(_FuncArgs...), _Continuation>
 {
 public:
   template <class _F, class _C> __chain(_F&& __f, _C&& __c)
-    : _M_func(forward<_F>(__f)), _M_continuation(forward<_C>(__c))
+    : _M_func(std::forward<_F>(__f)), _M_continuation(std::forward<_C>(__c))
   {
   }
 
   void operator()(_FuncArgs... __args)
   {
-    this->_Invoke(is_same<void, _FuncResult>(), forward<_FuncArgs>(__args)...);
+    this->_Invoke(is_same<void, _FuncResult>(), std::forward<_FuncArgs>(__args)...);
   }
 
 private:
   void _Invoke(true_type, _FuncArgs... __args)
   {
-    std::move(_M_func)(forward<_FuncArgs>(__args)...);
+    std::move(_M_func)(std::forward<_FuncArgs>(__args)...);
     std::move(_M_continuation)();
   }
 
   void _Invoke(false_type, _FuncArgs... __args)
   {
-    std::move(_M_continuation)(std::move(_M_func)(forward<_FuncArgs>(__args)...));
+    std::move(_M_continuation)(std::move(_M_func)(std::forward<_FuncArgs>(__args)...));
   }
 
   _Func _M_func;

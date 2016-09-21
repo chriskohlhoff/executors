@@ -23,7 +23,7 @@ class __executor_wrapper_base_executor
 {
 protected:
   template <class... _Args> explicit __executor_wrapper_base_executor(_Args&&... __args)
-    : _M_executor(forward<_Args>(__args)...)
+    : _M_executor(std::forward<_Args>(__args)...)
   {
   }
 
@@ -35,7 +35,7 @@ class __executor_wrapper_base_wrapped
 {
 protected:
   template <class... _Args> explicit __executor_wrapper_base_wrapped(_Args&&... __args)
-    : _M_wrapped(forward<_Args>(__args)...)
+    : _M_wrapped(std::forward<_Args>(__args)...)
   {
   }
 

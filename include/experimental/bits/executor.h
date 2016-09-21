@@ -36,7 +36,7 @@ class __function
 {
 public:
   template <class _F> __function(_F&& __f, const _Alloc& __a)
-    : _M_func(forward<_F>(__f)), _M_alloc(__a)
+    : _M_func(std::forward<_F>(__f)), _M_alloc(__a)
   {
   }
 
@@ -427,7 +427,7 @@ template <class _Executor>
 inline executor& executor::operator=(_Executor __e)
 {
   __executor_impl_base* __tmp = _M_impl;
-  _M_impl = __executor_impl<typename decay<_Executor>::type>::_Create(forward<_Executor>(__e));
+  _M_impl = __executor_impl<typename decay<_Executor>::type>::_Create(std::forward<_Executor>(__e));
   __tmp->_Destroy();
   return *this;
 }
@@ -451,21 +451,21 @@ template <class _Func, class _Alloc>
 void executor::dispatch(_Func&& __f, const _Alloc& __a)
 {
   if (static_cast<void*>(_M_impl) == static_cast<void*>(__executor_impl<system_executor>::_Create()))
-    system_executor().dispatch(forward<_Func>(__f), __a);
+    system_executor().dispatch(std::forward<_Func>(__f), __a);
   else
-    _M_impl->_Dispatch(__function_ptr(forward<_Func>(__f), __a));
+    _M_impl->_Dispatch(__function_ptr(std::forward<_Func>(__f), __a));
 }
 
 template <class _Func, class _Alloc>
 inline void executor::post(_Func&& __f, const _Alloc& __a)
 {
-  _M_impl->_Post(__function_ptr(forward<_Func>(__f), __a));
+  _M_impl->_Post(__function_ptr(std::forward<_Func>(__f), __a));
 }
 
 template <class _Func, class _Alloc>
 inline void executor::defer(_Func&& __f, const _Alloc& __a)
 {
-  _M_impl->_Defer(__function_ptr(forward<_Func>(__f), __a));
+  _M_impl->_Defer(__function_ptr(std::forward<_Func>(__f), __a));
 }
 
 inline executor::operator bool() const noexcept

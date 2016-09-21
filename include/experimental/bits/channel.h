@@ -34,7 +34,7 @@ public:
 
   template <class _U> void _Set_value(_U&& __u)
   {
-    new (&_M_value) value_type(forward<_U>(__u));
+    new (&_M_value) value_type(std::forward<_U>(__u));
     _M_has_value = true;
   }
 
@@ -44,7 +44,7 @@ protected:
   template <class _U>
   _Op(_U&& __u)
   {
-    this->_Set_value(forward<_U>(__u));
+    this->_Set_value(std::forward<_U>(__u));
   }
 
   ~_Op()
@@ -66,7 +66,7 @@ class channel<_T, _Cont>::_PutOp
 {
 public:
   template <class _U, class _H> explicit _PutOp(_U&& __u, _H&& __h)
-    : _Op(forward<_U>(__u)), _M_handler(forward<_H>(__h)),
+    : _Op(std::forward<_U>(__u)), _M_handler(std::forward<_H>(__h)),
       _M_work(get_associated_executor(_M_handler))
   {
   }
@@ -107,7 +107,7 @@ class channel<_T, _Cont>::_GetOp
 {
 public:
   template <class _H> explicit _GetOp(_H&& __h)
-    : _M_handler(forward<_H>(__h)), _M_work(get_associated_executor(_M_handler))
+    : _M_handler(std::forward<_H>(__h)), _M_work(get_associated_executor(_M_handler))
   {
   }
 
@@ -231,7 +231,7 @@ template <class _T, class _Cont> template <class _U>
 void channel<_T, _Cont>::put(_U&& __u)
 {
   error_code __ec;
-  this->put(forward<_U>(__u), __ec);
+  this->put(std::forward<_U>(__u), __ec);
   if (__ec)
     throw system_error(__ec);
 }
@@ -248,7 +248,7 @@ void channel<_T, _Cont>::put(_U&& __u, error_code& __ec)
     }
   case __channel_state::buffer:
     {
-      _M_buffer.push_back(forward<_U>(__u));
+      _M_buffer.push_back(std::forward<_U>(__u));
       _M_get_state = __channel_state::buffer;
       if (_M_buffer.size() == _Capacity())
         _M_put_state = __channel_state::block;
@@ -258,7 +258,7 @@ void channel<_T, _Cont>::put(_U&& __u, error_code& __ec)
   case __channel_state::waiter:
     {
       _Op* __getter = static_cast<_Op*>(_M_waiters._Front());
-      __getter->_Set_value(forward<_U>(__u));
+      __getter->_Set_value(std::forward<_U>(__u));
       _M_waiters._Pop();
       if (_M_waiters._Empty())
         _M_put_state = _Capacity() ? __channel_state::buffer : __channel_state::block;
@@ -283,7 +283,7 @@ auto channel<_T, _Cont>::put(_U&& __u, _CompletionToken&& __token)
 
   auto __allocator(get_associated_allocator(__completion.handler));
   auto __op(_Allocate_small_block<_PutOp<_Handler>>(__allocator,
-    forward<_U>(__u), std::move(__completion.handler)));
+    std::forward<_U>(__u), std::move(__completion.handler)));
 
   _Start_put(__op.get());
   __op.release();

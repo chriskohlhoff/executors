@@ -46,7 +46,7 @@ public:
   {
     auto __ex(_M_work.get_executor());
     auto __alloc(associated_allocator<_Passive>::get(_M_passive));
-    __ex.dispatch(_Make_tuple_invoker(std::move(_M_passive), forward<_Args>(__args)...), __alloc);
+    __ex.dispatch(_Make_tuple_invoker(std::move(_M_passive), std::forward<_Args>(__args)...), __alloc);
   }
 
   _Passive& _Get_passive() noexcept
@@ -62,7 +62,7 @@ public:
   template <class _C> auto _Chain(_C&& __c)
   {
     return __active_invoker<_Result(_Args...), _CompletionTokens..., _C>(
-      _M_passive._Chain(forward<_C>(__c)), std::move(_M_work));
+      _M_passive._Chain(std::forward<_C>(__c)), std::move(_M_work));
   }
 
   template <class _R, class... _A, class... _T>
@@ -130,7 +130,7 @@ public:
 
   void operator()(_Args... __args)
   {
-    std::move(_M_handler)(forward<_Args>(__args)...);
+    std::move(_M_handler)(std::forward<_Args>(__args)...);
   }
 
   _Handler& _Get_handler() noexcept
@@ -217,7 +217,7 @@ public:
 
   void operator()(_Args... __args)
   {
-    continuation_of<_Handler(_Args...)>::chain(std::move(_M_handler), std::move(_M_tail))(forward<_Args>(__args)...);
+    continuation_of<_Handler(_Args...)>::chain(std::move(_M_handler), std::move(_M_tail))(std::forward<_Args>(__args)...);
   }
 
   const _Handler& _Get_handler() const noexcept
@@ -238,7 +238,7 @@ public:
   template <class _C> auto _Chain(_C&& __c)
   {
     return __passive_invoker<_Result(_Args...), _HeadToken, _TailTokens..., _C>(
-      std::move(_M_handler), _M_tail._Chain(forward<_C>(__c)));
+      std::move(_M_handler), _M_tail._Chain(std::forward<_C>(__c)));
   }
 
   template <class _R, class... _A, class... _T>
@@ -300,7 +300,7 @@ struct continuation_of<__active_invoker<_Result(_Args...), _CompletionTokens...>
   template <class _C>
   static auto chain(__active_invoker<_Result(_Args...), _CompletionTokens...>&& __f, _C&& __c)
   {
-    return __f._Chain(forward<_C>(__c));
+    return __f._Chain(std::forward<_C>(__c));
   }
 };
 

@@ -182,8 +182,8 @@ class __await_context_impl
 public:
   template <class _F, class _C, class... _A>
   __await_context_impl(const executor_work<_Executor>& __w, _F&& __f, _C&& __c, _A&&... __args)
-    : _M_work(__w), _M_function(forward<_F>(__f)), _M_invocations(0),
-      _M_continuation(forward<_C>(__c)), _M_args(forward<_A>(__args)...)
+    : _M_work(__w), _M_function(std::forward<_F>(__f)), _M_invocations(0),
+      _M_continuation(std::forward<_C>(__c)), _M_args(std::forward<_A>(__args)...)
   {
   }
 
@@ -242,7 +242,7 @@ struct __await_context_result
   template <class... _Args>
   static void _Set_value(void* __r, _Args&&... __args)
   {
-    *static_cast<_Type*>(__r) = _Tuple_get(std::make_tuple(forward<_Args>(__args)...));
+    *static_cast<_Type*>(__r) = _Tuple_get(std::make_tuple(std::forward<_Args>(__args)...));
   }
 };
 
@@ -274,7 +274,7 @@ struct __await_context_handler
 
   template <class... _Args> void operator()(_Args&&... __args)
   {
-    _Result::_Set_value(_M_impl->_M_result_value, forward<_Args>(__args)...);
+    _Result::_Set_value(_M_impl->_M_result_value, std::forward<_Args>(__args)...);
     _M_impl->_Resume();
   }
 
@@ -304,7 +304,7 @@ struct __await_context_handler<_Executor, error_code, _Values...>
       *_M_impl->_M_result_ec = __e;
     else if (__e)
       _M_impl->_M_ex = make_exception_ptr(system_error(__e));
-    _Result::_Set_value(_M_impl->_M_result_value, forward<_Args>(__args)...);
+    _Result::_Set_value(_M_impl->_M_result_value, std::forward<_Args>(__args)...);
     _M_impl->_Resume();
   }
 
@@ -332,7 +332,7 @@ struct __await_context_handler<_Executor, exception_ptr, _Values...>
   {
     if (__e)
       _M_impl->_M_ex = make_exception_ptr(__e);
-    _Result::_Set_value(_M_impl->_M_result_value, forward<_Args>(__args)...);
+    _Result::_Set_value(_M_impl->_M_result_value, std::forward<_Args>(__args)...);
     _M_impl->_Resume();
   }
 
@@ -382,19 +382,19 @@ struct __await_context_launcher
   _Continuation _M_continuation;
 
   template <class _F> __await_context_launcher(_F&& __f)
-    : _M_work(associated_executor<_Func>::get(__f)), _M_func(forward<_F>(__f))
+    : _M_work(associated_executor<_Func>::get(__f)), _M_func(std::forward<_F>(__f))
   {
   }
 
   template <class _F> __await_context_launcher(
     executor_arg_t, const _Executor& __e, _F&& __f)
-      : _M_work(__e), _M_func(forward<_F>(__f))
+      : _M_work(__e), _M_func(std::forward<_F>(__f))
   {
   }
 
   template <class _F, class _C> __await_context_launcher(
     true_type, const executor_work<_Executor>& __w, _F&& __f, _C&& __c)
-      : _M_work(__w), _M_func(forward<_F>(__f)), _M_continuation(forward<_C>(__c))
+      : _M_work(__w), _M_func(std::forward<_F>(__f)), _M_continuation(std::forward<_C>(__c))
   {
   }
 
@@ -407,7 +407,7 @@ struct __await_context_launcher
   {
     auto __impl = make_shared<__await_context_impl<
       _Executor, _Func, _Continuation, typename decay<_Args>::type...>>(_M_work,
-        std::move(_M_func), std::move(_M_continuation), forward<_Args>(__args)...);
+        std::move(_M_func), std::move(_M_continuation), std::forward<_Args>(__args)...);
     __impl->_Resume();
   }
 };
@@ -447,7 +447,7 @@ struct continuation_of<__await_context_launcher<_Executor, _Func>(_Args...)>
   {
     return __await_context_launcher<_Executor, _Func,
       typename decay<_Continuation>::type>(true_type(), std::move(__f._M_work),
-        std::move(__f._M_func), forward<_Continuation>(__c));
+        std::move(__f._M_func), std::forward<_Continuation>(__c));
   }
 };
 

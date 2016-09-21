@@ -66,19 +66,19 @@ struct __exception_ptr_executor
   template <class _F, class _A> void dispatch(_F&& __f, const _A& __a)
   {
     typedef typename decay<_F>::type _Func;
-    _M_executor.dispatch(__exception_ptr_call_wrapper<_Func>{_M_exception, forward<_F>(__f)}, __a);
+    _M_executor.dispatch(__exception_ptr_call_wrapper<_Func>{_M_exception, std::forward<_F>(__f)}, __a);
   }
 
   template <class _F, class _A> void post(_F&& __f, const _A& __a)
   {
     typedef typename decay<_F>::type _Func;
-    _M_executor.post(__exception_ptr_call_wrapper<_Func>{_M_exception, forward<_F>(__f)}, __a);
+    _M_executor.post(__exception_ptr_call_wrapper<_Func>{_M_exception, std::forward<_F>(__f)}, __a);
   }
 
   template <class _F, class _A> void defer(_F&& __f, const _A& __a)
   {
     typedef typename decay<_F>::type _Func;
-    _M_executor.defer(__exception_ptr_call_wrapper<_Func>{_M_exception, forward<_F>(__f)}, __a);
+    _M_executor.defer(__exception_ptr_call_wrapper<_Func>{_M_exception, std::forward<_F>(__f)}, __a);
   }
 
   friend bool operator==(const __exception_ptr_executor& __a, const __exception_ptr_executor& __b) noexcept
